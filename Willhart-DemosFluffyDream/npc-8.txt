@@ -1,2 +1,0 @@
-nogravity=0
-noblockcollision=0

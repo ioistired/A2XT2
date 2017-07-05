@@ -1,8 +1,0 @@
-gfxwidth= 320
-gfxheight= 399
-width= 32
-height= 64
-gfxoffsetx= 1
-frames= 1
-framestyle= 1
-speed= 3

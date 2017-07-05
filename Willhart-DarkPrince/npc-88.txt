@@ -1,6 +1,0 @@
-width=224
-height=32
-gfxoffsety=640
-gfxwidth=224
-gfxheight=1120
-frames=1

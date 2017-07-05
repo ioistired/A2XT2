@@ -1,9 +1,3 @@
-LEVEL:Willhart-WelcomingSeason
-	Name=Welcoming Season
-	Author=Willhart
-	Type=LEVEL
-	Exit=LEEK
-	Raocoins=true
 LEVEL:Mata Hari - Totally Trollied
 	Name=Totally Trollied
 	Author=Mata Hari
@@ -31,13 +25,6 @@ LEVEL:Imaynotbehere4long-ADayintheLifeofraocow
 	Chars=R
 	FilterPowers
 	FilterMounts
-LEVEL:Willhart-JumpingCastle
-	Name=Jumping Castle
-	Author=Willhart
-	Type=LEVEL
-	Exit=LEEK
-	Raocoins=true
-	Chars=R
 LEVEL:Tacoradical-Let's go Backwards
 	Name=Let's go Backwards
 	Author=TacoRadical
