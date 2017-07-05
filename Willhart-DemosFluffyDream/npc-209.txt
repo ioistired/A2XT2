@@ -1,0 +1,15 @@
+frames=7
+Framestyle=1
+gfxwidth=63
+gfxheight=550
+width=63
+height=550
+nogravity=1
+noblockcollision= 1
+npcblock=0
+npcblocktop=0
+foreground=0
+playerblock=0
+playerblocktop=0 
+nohurt=1
+framespeed=9

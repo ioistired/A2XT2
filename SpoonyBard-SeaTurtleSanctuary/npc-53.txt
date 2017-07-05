@@ -1,0 +1,6 @@
+width=32
+height=40
+frames=4
+framestyle=1
+framespeed=4
+jumphurt=0

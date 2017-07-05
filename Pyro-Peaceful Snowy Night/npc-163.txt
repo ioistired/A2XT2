@@ -1,0 +1,6 @@
+gfxwidth=64
+gfxheight=32
+jumphurt=0
+speed=3
+noyoshi=1
+nohammer=1

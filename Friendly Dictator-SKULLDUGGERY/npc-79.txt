@@ -1,0 +1,4 @@
+npcblock=1
+npcblocktop=1
+jumphurt=1
+nogravity=1

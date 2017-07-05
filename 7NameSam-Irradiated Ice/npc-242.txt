@@ -1,0 +1,7 @@
+gfxoffsety=0
+framestyle=2
+framespeed=8
+frames=2
+playerblocktop=1
+npcblocktop=1
+speed=2

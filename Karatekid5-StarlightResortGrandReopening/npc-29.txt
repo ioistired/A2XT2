@@ -1,0 +1,6 @@
+width=46
+height=52
+gfxwidth=46
+gfxheight=52
+speed=0.75
+nofireball=1

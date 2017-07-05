@@ -1,0 +1,6 @@
+frames=6
+framestyle=0
+image=""
+script=""
+gridoffsetx=3145785
+gridalign=6881350

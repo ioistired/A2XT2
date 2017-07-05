@@ -1,0 +1,2 @@
+foreground=1
+noblockcollision=1

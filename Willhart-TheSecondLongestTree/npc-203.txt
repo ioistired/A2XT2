@@ -1,0 +1,14 @@
+playerblock= 0
+playerblocktop= 0
+npcblock= 0
+npcblocktop= 0
+noblockcollision= 1
+nogravity= 1
+foreground= 0
+width= 1024
+height= 1024
+jumphurt= 1
+gfxoffsety= 0
+speed=0
+frames=1
+framestyle=0

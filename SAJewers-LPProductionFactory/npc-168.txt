@@ -1,0 +1,3 @@
+noblockcollision=0
+nogravity=1
+speed=2

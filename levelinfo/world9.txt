@@ -1,0 +1,8 @@
+LEVEL:Hoeloe-The Descent of Nine
+	Name=The Descent of Nine
+	Author=Hoeloe
+	Type=LEVEL
+	Exit=LEEK
+	Secret=KEY
+	Raocoins=true
+	Chars=DIR

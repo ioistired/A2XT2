@@ -1,0 +1,14 @@
+height=16
+width=128
+playerblock=1
+playerblocktop=1
+npcblocktop=1
+nohurt=1
+noyoshi=1
+nofireball=1
+noiceball=1
+nogravity=1
+frames=1
+framestyle=0
+foreground=1
+speed=1.5

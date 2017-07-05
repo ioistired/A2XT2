@@ -1,0 +1,8 @@
+gfxwidth= 320
+gfxheight= 399
+width= 170
+height= 367
+gfxoffsetx= 16
+frames= 1
+gfxoffsety= 0
+nohurt=1

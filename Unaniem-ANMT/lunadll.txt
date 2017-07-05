@@ -1,0 +1,50 @@
+#1
+OnCustomCheat,0,0,0,1000,0,music
+
+#2
+OnCustomCheat,0,0,0,1002,0,music
+
+#3
+OnCustomCheat,0,0,0,1000,0,music
+
+#4
+OnCustomCheat,0,0,0,1003,0,music
+
+#5
+OnCustomCheat,0,0,0,1000,0,music
+
+#6
+OnCustomCheat,0,0,0,1004,0,music
+
+#7
+OnCustomCheat,0,0,0,1005,0,music
+
+#8
+OnCustomCheat,0,0,0,1002,0,music
+
+#9
+OnCustomCheat,0,0,0,1006,0,music
+
+#1000
+ShowText,0,10,550,3,400,SONIC CD -
+Trigger,0,1001,0,0,1,0
+
+#1001
+ShowText,0,10,580,3,400,STARDUST SPEEDWAY BAD FUTURE
+
+#1002
+ShowText,0,10,580,3,400,I DONT KNOW HOW TO LABEL THIS TRACK - UNANIEM
+
+#1003
+ShowText,0,10,580,3,400,WHOA TRIPPY
+
+#1004
+ShowText,0,10,580,3,400,GOODBYE TRIPPY
+
+#1005
+ShowText,0,10,580,3,400,I DONT KNOW ABOUT THIS ONE EITHER - UNANIEM
+
+#1006
+ShowText,0,10,580,3,400,THE CRYSTAL METHOD - GLASS BREAKER [SNIPPET]
+
+#END

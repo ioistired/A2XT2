@@ -1,0 +1,7 @@
+nogravity=1
+frames=2
+width=80
+height=94
+gfxwidth=80
+gfxheight=94
+speed=4

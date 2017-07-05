@@ -1,0 +1,4 @@
+framespeed=64
+frames=2
+speed=0.5
+framestyle=1

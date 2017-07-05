@@ -1,0 +1,5 @@
+gfxheight=60
+height=60
+gfxwidth=32
+framestyle=1
+speed=0.8

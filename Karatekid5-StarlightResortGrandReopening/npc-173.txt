@@ -1,0 +1,6 @@
+width=36
+height=120
+gfxwidth=36
+gfxheight=120
+nohurt=1
+framespeed=2

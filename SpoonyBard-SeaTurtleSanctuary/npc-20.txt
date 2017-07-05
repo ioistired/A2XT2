@@ -1,0 +1,8 @@
+gfxwidth=48
+gfxheight=42
+width=48
+height=38
+playerblocktop=0
+grabtop=0
+frames=4
+framestyle=1

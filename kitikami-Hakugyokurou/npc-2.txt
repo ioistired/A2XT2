@@ -1,0 +1,8 @@
+noblockcollision=1
+gfxheight=10
+height=10
+gfxwidth=10
+width=10
+nofireball=1
+noiceball=1
+speed=1

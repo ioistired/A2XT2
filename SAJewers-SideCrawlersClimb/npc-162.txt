@@ -1,0 +1,7 @@
+cliffturn=1
+image=""
+script=""
+grid=303464192
+gridoffsetx=476959208
+gridoffsety=303464240
+gridalign=476959520

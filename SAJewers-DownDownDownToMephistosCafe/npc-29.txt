@@ -1,0 +1,5 @@
+gfxwidth=84
+gfxheight=50
+width=44
+height=50
+speed=0

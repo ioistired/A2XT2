@@ -1,0 +1,5 @@
+jumphurt=0
+nohurt=1
+noyoshi=1
+nohammer=1
+noshell=1

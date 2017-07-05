@@ -1,0 +1,6 @@
+width=340
+height=320
+gfxwidth=340
+gfxheight=320
+nohurt=1
+foreground=0

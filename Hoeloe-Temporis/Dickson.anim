@@ -1,0 +1,6 @@
+frames=8
+idle=0-3
+walk=4-7
+run=4-7
+jump=0-3
+fall=0-3

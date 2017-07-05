@@ -1,0 +1,7 @@
+frames= 3
+width= 20
+height= 32
+gfxwidth= 20
+gfxheight= 32
+npcblock= 0
+foreground= 1

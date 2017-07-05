@@ -1,0 +1,12 @@
+gfxwidth=32
+width=28
+gfxheight=32
+height=28
+gfxoffsety=2
+gfxoffsetx=-2
+nogravity=1
+playerblock=1
+playerblocktop=1
+npcblock=0
+npcblocktop=1
+frames=1

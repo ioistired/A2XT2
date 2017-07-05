@@ -1,0 +1,10 @@
+gfxoffsetx=0
+gfxoffsety=0
+gfxwidth=38
+gfxheight=58
+width=32
+height=50
+jumphurt=0
+frames=3
+framespeed=16
+framestyle=2

@@ -1,0 +1,11 @@
+    #0
+    // Mount checker
+    OnPlayerMem,0x108,1,0,1000,0,w
+
+   
+
+    #1000
+    // Mount remover
+    PlayerMemSet,0,0x108,0,0,1,w
+
+    #END

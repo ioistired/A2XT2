@@ -1,0 +1,16 @@
+noblockcollision=1
+nofireball=1
+noiceball=1
+height=16
+width=16
+gfxheight=480
+gfxwidth=256
+frames=2
+framespeed=8
+framestyle=0
+grabtop=0
+grabsid=0
+nohurt=1
+speed=0
+nogravity=1
+npcblock=1

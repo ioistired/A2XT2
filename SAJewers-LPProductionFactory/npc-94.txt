@@ -1,0 +1,8 @@
+frames=1
+framestyle=1
+width=98
+height=124
+gfxwidth=98
+gfxheight=124
+noblockcollision=1
+nogravity=1

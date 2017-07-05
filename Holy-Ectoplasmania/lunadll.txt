@@ -1,0 +1,71 @@
+#-1
+// reset drown counter
+$Plasm,SetVar,0,0,301,0,1,0
+// filter to demo
+FilterPlayer,0,2,1,0,0,0
+FilterPlayer,0,3,1,0,0,0
+FilterPlayer,0,4,1,0,0,0
+FilterPlayer,0,5,1,0,0,0
+
+
+#0
+// -> #1000 if not in water
+OnPlayerMem,0x34,0,0,1000,0,w
+
+// -> #1001 if in water
+OnPlayerMem,0x34,2,0,1001,0,w
+
+
+
+//$Plasm,ShowVar,0,300,300,3,0,CT -
+
+
+#1000
+// NOT in water so add to counter
+SetVar,0,1,1,0,1,Plasm
+
+// -> #2001 if counter gets too high
+IfVar,0,0,240,2001,1,Plasm
+
+// -> #2000 if counter gets EVEN HIGHER PUMP IT UP
+IfVar,0,0,300,2000,1,Plasm
+
+//loopy
+IfVar,0,1,400,2002,1,Plasm
+
+
+#1001
+// reset counter when in water
+SetVar,0,0,0,0,1,Plasm
+
+// Trigger the "ecto" event
+TriggerSMBXEvent,0,0,0,0,1,ecto
+
+//make sparkle
+PlayerMemSet,0,0x02,0xFFFF,0,0,w
+
+
+#2000
+// Trigger the "notecto" event
+TriggerSMBXEvent,0,0,0,0,1,notecto
+
+//take sparkle
+PlayerMemSet,0,0x02,0,0,0,w
+
+// Play drown sound
+//SFX,0,0,0,0,1,drown.wav
+
+// also reset counter
+SetVar,0,0,301,0,1,Plasm
+
+
+#2001
+// Trigger the "sparkley" event
+TriggerSMBXEvent,0,0,0,0,1,sparkley
+
+#2002
+// also reset counter
+SetVar,0,0,301,0,1,Plasm
+
+
+#END

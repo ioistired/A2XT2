@@ -1,0 +1,13 @@
+noblockcollision=1
+nofireball=1
+noiceball=1
+height=12
+width=12
+gfxheight=32
+gfxwidth=32
+gfxoffsety=10
+frames=1
+framespeed=8
+grabtop=0
+grabsid=0
+nohurt=0

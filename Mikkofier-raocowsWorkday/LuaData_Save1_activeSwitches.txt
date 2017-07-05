@@ -1,0 +1,8 @@
+switchBlue
+false
+switchGreen
+false
+switchRed
+false
+switchYellow
+false

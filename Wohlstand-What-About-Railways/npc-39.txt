@@ -1,0 +1,14 @@
+gfxoffsetx=4
+gfxoffsety=2
+gfxwidth=70
+gfxheight=72
+width=25
+height=60
+playerblock=0
+playerblocktop=0
+npcblocktop=0
+jumphurt=0
+noyoshi=0
+nofireball=0
+noiceball=1
+name="Ninja"

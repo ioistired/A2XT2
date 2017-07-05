@@ -1,0 +1,8 @@
+gfxoffsety=-18
+width=96
+height=112
+nogravity=1
+frames=1
+framespeed=1
+framestyle=0
+name="Luna"

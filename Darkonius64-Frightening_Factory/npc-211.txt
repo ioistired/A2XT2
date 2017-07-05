@@ -1,0 +1,4 @@
+npcblock=0
+playerblock=0
+playerblocktop=0
+npcblocktop=0

@@ -1,0 +1,9 @@
+gfxoffsetx=0
+gfxoffsety=0
+jumphurt=1
+nohurt=1
+speed=0
+noblockcollision=1
+nogravity=1
+frames=1
+framestyle=0

@@ -1,0 +1,13 @@
+gfxwidth=640
+gfxheight=640
+foreground=1
+width=640
+height=640
+playerblock=0
+playerblocktop=0
+npcblock=0
+npcblocktop=0
+noblockcollision=1
+nogravity=1
+frames=4
+framespeed=12

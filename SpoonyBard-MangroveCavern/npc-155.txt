@@ -1,0 +1,9 @@
+nogravity=1
+gfxheight=32
+gfxwidth=112
+width=112
+height=32
+playerblock=0
+playerblocktop=1
+grabside=0
+grabtop=0

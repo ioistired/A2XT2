@@ -1,0 +1,29 @@
+DIALOG
+
+IRIS:  Why am I dressed like this?  I'm supposed to be a ghost.
+YUYUKO:  I'm the ghost in this level.  If you were a ghost too, that would be confusing.
+IRIS:  If you're a ghost, why aren't you wearing a bedsheet?
+YUYUKO:  All right, then.  We'll have one final duel to determine who is truly the ghost of this stage!
+
+
+post-victory
+IRIS:  But I won the duel!  Why are you still the ghost?
+YUYUKO:  That's how duels work.  Isn't it obvious that the loser would end up as the ghost?
+IRIS:  ...
+
+
+
+
+DEMO
+
+DEMO:  Iris, is that you?  What's wrong with your ghost outfit?
+YUYUKO:  Iris?  Is she that girl I was fighting earlier?
+DEMO:  Oh, she came through here?
+YUYUKO:  She was upset that I took over as the ghost of the stage, so we fought over who got to continue the role.
+DEMO:  Iris...lost?  I'll avenge her here!
+
+
+post-victory:
+DEMO:  Wait...Iris won?  What were we fighting for, then?
+
+IRIS:  Hey Demo.  The food here is pretty great!

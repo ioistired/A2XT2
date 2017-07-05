@@ -1,0 +1,13 @@
+LEVEL:Hoeloe-Demos Journey Through Time
+	Name=Demo's Journey Through Time
+	Author=Hoeloe
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=true
+	Chars=D
+	FilterTier1
+	FilterMounts
+LEVEL:Hoeloe-Temporis
+	Name=Temporis
+	Author=Hoeloe
+	Type=TOWN

@@ -1,0 +1,7 @@
+width=26
+height=14
+gfxwidth=26
+gfxheight=14
+noblockcollision=1
+frames=1
+framestyle=1

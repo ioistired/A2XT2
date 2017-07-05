@@ -1,0 +1,10 @@
+speed=0
+frames=1
+framestyle=0
+foreground=1
+width=254
+height=96
+noblockcollision=1
+nogravity=1
+gfxwidth=254
+gfxheight=96

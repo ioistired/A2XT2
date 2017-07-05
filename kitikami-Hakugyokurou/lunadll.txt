@@ -1,0 +1,250 @@
+// commands for level load
+#-1
+
+//get player power-up and reserve box state
+$StartPower,LoadPlayerVar,0,0x112,0,0,1,w
+$StartReserve,LoadPlayerVar,0,0x158,0,0,1,w
+
+// start with small Demo aka Marisa
+//FilterToSmall,0,0,0,0,0,0
+//FilterReservePowerup,0,0,0,0,0,0
+FilterMount,0,0,0,0,0,0
+FilterPlayer,0,1,2,0,0,0
+FilterPlayer,0,3,2,0,0,0
+FilterPlayer,0,4,2,0,0,0
+FilterPlayer,0,5,2,0,0,0
+//MemAssign,0xD8,50,1,0,0,dw
+
+//variable for Marisa or Reimu (0 for Marisa/Demo, 1 for Reimu/Iris)
+//start as Iris/Reimu
+SetVar,0,0,1,0,1,PlayerCharacter
+SetVar,0,0,0,0,1,BombCount
+
+
+//set demo/iris large hitbox to 30 px high
+MemAssign,0x00B2C706,30,0,0,1,w
+MemAssign,0x00B2C708,30,0,0,1,w
+
+//reset invincibility mode to off if needed
+//MemAssign,0x00B2C8C0,0,0,0,1,w
+
+
+
+#0
+//MemAssign,0xD8,50,1,0,0,dw
+
+//player select, set playerCharacter variable when hitting player select block from below
+//622 <- Marisa (Demo)
+//623 <- Reimu (Iris)
+BlockTrigger,0,622,3,1000,0,0
+BlockTrigger,0,623,3,1001,0,0
+
+
+//reset hitboxes upon death
+//also restore reserve box item
+OnPlayerMem,0x13E,1,0,1042,0,w
+
+//DebugPrint,0,0,0,0,0,0
+
+
+#1
+//set player to small
+PlayerMemSet,0,0x112,1,0,1,w
+
+//default speed is zero, stops player momentum immediately
+PlayerMemSet,0,0xE0,0,0,0,df
+
+//Marisa speed adjustment
+IfVar,0,0,0,1020,0,PlayerCharacter
+
+//Reimu speed adjustment
+//IfVar,0,0,1,1021,0,PlayerCharacter
+
+//left movement
+OnInput,0,3,0,1011,0,0
+
+//right movement
+OnInput,0,4,0,1012,0,0
+
+//fast movement
+OnPlayerMem,0xFE,0xFFFF,0,1010,0,w
+OnPlayerMem,0x100,0xFFFF,0,1010,0,w
+
+
+//trigger bomb invincibility
+$Bomb,BlockTrigger,0,169,3,1030,0,0
+
+//delete bomb function if out of bombs
+//not sure why, but blocktrigger still triggers after layer of blocks replaced
+IfVar,0,0,3,1033,0,BombCount
+
+//show extra life when powering up
+$ShowLife,OnPlayerMem,0x122,1,0,1040,0,w
+
+//hide extra life when powering down
+$HideLife,OnPlayerMem,0x122,2,0,1041,0,w
+
+//hide HUD
+LunaControl,2,1,0,0,0,0
+
+
+#2
+//set player to tanuki suit
+PlayerMemSet,0,0x112,5,0,0,w
+//FilterToSmall,0,0,0,0,0,0
+FilterReservePowerup,0,0,0,0,0,0
+FilterMount,0,0,0,0,0,0
+
+//display spell card bonus if Youmu is defeated
+$youmu,IfNPC,89,2,0,1060,0,0
+
+//set player to small upon entering door
+OnPlayerMem,0x122,7,0,1070,0,w
+
+
+#3
+//default speed is zero, stops player momentum immediately
+PlayerMemSet,0,0xE0,0,0,0,df
+
+//Marisa speed adjustment
+IfVar,0,0,0,1020,0,PlayerCharacter
+
+//Reimu speed adjustment
+//IfVar,0,0,1,1021,0,PlayerCharacter
+
+//left movement
+OnInput,0,3,0,1011,0,0
+
+//right movement
+OnInput,0,4,0,1012,0,0
+
+//fast movement
+OnPlayerMem,0xFE,0xFFFF,0,1010,0,w
+OnPlayerMem,0x100,0xFFFF,0,1010,0,w
+
+//hide HUD
+LunaControl,2,1,0,0,0,0
+
+
+
+#5
+//set player to tanuki suit
+PlayerMemSet,0,0x112,5,0,1,w
+//FilterToSmall,0,0,0,0,0,0
+//FilterReservePowerup,0,0,0,0,0,0
+//FilterMount,0,0,0,0,0,0
+
+//reset demo/iris large hitbox to default height
+MemAssign,0x00B2C706,54,0,0,1,w
+MemAssign,0x00B2C708,60,0,0,1,w
+
+//restore starting power-up conditions upon finishing level
+IfNPC,11,2,0,1050,0,0
+
+
+
+//CHARACTER SELECT EVENTS
+#1000
+//player selects Marisa
+SetVar,0,0,0,0,1,PlayerCharacter
+
+#1001
+//player selects Reimu
+SetVar,0,0,1,0,1,PlayerCharacter
+
+
+
+
+//MOVEMENT SPEED EVENTS
+#1010
+//increase player speed when run button is held
+PlayerMemSet,0,0xE0,2,3,1,df
+
+#1011
+PlayerMemSet,0,0xE0,-2,0,1,df
+//ShowText,0,400,550,3,1,LEFT!
+
+#1012
+PlayerMemSet,0,0xE0,2,0,1,df
+//ShowText,0,400,550,3,1,RIGHT!
+
+#1020
+//Double movement speed if using Marisa
+PlayerMemSet,0,0xE0,2,3,1,df
+
+
+
+
+#1030
+//bomb invincibility
+MemAssign,0x00B2C8C0,0xFFFF,0,0,1,w
+//text to test that event is active
+//ShowText,0,400,550,3,330,BOMB ACTIVE
+
+//Reimu screen shake
+MemAssign,0x00B250AC,3,0,0,240,w
+//Master Spark screen shake
+IfVar,0,0,0,1032,1,PlayerCharacter
+
+//time active before turning off invincibility
+Timer,0,1031,0,0,330,0
+
+//increase bomb counter variable
+SetVar,0,1,1,0,1,BombCount
+
+
+
+#1031
+//bomb invincibility off
+MemAssign,0x00B2C8C0,0,0,0,1,w
+//ShowText,0,400,550,3,300,BOMB OFF
+
+#1032
+//Master Spark screen shake
+MemAssign,0x00B250AC,5,0,0,240,w
+
+#1033
+//delete bomb function if out of bombs
+DeleteCommand,0,0,0,0,1,Bomb
+//ShowText,0,400,550,3,300,OUT OF BOMBS
+
+
+//show extra life
+#1040
+//set demo/iris large hitbox to 30 px high
+MemAssign,0x00B2C706,30,0,0,1,w
+MemAssign,0x00B2C708,30,0,0,1,w
+TriggerSMBXEvent,0,0,0,0,1,ExtraLife
+DeleteCommand,0,0,0,0,1,ShowLife
+ShowText,0,240,480,3,300,EXTEND!
+
+//hide extra life
+#1041
+TriggerSMBXEvent,0,0,0,0,1,hit
+DeleteCommand,0,0,0,0,1,HideLife
+
+
+#1042
+//reset demo/iris large hitbox to default height
+MemAssign,0x00B2C706,54,0,0,1,w
+MemAssign,0x00B2C708,60,0,0,1,w
+//restore power-up and reserve box item
+$StartPower,PlayerMemSet,0,0x112,0,0,1,w
+$StartReserve,PlayerMemSet,0,0x158,0,0,1,w
+
+#1050
+//restore player power-up state upon finishing level
+$StartPower,PlayerMemSet,0,0x112,0,0,1,w
+$StartReserve,PlayerMemSet,0,0x158,0,0,1,w
+
+#1060
+//display spell card bonus if Youmu is defeated
+ShowText,0,365,220,3,240,+12000000
+ShowText,0,300,250,3,240,SPELL CARD BONUS!
+DeleteCommand,0,0,0,0,1,youmu
+
+#1070
+#1
+//set player to small
+PlayerMemSet,0,0x112,1,0,1,w
+#END

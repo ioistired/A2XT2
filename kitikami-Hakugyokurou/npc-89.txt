@@ -1,0 +1,15 @@
+nofireball=1
+noiceball=1
+speed=0
+width=30
+height=48
+gfxwidth=75
+gfxheight=83
+gfxoffsetx=-9
+gfxoffsety=10
+grabtop=0
+grabside=0
+frames=12
+framestyle=1
+speed=0
+playerblocktop=0

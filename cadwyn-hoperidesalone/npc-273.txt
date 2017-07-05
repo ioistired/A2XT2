@@ -1,0 +1,6 @@
+frames=10
+height=238
+width=216
+gfxheight=238
+gfxwidth=216
+nogravity=1

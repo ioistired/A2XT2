@@ -1,0 +1,16 @@
+gfxoffsetx=0
+gfxoffsety=0
+gfxwidth=32
+gfxheight=32
+playerblocktop=0
+npcblock=0
+jumphurt=0
+nohurt=1
+noyoshi=1
+nofireball=1
+noiceball=1
+frames=2
+framestyle=1
+nohammer=1
+noshell=1
+script=""

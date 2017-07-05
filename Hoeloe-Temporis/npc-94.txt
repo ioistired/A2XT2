@@ -1,0 +1,11 @@
+gfxoffsetx=0
+gfxoffsety=0
+gfxwidth=78
+gfxheight=50
+width=16
+height=50
+frames=8
+framespeed=16
+framestyle=1
+image=""
+script=""

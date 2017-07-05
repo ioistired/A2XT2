@@ -1,0 +1,17 @@
+#1
+OnCustomCheat,0,0,0,1001,0,music
+
+#2
+IfNPC,267,1,2,1000,3,0
+OnCustomCheat,0,0,0,1002,0,music
+
+#1000
+ShowText,0,585,25,3,0,ALGAE GOLEM
+
+#1001
+ShowText,0,370,580,3,400,AI CHO ANIKI - TRACK 7
+
+#1002
+ShowText,0,190,580,3,400,CHO ANIKI - THE INSANE RUNNING MAN
+
+#END

@@ -1,0 +1,6 @@
+width=32
+height=44
+gfxwidth=32
+gfxheight=58
+gfxoffsety=14
+jumphurt=1

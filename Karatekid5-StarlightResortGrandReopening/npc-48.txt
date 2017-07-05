@@ -1,0 +1,7 @@
+width=26
+height=28
+gfxwidth=26
+gfxheight=28
+frames=1
+jumphurt=1
+speed=0.5

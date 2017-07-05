@@ -1,0 +1,9 @@
+width=108
+height=176
+jumphurt=1
+nohurt=0
+npcblocktop=0
+playerblocktop=0
+score=10
+playerblock=0
+npcblock=0

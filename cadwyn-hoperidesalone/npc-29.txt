@@ -1,0 +1,4 @@
+gfxheight=66
+gfxwidth=56
+gfxoffsety=10
+speed=3

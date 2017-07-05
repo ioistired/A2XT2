@@ -1,0 +1,8 @@
+height=32
+width=32
+gfxheight=32
+gfxwidth=34
+gfxoffsetx=0
+framestyle=0
+framespeed=7
+frames=8

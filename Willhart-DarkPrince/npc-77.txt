@@ -1,0 +1,7 @@
+speed=18
+frames=4
+framespeed=12
+width=64
+height=72
+gfxwidth=64
+gfxheight=72

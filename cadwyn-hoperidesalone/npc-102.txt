@@ -1,0 +1,3 @@
+gfxwidth=30
+gfxheight=66
+foreground=1

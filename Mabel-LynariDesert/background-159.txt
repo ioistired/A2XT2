@@ -1,0 +1,3 @@
+gfxwidth=640
+gfxheight=640
+foreground=1

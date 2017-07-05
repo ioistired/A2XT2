@@ -1,0 +1,5 @@
+nofireball=1
+noiceball=1
+nogravity=1
+nohurt=1
+speed=0

@@ -1,0 +1,8 @@
+speed=0
+frames=1
+framestyle=0
+width=48
+height=48
+noblockcollision=1
+nogravity=1
+gfxoffsety=0.5

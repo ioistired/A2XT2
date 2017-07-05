@@ -1,0 +1,11 @@
+gfxwidth=48
+gfxheight=20
+gfxoffsety=10
+width=40
+height=20
+jumphurt=1
+playerblocktop=0
+npcblock1=0
+noblockcollision=1
+speed=1.5
+framestyle=1

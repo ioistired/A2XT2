@@ -1,0 +1,19 @@
+#-1
+
+FilterPlayer,0,5,1,0,0,0
+FilterPlayer,0,4,1,0,0,0
+FilterPlayer,0,3,1,0,0,0
+
+#1
+OnCustomCheat,0,0,0,1000,0,music
+
+#2
+OnCustomCheat,0,0,0,1000,0,music
+
+#3
+OnCustomCheat,0,0,0,1000,0,music
+
+#1000
+ShowText,0,100,580,3,400,TOBY "RADIADTION" FOX - ANOTHER MEDIUM
+
+#END

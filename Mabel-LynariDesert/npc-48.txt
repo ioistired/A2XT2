@@ -1,0 +1,9 @@
+frames=2
+framestyle=0
+framespeed=6
+nohurt=1
+jumphurt=0
+playerblock=0
+playerblocktop=1
+npcblock=1
+npcblocktop=1

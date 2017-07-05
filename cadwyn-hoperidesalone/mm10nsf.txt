@@ -1,0 +1,100 @@
+Rock Man / Mega Man 10 NSF Soundtrack - March 21, 2010 (Updated on the 22nd)
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+Originally composed to Wii SEQ (Real Time music) by:
+---------------------------------------------------------------
+Manami Matsumae(Mega Man, Mega Man 2)
+Yasuaki "Bunbun" Fujita(Mega Man 3 & 4)
+Minae "Ojalin" Fujii(Mega Man 4)
+Mari Yamaguchi(Mega Man 5)
+Yuko Takehara(Mega Man 6 & 7)
+Makoto Tomozawa(Mega Man 7)
+Shusaku Uchiyama(Mega Man 8)
+Akari Kaida(Mega Man & Bass)
+Ryo Kawakami, Hiroki Isogai, Yu Shimoda, Ippo Yamada(Mega Man 9)
+(thanks to Linker2a03 of the FamiTracker boards for this list)
+
+Remade (from ear) by:
+--------------------------
+Mathew Valente [TSSF]
+http://tssf.gamemusic.ca
+tssf@rogers.com
+
+Special Thanks:
+------------------
+-FamiTracker Message Board (For track lists, and support. Check them out for other people's NSF covers of the same music)
+-Edward Heldman III (For providing me with MM9 / MM10 sample rips)
+-Mexican Sunflower (for MP3 recordings of the SEQ file rips from the game..providing us all with the music from the special features 2 weeks before actually released)
+
+
+First off my thoughts on the soundtrack:
+-----------------------------------------------
+I'm not gonna lie, I was mad. To the point of nearly deciding not to do this soundtrack. I then realized that this soundtrack was a good way to get my remaking skills back up on par, as it was very technical. And, of course, there's a few very nice songs on this soundtrack. I also didn't want to give up, I did promise the soundtrack to people. The original soundtrack had some VERY good NES samples, at first I thought the soundtrack was emulated, I quickly found out different when the samples were ripped. Then I started noticing a lot of inconsistencies in the soundtrack compared to how an NES would play back. (The lack of differing noise samples gave it away mostly).. Anyway, whether I liked this soundtrack or not is irrelivent, it's here)
+
+Notes about the remake:
+-----------------------------
+This time around I am not using S3M2NSF, I am using FamiTracker version 3.0 (so, that means macro instrumentation this time around), so you're getting an authentic NES soundtrack.
+
+You're probably wondering how there's music in here from special features that aren't even released yet..that's because the original soundtrack was ripped from SEQ and recorded to WAV/MP3 by MexicanSunflower. You're probably also wondering how I was even able to pull off a remake from some of those intensely fast arpeggios. It wasn't easy, I pulled out every trick. One was that I used the game in the dolphin emulator to play the music back "much slower" so that I could decipher some of the notes. This meant playing the ENTIRE game at 4fps or slower, just to get the music I needed (I own the game on my Wii, as well). This didn't work for the music that was from features not yet released (Bass's theme, the special stages, Endless Attack, etc)..so those are my best approximations.
+
+I tried to keep timing compatible here, so some songs may seem a bit faster, or a bit slower than their original counterparts. That's intentional. The original soundtrack cheated soooo much because it was pulling out timings that the 2A03 cannot natively handle well (much like Mega Man 9's soundtrack). An example: Endless Attack's original tempo is something like 147bpm. I left it at 150. It seems faster, but it's also not glitching everywhere.
+
+There were many instances where the musicians cheated using tricks, extra channels, etc where the original hardware just couldn't do it. The music in the Wii/PS3/X360 version are using samples for their drums, etc. The entire sample bank was extracted as well and remade via macro instrumentation by me..as close as I could make it. (It was all done by ear, then used accordingly in each song). This being said, the samples (for the most part) conform to 2A03 limitations, the music does not. What does this mean? Well, some music uses very soft instances of noise drum sounds..where on the original 2A03, that was impossible, because the 2A03 only has 16 volume instances. How are you going to have a smooth volume fade out with a snare at volume level 4, when there's only 3 more volume instances to go from? You'll hear a few examples of this. Throughout the soundtracks.
+
+Anyway, I'll list the original "cheats" that I noticed while remaking the music.
+
+
+Track List:
+-----------
+1 - Capcom Logo (My own creation in sort of MM10 style, not in original game)
+2 - Mega Man 10 (The "intro" sound effect. Original cheated, using different pitched noise sounds. Original was sampled for in-game, so this had to be modified on purpose)
+3 - Intro 1
+4 - Intro 2 (I may have gotten the rhythm in the intro wrong)
+5 - Intro 3
+6 - Intro 4
+7 - Title
+8 - Main Menu
+9 - Stage Select
+10 - Game Start
+11 - Pump Man
+12 - Nitro Man
+13 - Strike Man (This entire song screams "Mega Man 2 musician" to me)
+14 - Sheep Man (This was one hard song to remake, for obvious reasons)
+15 - Chill Man - Original Cheated (2 Noise Channels. I approximated. Mega Man 8 musician?)
+16 - Solar Man - Original Cheated (Channel 1 goes below 2A03 NTSC limits. If soundtrack done in PAL setting, that would screw up the timing for all the music)
+17 - Commando Man (This song's tediousness kinda ticked me off. This was one of the songs I disliked the most on the soundtrack)
+18 - Blade Man - (The most tedious song in the entire soundtrack to remake. Yes, even moreso than the Credit Roll. Megaman 8 musician again? Either that or a virt-wannabe.)
+19 - Boss
+20 - Stage Clear (Commodore-64 style song?)
+21 - Get Weapon (Odddd tempoooos..)
+22 - Shop 1 (Mega Man) (If you listen very closely, you can hear where some frames are skipped..at least, I noticed anyway. Another odd tempo song)
+23 - Shop 2 (Proto Man) (Hello Mr. Bunbun)
+24 - Shop 3 (Bass) (That "Squeaky" sound was a pain to replicate)
+25 - Sickness (odd tempo again. The whole song feels shakey. I can't do much about that.)
+26 - Wily's Theme (odd tempo becomes apparent in the triplet part)
+27 - Roll's Sacrifice (This song screams Bunbun to me again.. only because it sounds like Protoman/Blues' whistle music ending in MM3)
+28 - Wily's Castle (That whole Noise slide down bit in this soundtrack was sort of annoying, but eh.)
+29 - Wily Stage 1 Prelude
+30 - Wily Stage Boss Battle
+31 - Wily Stage 1 (They really loved the 8-bit rock guitars in this soundtrack.. I'm not complaining, they're kinda tedious to remake tho)
+32 - Wily Stage 2 (This is one of the true Megaman style songs on this soundtrack)
+33 - Wily Stage 3 (This sounds like Megaman 4 style music to me, but not Bunbun's)
+34 - Wily Stage 4 (Obviously a rip off of Mega Man 2's Wily Stage 3/4)
+35 - Wily Machine Battle
+36 - Wily's Station (When I saw/heard this in-game, I thought it was cute and a very nice little twist. Still ticks me off they're not cutting out sound channels tho.. Oh well, I keep telling myself this game is using two 2A03's at the same time :P Even if that's impossible)
+37 - Wily Stage 5 Original Cheated (Retriggering Noise Sound is right, MM10's sample is of an instance of the noise that is rarely triggered)
+38 - Wily Capsule Battle (Rushjet1 did a wicked MML remake of this a couple weeks back. I didn't reference it, I did my own remake, but if you're on the FamiTracker forum, check it out there)
+39 - Victory / Success
+40 - Wily's Gift (Tempo slides? Ugh.)
+41 - Credit Roll (This song is cheating. At 4:05, original is using 2 Triangle slides at once. It's also using 3 Square's at once in the outro.)
+42 - Challenge Mode
+43 - Special Stage 1 (MM1GB) Wily Stage Remix (A major step-up from it's GB version)
+44 - Special Stage 2 (MM3GB) Wily Stage Remix (Not too different from it's GB version except it's got actual an melody now. Timing plays a VERY big role in this song, it seems kinda messy because of it's odd tempo.)
+45 - Special Stage 3 (Nice change of pace. I dunno if this is actually a remix of a past MM song..the whole style screams late GB Megaman games, tho)
+46 - Endless Attack - Original Cheated (3 Square Channels)
+47 - Game Over (Ugh. One hard one to do. It's probably not accurate)
+
+I included my original source FTM (FamiTracker version 3.0) module. Go to FamiTracker's website to download the tracker, and see the source files.
+Enjoy.
+
+-Mathew

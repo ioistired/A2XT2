@@ -1,0 +1,14 @@
+nofireball=1
+noiceball=1
+speed=0
+width=32
+height=63
+gfxwidth=32
+gfxheight=63
+gfxoffsetx=0
+gfxoffsety=0
+frames=1
+framestyle=1
+speed=0
+playerblocktop=1
+nogravity=1

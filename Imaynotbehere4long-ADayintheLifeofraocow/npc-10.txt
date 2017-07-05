@@ -1,0 +1,5 @@
+width=500
+height=164
+gfxwidth=500
+gfxheight=164
+frames=1

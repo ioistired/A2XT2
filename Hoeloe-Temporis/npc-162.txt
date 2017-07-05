@@ -1,0 +1,11 @@
+speed=0
+frames=1
+framestyle=0
+width=64
+height=160
+gfxwidth=64
+gfxheight=160
+noblockcollision=1
+nogravity=1
+gfxoffsety=0
+npcblock=1

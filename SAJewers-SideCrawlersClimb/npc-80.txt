@@ -1,0 +1,10 @@
+gfxwidth=1024
+gfxheight=288
+width=1024
+height=288
+playerblock=0
+noblockcollision=1
+nogravity=1
+frames=1
+framestyle=0
+image=""

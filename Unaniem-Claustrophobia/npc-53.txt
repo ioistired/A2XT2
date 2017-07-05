@@ -1,0 +1,6 @@
+width=160
+height=32
+gfxwidth=160
+gfxheight=32
+frames=1
+framestyle=0

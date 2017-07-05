@@ -1,0 +1,5 @@
+width=30
+height=32
+gfxwidth=30
+gfxheight=32
+nofireball=0

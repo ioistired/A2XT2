@@ -1,0 +1,5 @@
+width=72
+height=112
+gfxwidth=72
+gfxheight=112
+frames=4

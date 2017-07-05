@@ -1,0 +1,2 @@
+nogravity=0
+cliffturn=1

@@ -1,0 +1,3 @@
+width=36
+height=49
+frames=1

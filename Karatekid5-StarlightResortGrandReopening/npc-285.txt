@@ -1,0 +1,9 @@
+width=512
+height=400
+gfxwidth=512
+gfxheight=400
+frames=1
+nogravity=1
+nohurt=1
+nofireball=1
+noiceball=1

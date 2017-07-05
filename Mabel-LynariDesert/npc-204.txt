@@ -1,0 +1,9 @@
+width=34
+height=14
+gfxwidth=62
+gfxheight=42
+gfxoffsetx=14
+gfxoffsety=14
+nofireball=1
+frames=12
+framestyle=1

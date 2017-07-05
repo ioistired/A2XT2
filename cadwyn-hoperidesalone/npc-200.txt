@@ -1,0 +1,10 @@
+gfxheight=80
+height=80
+frames=3
+framestyle=1
+image=""
+script=""
+grid=316209896
+gridoffsetx=1876722868
+gridoffsety=2147714816
+gridalign=1756590592

@@ -1,0 +1,52 @@
+LEVEL:Willhart-WelcomingSeason
+	Name=Welcoming Season
+	Author=Willhart
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=true
+LEVEL:Mata Hari - Totally Trollied
+	Name=Totally Trollied
+	Author=Mata Hari
+	Type=LEVEL
+	Exit=ROULETTE
+	Raocoins=true
+LEVEL:MonkeyShrapnel-MuffinBluff
+	Name=Muffin Bluff
+	Author=MonkeyShrapnel
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true
+LEVEL:Mikkofier-Frolic
+	Name=Frolic
+	Author=Mikkofier
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true
+LEVEL:Imaynotbehere4long-ADayintheLifeofraocow
+	Name=A Day in the Life of raocow
+	Author=Imaynotbehere4long
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=false
+	Chars=R
+	FilterPowers
+	FilterMounts
+LEVEL:Willhart-JumpingCastle
+	Name=Jumping Castle
+	Author=Willhart
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=true
+	Chars=R
+LEVEL:Tacoradical-Let's go Backwards
+	Name=Let's go Backwards
+	Author=TacoRadical
+	Type=LEVEL
+	Exit=ROULETTE
+	Raocoins=true
+LEVEL:Pyro and rockythechao-Demo vs the Goopinati
+	Name=Demo vs. the Goopinati
+	Author=Pyro & rockythechao
+	Type=EOW
+	Exit=LEEK
+	Raocoins=true

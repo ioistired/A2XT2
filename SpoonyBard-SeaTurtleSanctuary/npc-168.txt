@@ -1,0 +1,7 @@
+gfxwidth=32
+gfxheight=32
+frames=2
+framestyle=1
+grabtop=1
+playerblocktop=1
+noiceball=1

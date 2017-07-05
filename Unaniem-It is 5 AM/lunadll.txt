@@ -1,0 +1,11 @@
+#-1
+FilterToBig,0,0,0,0,0,0
+FilterReservePowerup,0,0,0,0,0,0
+FilterMount,0,0,0,0,0,0
+
+#1
+OnCustomCheat,0,0,0,1000,0,music
+
+#1000
+ShowText,0,370,580,3,400,AI CHOU ANIKI - TRACK 8
+#END

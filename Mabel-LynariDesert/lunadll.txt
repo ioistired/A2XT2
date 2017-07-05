@@ -1,0 +1,8 @@
+#0
+
+//Hammer Tornado
+
+NPCMemSet,171,0xE2,48,0,0,w
+NPCMemSet,266,0xE2,48,0,0,w
+NPCMemSet,291,0xE2,48,0,0,w
+#END

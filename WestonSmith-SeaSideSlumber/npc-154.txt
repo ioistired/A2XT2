@@ -1,0 +1,10 @@
+width=640
+height=2
+gfxwidth=640
+gfxheight=640
+frames=4
+nogravity=1
+foreground=1
+noblockcollision=1
+npcblock=0
+npcblocktop=0

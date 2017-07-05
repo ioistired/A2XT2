@@ -1,0 +1,9 @@
+frames=1
+framestyle=1
+width=128
+gfxwidth=128
+height=136
+gfxheight=136
+noblockcollision=1
+nogravity=1
+speed=0

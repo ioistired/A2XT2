@@ -1,0 +1,4 @@
+problem: cannot stop event cycle
+solution: disappearing block section 1-time only,
+series of one-time triggered events that do not cycle.
+Player gets across gap or dies.

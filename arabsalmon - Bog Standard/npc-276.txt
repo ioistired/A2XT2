@@ -1,0 +1,2 @@
+nohurt=1
+foreground=1

@@ -1,0 +1,6 @@
+width=110
+height=134
+gfxwidth=110
+gfxheight=134
+nohurt=1
+frames=1

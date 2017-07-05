@@ -1,0 +1,14 @@
+gfxwidth=48
+gfxheight=32
+width=48
+height=32
+playerblocktop=0
+grabtop=0
+jumphurt=0
+nogravity=1
+speed=2
+framestyle=1
+frames=4
+framespeed=6
+noblockcollision=1
+nofireball=0

@@ -1,0 +1,13 @@
+height=64
+width=1760
+gfxheight=224
+gfxwidth=2976
+frames=1
+framestyle=0
+foreground=0
+nogravity=1
+nohurt=1
+noyoshi=1
+nofireball=1
+noiceball=1
+score=0

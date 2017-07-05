@@ -1,0 +1,5 @@
+gfxwidth=64
+gfxheight=35
+speed=3
+noyoshi=1
+nohammer=1

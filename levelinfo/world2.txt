@@ -1,0 +1,50 @@
+LEVEL:Hoeloe-Towards the New World
+	Name=Towards the New World
+	Author=Hoeloe
+	Type=LEVEL
+	Exit=ROULETTE
+	Raocoins=true
+LEVEL:duvi0 - Iceberg Backyard
+	Name=Iceberg Backyard
+	Author=duvi0
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true
+LEVEL:7NameSam-Irradiated Ice
+	Name=Irradiated Ice
+	Author=7NameSam
+	Type=LEVEL
+	Exit=JAR
+	Raocoins=false
+	Chars=DIR
+LEVEL:MonkeyShrapnel-AbodeoftheBunnies
+	Name=Abode of the Bunnies
+	Author=MonkeyShrapnel
+	Type=LEVEL
+	Exit=ROULETTE
+	Raocoins=true
+LEVEL:SAJewers-MountianDescent
+	Name=Mountain Descent
+	Author=SAJewers
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true
+LEVEL:louiejub-Castle Climb During Wintertime
+	Name=Castle Climb During Wintertime
+	Author=louiejub
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=false
+LEVEL:WestonSmith-IceBlockDrop
+	Name=Ice Block Drop
+	Author=WestonSmith
+	Type=LEVEL
+	Exit=ROULETTE
+	Raocoins=true
+LEVEL:Pyro-Peaceful Snowy Night
+	Name=Peaceful Snowy Night
+	Author=Pyro
+	Type=LEVEL
+	Exit=ROULETTE
+	Secret=KEY
+	Raocoins=true

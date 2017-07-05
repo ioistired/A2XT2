@@ -1,0 +1,4 @@
+gfxoffsety=150
+gfxwidth=352
+gfxheight=352
+frames=1

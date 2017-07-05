@@ -1,0 +1,6 @@
+grabtop=1
+npcblock=0
+npcblocktop=0
+width=64
+gfxwidth=64
+gfxheight=32

@@ -1,0 +1,1 @@
+To add climbing vines/ladders/etc. for Kood, simply create a "npc-xxx.txt" file for that climbable NPC, and write "foreground=1". Kood will now climb it from behind.

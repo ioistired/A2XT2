@@ -1,0 +1,5 @@
+width=62
+height=54
+nogravity=1
+npcblock=0
+foreground= 0

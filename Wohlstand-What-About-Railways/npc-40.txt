@@ -1,0 +1,8 @@
+width=22
+height=22
+playerblock=0
+playerblocktop=0
+npcblocktop=0
+grabtop=0
+jumphurt=1
+name="Shuriken"

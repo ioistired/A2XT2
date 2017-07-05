@@ -1,0 +1,6 @@
+width=48
+height=46
+gfxwidth=48
+gfxheight=46
+frames=1
+nohurt=1

@@ -1,0 +1,10 @@
+jumphurt=1
+nohurt=0
+noiceball=1
+nofireball=1
+speed=0
+grabtop=0
+grabside=0
+playerblock=0
+playerblocktop=0
+noyoshi=1

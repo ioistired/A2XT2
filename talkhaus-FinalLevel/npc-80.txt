@@ -1,0 +1,8 @@
+gfxwidth=2528
+gfxheight=288
+width=2528
+height=288
+frames=1
+framestyle=0
+image=""
+gridoffsety=4294904362

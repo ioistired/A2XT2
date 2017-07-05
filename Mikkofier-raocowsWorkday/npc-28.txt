@@ -1,0 +1,7 @@
+width=80
+height=32
+gfxwidth=80
+gfxheight=32
+nofireball=1
+nohurt=1
+playerblocktop=1

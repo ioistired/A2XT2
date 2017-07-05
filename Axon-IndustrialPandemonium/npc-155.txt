@@ -1,0 +1,6 @@
+width=32
+height=64
+gfxheight=64
+gfxwidth=32
+grabtop=0
+grabside=0

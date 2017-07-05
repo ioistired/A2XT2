@@ -1,0 +1,11 @@
+nofireball=1
+noiceball=1
+height=67
+width=15
+gfxwidth=75
+gfxheight=67
+gfxoffsetx=0
+gfxoffsety=0
+frames=1
+framestyle=1
+speed=0

@@ -1,0 +1,7 @@
+width=32
+height=70
+gfxwidth=32
+gfxheight=70
+nohurt=1
+frames=1
+nogravity=1

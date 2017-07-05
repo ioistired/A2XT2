@@ -1,0 +1,9 @@
+gfxwidth=52
+gfxheight=54
+width=48
+height=52
+score=5
+npcblock=0
+noyoshi=1
+nofireball=1
+framespeed=5

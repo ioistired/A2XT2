@@ -1,0 +1,9 @@
+gfxwidth=32
+gfxheight=64
+name="Chronoton 1"
+image=""
+script=""
+grid=340133040
+gridoffsetx=352513304
+gridoffsety=340133104
+gridalign=352503632

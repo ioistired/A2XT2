@@ -1,0 +1,6 @@
+#-1
+FilterToSmall,0,0,0,0,1,0
+FilterMount,0,0,0,0,1,0
+FilterReservePowerup,0,0,0,0,1,0
+
+#END

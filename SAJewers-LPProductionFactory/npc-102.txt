@@ -1,0 +1,6 @@
+frames=11
+framestyle=0
+width=79
+height=78
+noblockcollision=1
+nogravity=1

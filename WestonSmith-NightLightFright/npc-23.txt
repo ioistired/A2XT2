@@ -1,0 +1,4 @@
+frames=1
+nogravity=1
+jumphurt=1
+foreground=1

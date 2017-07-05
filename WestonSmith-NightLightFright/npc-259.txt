@@ -1,0 +1,3 @@
+frames=1
+speed=0.6
+foreground=1

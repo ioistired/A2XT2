@@ -1,0 +1,5 @@
+width=52
+height=62
+nogravity=1
+frames=1
+framestyle=0

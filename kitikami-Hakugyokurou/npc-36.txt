@@ -1,0 +1,10 @@
+nofireball=1
+noiceball=1
+height=32
+width=75
+gfxheight=150
+gfxwidth=150
+gfxoffsety=59
+frames=12
+framespeed=8
+framestyle=1

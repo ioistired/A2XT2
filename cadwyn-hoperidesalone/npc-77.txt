@@ -1,0 +1,10 @@
+gfxwidth=38
+gfxheight=64
+width=38
+height=64
+playerblocktop=0
+jumphurt=1
+speed=3
+frames=1
+framestyle=1
+script=""

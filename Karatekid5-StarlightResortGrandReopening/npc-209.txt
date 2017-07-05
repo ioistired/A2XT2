@@ -1,0 +1,6 @@
+frames=4
+framestyle=0
+width=128
+height=78
+npcblock=0
+npcblocktop=0

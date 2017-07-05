@@ -1,0 +1,12 @@
+noblockcollision=1
+nofireball=1
+noiceball=1
+nogravity=1
+speed=0
+width=256
+height=480
+gfxwidth=288
+gfxheight=480
+gfxoffsetx=-16
+frames=12
+framestyle=1

@@ -1,0 +1,5 @@
+height=126
+width=48
+gfxheight=126
+gfxwidth=40
+franestyle=0

@@ -1,0 +1,8 @@
+grabside=0
+grabtop=0
+frames=1
+framestyle=0
+width=64
+height=96
+gfxwidth=64
+gfxheight=96

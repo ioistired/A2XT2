@@ -1,0 +1,28 @@
+#0
+PushScreenBoundary,4,3,0,0,2,-3616
+PushScreenBoundary,4,0,0,0,2,624
+
+#4
+Timer,0,1000,0,0,1,0
+
+#1000
+OnPlayerMem,0x17C,0,0,1000,1,w
+OnPlayerMem,0x17C,-1,0,2000,1,w
+
+#2000
+PushScreenBoundary,4,0,0,0,1200,-0.5
+PushScreenBoundary,4,1,0,0,1200,-0.5
+PushScreenBoundary,4,2,0,0,1200,1.5
+PushScreenBoundary,4,3,0,0,1200,1.5
+Timer,0,2002,0,0,1200,0
+
+#2002
+PushScreenBoundary,4,0,0,0,1200,0.5
+PushScreenBoundary,4,1,0,0,1200,0.5
+PushScreenBoundary,4,2,0,0,1200,1.5
+PushScreenBoundary,4,3,0,0,1200,1.5
+Timer,0,2004,0,0,1200,0
+
+#2004
+// Communicates with lunalua to start last phase
+TriggerSMBXEvent,0,0,0,0,1,Reached end

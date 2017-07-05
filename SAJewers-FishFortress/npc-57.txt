@@ -1,0 +1,12 @@
+height=46
+width=52
+gfxheight=56
+gfxwidth=64
+nohurt=0
+jumphurt=1
+frames=1
+npcblock=0
+npcblocktop=0
+playerblock=0
+playerblocktop=0
+foreground=1

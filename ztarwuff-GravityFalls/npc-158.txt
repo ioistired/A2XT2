@@ -1,0 +1,7 @@
+grabtop=0
+grabside=0
+playerblock=0
+playerblocktop=0
+nofireball=1
+noiceball=1
+noyoshi=1

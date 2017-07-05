@@ -1,0 +1,4 @@
+height=12
+width=6
+speed=.2
+framespeed=12

@@ -1,0 +1,7 @@
+gfxwidth= 320
+gfxheight= 399
+width= 136
+height= 294
+gfxoffsetx= 13
+frames= 1
+speed= 3

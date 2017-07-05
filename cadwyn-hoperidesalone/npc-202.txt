@@ -1,0 +1,11 @@
+gfxwidth=16
+gfxheight=16
+width=16
+height=16
+frames=1
+framestyle=0
+image=""
+script=""
+grid=342382976
+gridoffsetx=356158472
+gridoffsety=0
