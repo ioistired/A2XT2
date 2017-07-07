@@ -89,16 +89,7 @@ function hud.onInitAPI()
 	registerEvent(hud, "onDrawEnd", "onDrawEnd", false);
 end
 
-
-function hud.onDraw()
-	if(isOverworld) then
-		showhud = Graphics.getOverworldHudState();
-		Graphics.activateOverworldHud(WHUD_NONE);
-	else
-		showhud = Graphics.isHudActivated();
-		Graphics.activateHud(false);
-	end
-	
+local function drawHUD()
 	local sideoffset = 75;
 	if((isOverworld and showhud == WHUD_ALL) or (not isOverworld and showhud)) then
 		Graphics.drawImage(HUD_IMG.demos,400-sideoffset-64,20);
@@ -208,11 +199,25 @@ function hud.onDraw()
 	end
 end
 
+function renderHUD()
+	showhud = Graphics.isHudActivated();
+		
+	drawHUD();
+end
+
+function hud.onDraw()
+	if(isOverworld) then
+		showhud = Graphics.getOverworldHudState();
+		Graphics.activateOverworldHud(WHUD_NONE);
+		drawHUD();
+	else
+		showhud = Graphics.isHudActivated();
+	end
+end
+
 function hud.onDrawEnd()
 	if(isOverworld) then
 		Graphics.activateOverworldHud(showhud);
-	else
-		Graphics.activateHud(showhud);
 	end
 end
 

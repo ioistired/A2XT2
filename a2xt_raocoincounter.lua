@@ -5,7 +5,7 @@ local raocoins = API.load("raocoin2");
 
 local rc = {};
 
-rc.currency = raocoins.registerCurrency(274, true, 480, 66);
+rc.currency = raocoins.registerCurrency(274, false, 480, 66);
 rc.local_counter = 0;
 
 local localraocoin = Graphics.loadImage(Misc.resolveFile("raocoin.png"));
