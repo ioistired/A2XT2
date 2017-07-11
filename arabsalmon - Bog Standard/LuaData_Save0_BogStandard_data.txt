@@ -1,4 +1,0 @@
-checkpoint_2
-0
-mazecomplete
-0

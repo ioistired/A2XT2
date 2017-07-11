@@ -1,8 +1,0 @@
-MPCheck_Get0
-0
-MPCheck_Get1
-1
-MPCheck_Get2
-0
-MPCheck_ID
-1
