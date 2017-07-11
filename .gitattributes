@@ -1,0 +1,26 @@
+* text=auto
+
+# Need CRLF because SMBX
+*.lvl text eol=crlf
+*.wld text eol=crlf
+*.ini text eol=crlf
+*.sav text eol=crlf
+npc-*.txt text eol=crlf
+*.lua text eol=crlf
+*.txt text eol=crlf
+
+# Various sure-to-be-binary files
+*.png binary
+*.jpg binary
+*.gif binary
+*.bmp binary
+*.ico binary
+*.exe binary
+*.dll binary
+*.pdb binary
+*.ogg binary
+*.mp3 binary
+*.spc binary
+*.nsf binary
+*.wav binary
+
