@@ -104,7 +104,7 @@ function onLoop()
 		end
 		
 		for _,v in ipairs(NPC.get(258,-1)) do
-			if(player.section == v:mem(0x15A, FIELD_WORD)) then
+			if(player.section == v:mem(0x146, FIELD_WORD)) then
 				v.speedY = 1*math.cos(fakeLeekTimer*0.05);
 				fakeLeekTimer = fakeLeekTimer + 1;
 				if(rng.randomInt(5) == 0) then
