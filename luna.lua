@@ -11,6 +11,7 @@ local music = API.load("a2xt_music");
 local spintrail = API.load("a2xt_spintrail");
 local leveldata = API.load("a2xt_leveldata");
 local sanctuary = API.load("a2xt_leeksanctuary");
+local npcs = API.load("a2xt_npcs");
 
 function onInputUpdate()
         --*****************************

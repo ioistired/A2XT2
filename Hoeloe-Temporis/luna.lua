@@ -10,6 +10,7 @@ local vectr = API.load("vectr");
 local rng=API.load("rng")
 local pnpc=API.load("pnpc");
 local audio = API.load("audioMaster");
+local imagic = API.load("imagic");
 
 sanctuary.world = 1;
 sanctuary.sections[4] = true
@@ -46,7 +47,17 @@ local splashes = {};
 
 audio.Create{sound="waterfall.ogg", x = -173184 - waterWid*0.5, y = waterY + 24, type = audio.SOURCE_BOX, sourceWidth = waterWid, sourceHeight = 48, falloffRadius = 800, volume = 1};
 
-local cavebg = paralx2.Background(1, {left = -175040, top = -180320, right=-173184, bottom=-179008},
+
+local waterwheel = imagic.Create{x = -175872 + 16, y = -179488 + 16, width = 1024, height = 1024, primitive = imagic.TYPE_BOX, texture = Graphics.loadImage("waterwheel.png"), align = imagic.ALIGN_CENTRE, scene = true}
+local wheelAudio = audio.Create{sound="waterwheel.ogg", x = waterwheel.x, y = waterwheel.y, type = audio.SOURCE_CIRCLE, sourceRadius = 512, falloffRadius = 800, volume = 1};
+
+local wheelParticles = particles.Emitter(waterwheel.x,waterY,Misc.resolveFile("p_waterwheel.ini"));
+local wheelRadius = 512-32;
+local wheelPlatforms = 8;
+local wheelBlocks = 289;
+
+
+local cavebg = paralx2.Background(1, {left = -176480, top = -180320, right=-173184, bottom=-179008},
 {img=Graphics.loadImage("cave_0.png"), depth = INFINITE, alignY = paralx2.align.BOTTOM, x = -4992, y = -76, repeatX = true},
 {img=Graphics.loadImage("cave_1.png"), depth = 200, alignY = paralx2.align.BOTTOM, x = -4992, y = 40, repeatX = true},
 {img=Graphics.loadImage("cave_2.png"), depth = 160, alignY = paralx2.align.BOTTOM, x = -4992, y = 40, repeatX = true},
@@ -65,7 +76,7 @@ cavebg2.bounds = bg2bounds;
 
 --Offset layers to account for different section size (use `cavebg2:Get(1).debug = true` to calibrate this)
 for k,v in ipairs(cavebg2:Get()) do
-	v.y = v.y-960;
+	--v.y = v.y-960;
 end
 
 local waterImgs = 
@@ -96,6 +107,29 @@ local grabtorches = {};
 --cinematx.defineQuest ("dickson", "An Explorer's Mission", "Help Prof. Dr. D. Dickson Esq. to discover the history of Temporis.")
 
 function onStart()
+	
+	for _,v in ipairs(BGO.get(10)) do
+		if(v.x > Section(1).boundary.left and v.x < Section(1).boundary.right) then
+			waterwheel.x = v.x + 512;
+			waterwheel.y = v.y + 512;
+			wheelAudio.x = waterwheel.x;
+			wheelAudio.y = waterwheel.y;
+			wheelParticles.x = waterwheel.x;
+			v.isHidden = true;
+		end
+	end
+	
+	for i = 1, wheelPlatforms do
+		local x = waterwheel.x + (wheelRadius * math.cos((i-1)/wheelPlatforms * 2 * math.pi));
+		local y = waterwheel.y + (wheelRadius * math.sin((i-1)/wheelPlatforms * 2 * math.pi));
+		
+		for j = -2,2 do
+			local b = Block.spawn(wheelBlocks, x-16+j*32, y-16);
+			b:mem(0x18, FIELD_STRING, "WheelPlatforms"..i);
+		end
+		
+	end
+
 	for _,v in ipairs(NPC.get(idolIDs,-1)) do
 		idolSpawns[v.id] = {x=v.x, y=v.y};
 	end
@@ -145,6 +179,8 @@ local function checkIdolPlaced(npc)
 	end
 	return false;
 end
+
+local wheelTime = 0;
 	
 function onTick()
 
@@ -196,10 +232,32 @@ function onTick()
 				local py = v.y + v.height;
 				local px = v.x + v.width*0.5;
 				if(py - sy < waterY and py > waterY or py - sy > waterY and py < waterY) then
-					table.insert(splashes, {x = px-16, y = waterY-32, frame = 0, timer = 8});
+					local cam = Camera.get()[1];
+					if(px > cam.x - 32 and px < cam.x + cam.width + 32 and py > cam.y - 32 and py < cam.y + cam.height + 32) then
+						table.insert(splashes, {x = px-16, y = waterY-32, frame = 0, timer = 8});
+						if(sy > 11 and v.width >= 24) then
+							audio.PlaySound{sound = "splash-big.ogg", volume = 2}
+						else
+							audio.PlaySound{sound = "splash-small.ogg", volume = 1}
+						end
+					end
 				end
 			end
 		end
+	end
+	
+	if(not Layer.isPaused()) then
+		local rspd = 0.3;
+		local deg2rad = math.pi/180;
+		waterwheel:Rotate(rspd);
+		
+		for i=1,wheelPlatforms do
+			local l = Layer.get("WheelPlatforms"..i)
+			l.speedX = -wheelRadius*deg2rad*rspd * math.sin(wheelTime*deg2rad*rspd + (math.pi * 2 * ((i-1)/wheelPlatforms)));
+			l.speedY = wheelRadius*deg2rad*rspd * math.cos(wheelTime*deg2rad*rspd + (math.pi * 2 * ((i-1)/wheelPlatforms)));
+		end
+		
+		wheelTime = (wheelTime + 1)%(360/rspd);
 	end
 end
 
@@ -221,6 +279,8 @@ function onDraw()
 		end
 		i = i + 1;
 	end
+	
+	waterwheel:Draw(-70);
 end
 
 local function tableadd(t, c, ...)
@@ -386,7 +446,7 @@ function onCameraUpdate()
 	end
 	
 	for _,v in ipairs(torches) do
-		v:Draw(-86);
+		v:Draw(-84);
 	end
 	
 	for _,v in ipairs(grabtorches) do
@@ -403,6 +463,8 @@ function onCameraUpdate()
 	if(player.section == 1) then
 		waterfallTop:Draw(-70);
 		waterfallBase:Draw(-20);
+		wheelParticles:Draw(-20);
+		
 		Graphics.drawImageToSceneWP(waterfallOverlay, -173184, -180448, 0.9, -85);
 		
 		drawWater(cam);
