@@ -1,0 +1,5 @@
+width=48
+height=18
+frames=1
+grid=16
+gridalign=1
