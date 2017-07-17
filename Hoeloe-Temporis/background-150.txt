@@ -1,0 +1,4 @@
+frames=1
+width=512
+height=256
+priority=1
