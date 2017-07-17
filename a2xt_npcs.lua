@@ -24,5 +24,30 @@ local ballpeng = npcManager.setNpcSettings(table.join(
 				  width = 32, 
 				  height = 32},
 				  defaults))
+				  
+
+local signs = {};
+
+for i = 1,3 do
+	local s = table.join(
+				 defaults,
+				 {id = 996+i-1,
+				  gfxheight = 48, 
+				  gfxwidth = 48, 
+				  width = 48, 
+				  height = 48,
+				  nogravity = 1,
+				  noblockcollision = 1});
+	s.framestyle = 0;
+	signs[i] = npcManager.setNpcSettings(s);
+				  
+	npcManager.registerEvent(signs[i].id, signs, "onTickNPC");
+end
+
+function signs:onTickNPC()
+	self.friendly = true;
+	self.msg = "";
+	self.dontMove = true;
+end
 
 return friendlies
