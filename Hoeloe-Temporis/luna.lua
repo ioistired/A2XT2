@@ -57,7 +57,7 @@ local wheelPlatforms = 8;
 local wheelBlocks = 289;
 
 
-local cavebg = paralx2.Background(1, {left = -176480, top = -180320, right=-173184, bottom=-179008},
+local cavebg = paralx2.Background(1, {left = -176480, top = -180320, right=-173186, bottom=-179008},
 {img=Graphics.loadImage("cave_0.png"), depth = INFINITE, alignY = paralx2.align.BOTTOM, x = -4992, y = -76, repeatX = true},
 {img=Graphics.loadImage("cave_1.png"), depth = 200, alignY = paralx2.align.BOTTOM, x = -4992, y = 40, repeatX = true},
 {img=Graphics.loadImage("cave_2.png"), depth = 160, alignY = paralx2.align.BOTTOM, x = -4992, y = 40, repeatX = true},
@@ -185,13 +185,18 @@ local wheelTime = 0;
 function onTick()
 
 	local allIdolsDone = true;
+	local bounds = Section(1).boundary;
 	
 	for _,k in ipairs(idolIDs) do
 		if(not idolsDone[k]) then
 			allIdolsDone = false;
 			local ps = NPC.get(k,-1);
-			if(#ps < 1) then
-				NPC.spawn(k,idolSpawns.x,idolSpawns.y,1);
+			local oob = (ps[1]:mem(0x146, FIELD_WORD) == 1 and (ps[1].x > bounds.right or ps[1].x < bounds.left-32 or ps[1].y > bounds.bottom or ps[1].y < bounds.top-32));
+			if(#ps < 1 or oob) then
+				if(oob) then
+					ps[1]:kill(9);
+				end
+				local v = NPC.spawn(k,idolSpawns[k].x,idolSpawns[k].y,1);
 				v:mem(0x12A,FIELD_WORD,180);
 				v:mem(0xA8,FIELD_DFLOAT,v.x);
 				v:mem(0xB0,FIELD_DFLOAT,v.y);
@@ -312,7 +317,7 @@ local function drawWater(cam)
 				local v = waterImgs[k];
 				vc = 0;
 				if(k > 1) then
-					pr = -25;
+					pr = -24;
 				end
 					
 				while(v.offset < cam.x - 64) do
@@ -422,7 +427,7 @@ function onCameraUpdate()
 	ybound = ylimit+20000*player.section;
 	ycam = ybound - 560;
 	
-	if(player.y < ybound and cam.y > ycam) then
+	if(player.y < ybound and cam.y > ycam and (cam.x < -193536 or cam.x > -192448)) then
 		targetcamY = ycam;
 	else
 		targetcamY = cam.y;
