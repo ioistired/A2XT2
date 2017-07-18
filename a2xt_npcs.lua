@@ -1,7 +1,11 @@
 local npcconfig = API.load("npcconfig", true)
 local npcManager = API.load("npcManager")
+local pnpc = API.load("pnpc")
+local audio = API.load("audioMaster")
 
 local friendlies = {}
+
+local SaveData = {}; --Temp thing because the savedata api isn't done yet
 
 local defaults = {frames = 1, 
 				  framestyle = 1, 
@@ -40,6 +44,12 @@ local pengData =
 	[995] = {collected = false,
 	msg = {"I AM A SERIOUS BUILDER PENG.","PLEASE LET ME GO, I HAVE BUILDS TO CONSTRUCT."}}
 }
+
+if(SaveData.pengs) then
+	for k,v in pairs(pengData) do
+		v.collected = SaveData.pengs[tostring(k)];
+	end
+end
 
 local function CountCollectedPengs()
 	local c = 0;
@@ -83,6 +93,7 @@ end
 for _,v in ipairs(pengs) do
 	npcManager.setNpcSettings(v);
 	npcManager.registerEvent(v.id, pengs, "onTickNPC");
+	npcManager.registerEvent(v.id, pengs, "onStartNPC");
 end			
 
 local signs = {};
@@ -103,20 +114,99 @@ for i = 1,3 do
 	npcManager.registerEvent(signs[i].id, signs, "onTickNPC");
 end
 
+local blackmarket = {};
+
+blackmarket.settings = npcManager.setNpcSettings(table.join(
+				 defaults,
+				 {id = 986,
+				  gfxheight = 96, 
+				  gfxwidth = 64, 
+				  width = 96,
+				  gfxoffsetx = 32,
+				  height = 64,
+				  noblockcollision = 1,
+				  nogravity = 1}));
+
+function blackmarket:onMessage()
+	self.animationFrame = 1;
+end
+
+function friendlies.onInitAPI()
+	registerEvent(friendlies, "onMessageBox");
+	registerCustomEvent(friendlies, "onMessage")
+end
+
+function friendlies.getTalkNPC()
+	local best = nil;
+	local distance = math.huge;
+	for _,v in ipairs(NPC.getIntersecting(player.x,player.y,player.x+player.width,player.y+player.height)) do
+		if(v:mem(0x44,FIELD_BOOL)) then
+			local dx = (v.x+v.width*0.5) - (player.x+player.width*0.5);
+			local dy = (v.y+v.height*0.5) - (player.y+player.height*0.5);
+			if(dx*dx + dy*dy < distance) then
+				best = v;
+			end
+		end
+	end
+	
+	return pnpc.wrap(best);
+end
+
+function friendlies.onMessageBox(eventObj, message)
+	local npc = nil;
+	if(player.upKeyPressing) then
+		npc = friendlies.getTalkNPC();
+	end
+	if(npc ~= nil) then
+		if(npc.id == blackmarket.settings.id) then
+			blackmarket.onMessage(npc)
+		elseif(pengData[npc.id]) then
+			pengs.onMessage(npc);
+		end
+	end
+	friendlies.onMessage(eventObj, message, npc);
+end
+
 function signs:onTickNPC()
 	self.friendly = true;
 	self.msg = "";
 	self.dontMove = true;
 end
 
-function pengs:onTickNPC()
-	self.friendly = true;
-	local i = 1;
-	if(pengData[self.id].collected and CountCollectedPengs() >= 3) then
-		i = 2;
+function pengs:onMessage()
+	audio.PlaySound{sound = Misc.resolveFile("sound/noot.ogg"), volume = 1}
+	if(not pengData[self.id].collected) then
+		pengData[self.id].collected = true;
+		self.data.collected = true;
+		if(SaveData.pengs == nil) then
+			SaveData.pengs = {}
+		end
+		SaveData.pengs[tostring(self.id)] = true;
+		Misc.saveGame();
 	end
-	self.msg = pengData[self.id].msg[i];
-	self.dontMove = true;
+end
+
+function pengs:onStartNPC()
+	if(pengData[self.id].collected) then --TODO: add check for hub
+		self:kill(9);
+	end
+end
+
+function pengs:onTickNPC()
+	if(self.data.collected) then
+		local a = Animation.spawn(10,self.x+self.width*0.5,self.y+self.height*0.5);
+		a.x = a.x-a.width*0.5;
+		a.y = a.y-a.height*0.5;
+		self:kill(9);
+	else
+		self.friendly = true;
+		local i = 1;
+		if(pengData[self.id].collected and CountCollectedPengs() >= 3) then
+			i = 2;
+		end
+		self.msg = pengData[self.id].msg[i];
+		self.dontMove = true;
+	end
 end
 
 return friendlies
