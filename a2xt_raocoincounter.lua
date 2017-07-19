@@ -39,7 +39,7 @@ function multipoints:onCollected(id)
 	 rc.currency:save();
 	  
 	  GameData.raocoins.currentLevel = tostring(mem(0x00B250B0, FIELD_STRING));--settings.TextSettings:set("CurrentLevel", tostring(mem(0x00B250B0, FIELD_STRING)));
-	  Text.dialog(GameData.raocoins.currentLevel);
+
 	  for k,v in ipairs(raocoinnpcs) do
 		if(not v.isValid and v.data.collected == true) then
 			--settings.Settings:set("Raocoin"..k, 1);
