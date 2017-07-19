@@ -5,3 +5,4 @@ framestyle=1
 name="Chronoton 1"
 image=""
 script=""
+speed=0

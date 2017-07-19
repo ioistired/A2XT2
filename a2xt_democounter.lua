@@ -18,7 +18,7 @@ function dc.onInitAPI()
 end
 
 function dc.onStart()
-		if(not isOverworld) then
+		if(not isOverworld and SaveData.deaths[Level.filename()] == nil) then
 			SaveData.deaths[Level.filename()] = 0;
 			--[[if (settings.Settings:get(Level.filename() .. "-deaths") == nil) then
 					settings.Settings:set(Level.filename() .. "-deaths", 0)
@@ -29,12 +29,11 @@ function dc.onStart()
 		end]]
 		
 		GLOBAL_DEMOS = SaveData.deaths._TOTAL;--settings.Settings:get("totalDeaths");
-		
         --settings.Settings:save()
 end
 
 function dc.GetDemos(level)
-	return tonumber((SaveData.deaths[level..".lvl"]) or 0);--tonumber(settings.Settings:get(level .. ".lvl-deaths")) or 0;
+	return SaveData.deaths[level..".lvl"] or 0;--tonumber(settings.Settings:get(level .. ".lvl-deaths")) or 0;
 end
 
 function dc.onExitLevel()

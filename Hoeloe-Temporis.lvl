@@ -253,8 +253,8 @@
 #FALSE#
 #FALSE#
 ""
--175252
--179462
+-174256
+-179194
 24
 54
 0
@@ -126081,6 +126081,18 @@
 ""
 ""
 ""
+-174520
+-179192
+32
+32
+8
+0
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
 -174496
 -180640
 32
@@ -126314,6 +126326,18 @@
 32
 32
 419
+0
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+-174496
+-179192
+32
+32
+8
 0
 #FALSE#
 #FALSE#
@@ -170306,6 +170330,10 @@
 -199328
 28
 "Default"
+-174536
+-179216
+162
+"Default"
 -174272
 -179776
 129
@@ -170634,38 +170662,6 @@
 Turns out that Leek isn't anything special. Actually, all Leeks have the ability to bend space and time!
 
 Super Leeks are particularly good at it, because they're bigger. Relativity, yo!"
-#TRUE#
-#FALSE#
-#FALSE#
-"Default"
-""
-""
-""
-""
-""
--179262
--180574
-1
-101
-#FALSE#
-"Yot: Hello there. Have you come to join me?
-
-I like it up here. It's nice and relaxing, and you get a good view of the Palace."
-#TRUE#
-#FALSE#
-#FALSE#
-"Default"
-""
-""
-""
-""
-""
--176350
--180702
-1
-101
-#FALSE#
-"Welcome to Temporis, home of the Chronotons. Feel free to use our Temporal Shift Devices as you like."
 #TRUE#
 #FALSE#
 #FALSE#
@@ -171062,6 +171058,85 @@ Kind of crazy really, since this puts me in charge of all the water and power th
 100
 #FALSE#
 ""
+#TRUE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-174448
+-179200
+-1
+198
+#FALSE#
+"...These are heavy."
+#TRUE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-179270
+-180574
+1
+101
+#FALSE#
+"Yot: Hello there. Have you come to join me?
+
+I like it up here. It's nice and relaxing, and you get a good view of the Palace."
+#TRUE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-176318
+-180702
+1
+101
+#FALSE#
+"Welcome to Temporis, home of the Chronotons. Feel free to use our Temporal Shift Devices as you like."
+#TRUE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-174174
+-179198
+-1
+101
+#FALSE#
+"This mural depicts one of the Great Battles of Space-Time.
+
+...Or it will, but it's not finished yet."
+#TRUE#
+#TRUE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-174564
+-179174
+1
+107
+#FALSE#
+"*sigh* This is going to take months..."
 #TRUE#
 #FALSE#
 #FALSE#

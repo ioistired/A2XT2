@@ -5,8 +5,6 @@ local audio = API.load("audioMaster")
 
 local friendlies = {}
 
-local SaveData = {}; --Temp thing because the savedata api isn't done yet
-
 local defaults = {frames = 1, 
 				  framestyle = 1, 
 				  jumphurt = 1,
