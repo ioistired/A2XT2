@@ -26,7 +26,7 @@ local currentEpisodeIndex = mem(0x00B2C628, FIELD_WORD)
 local savfil = "save"..tostring(mem(0x00B2C62A, FIELD_WORD))..".sav";
 local episodePath = tostring(mem(EP_LIST_PTR + ((mem(0x00B2C628, FIELD_WORD) - 1) * 0x18) + 0x4, FIELD_STRING));
  
-if settings.Settings:get("DemoCounter") == nil or Misc.resolveFile(savfil) == nil  then
+--[[if settings.Settings:get("DemoCounter") == nil or Misc.resolveFile(savfil) == nil  then
     settings.Settings:set("DemoCounter", 0)
 	settings.Settings:set("Raocoin1", 0)
     settings.Settings:set("Raocoin2", 0)
@@ -36,12 +36,17 @@ if settings.Settings:get("DemoCounter") == nil or Misc.resolveFile(savfil) == ni
 	mem(0x00B2C5AC, FIELD_FLOAT, 0);
 	Misc.saveGame();
     settings.Settings:save()
+end]]
+if(Misc.resolveFile(savfil) == nil) then
+	mem(0x00B2C5AC, FIELD_FLOAT, 0);
+	Misc.saveGame();
 end
 
+--[[
 if settings.TextSettings:get("CurrentLevel") == "" then
 	settings.TextSettings:set("CurrentLevel","none");
 	settings.TextSettings:save();
-end
+end]]
 
 function settings.onInitAPI()
 	registerEvent(settings, "onStart", "onStart", true);

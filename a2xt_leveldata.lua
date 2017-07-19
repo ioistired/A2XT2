@@ -88,7 +88,7 @@ local filterMap =
 [277] = filterTypes.ice
 }
 
-local savedata = Data(Data.DATA_WORLD, "LevelData", true)
+--local savedata = Data(Data.DATA_WORLD, "LevelData", true)
 local winState = 0;
 
 local completion = {};
@@ -279,10 +279,13 @@ function leveldata.onInitAPI()
 	
 	parseFiles();
 	
-	completion = savedata:get();
-	for k,v in pairs(completion) do
-		completion[k] = lunajson.decode(v);
+	if(SaveData.completion == nil) then
+		SaveData.completion = {};
 	end
+	--completion = SaveData.completion;--savedata:get();
+	--for k,v in pairs(completion) do
+	--	completion[k] = lunajson.decode(v);
+	--end
 end
 
 local function contains(t,x)
@@ -365,7 +368,7 @@ end
 function leveldata.GetCompletion(levelFile)
 	levelFile = levelFile or Level.filename();
 	
-	return completion[string.sub(levelFile, 0, -5)];
+	return SaveData.completion[string.sub(levelFile, 0, -5)];
 end
 
 function leveldata.Visited(levelFile)
@@ -393,25 +396,28 @@ function leveldata.onTick()
 	end
 end
 
-function leveldata.onExitLevel()
-	local name = string.sub(Level.filename(), 0, -5);
-	local data = lvl[name];
-	if(data) then
-		if(not completion[name]) then
-			completion[name] = {};
-		end
+if(not isOverworld) then
+	function leveldata.onExitLevel()
+		local name = string.sub(Level.filename(), 0, -5);
+		local data = lvl[name];
+		if(data) then
+			if(not SaveData.completion[name]) then
+				SaveData.completion[name] = {};
+			end
+				
+			--Level has been beaten
+			if(winState == data.Exit) then
+				SaveData.completion[name].Exit = true;
+			end
+			--Secret exit has been beaten
+			if(winState == data.Secret) then
+				SaveData.completion[name].Secret = true;
+			end
 			
-		--Level has been beaten
-		if(winState == data.Exit) then
-			completion[name].Exit = true;
+			--SaveData.completion[name] = com
+			--savedata:set(name, lunajson.encode(completion[name]));
+			--savedata:save();
 		end
-		--Secret exit has been beaten
-		if(winState == data.Secret) then
-			completion[name].Secret = true;
-		end
-		
-		savedata:set(name, lunajson.encode(completion[name]));
-		savedata:save();
 	end
 end
 

@@ -3,6 +3,7 @@
 --**********
  --API.load("pSwitchTicking")
 
+API.load("a2xt_savedata");
 local settings = API.load("a2xt_settings");
 local raocoins = API.load("a2xt_raocoincounter");
 local democounter = API.load("a2xt_democounter");

@@ -1,6 +1,4 @@
-gfxoffsety=-2
 width=32
-height=52
+height=54
 framestyle=1
-image=""
-script=""
+frames=1

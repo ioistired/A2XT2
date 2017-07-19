@@ -13,6 +13,17 @@ local levelbg;
 local img_levelbg;
 local lvlalpha;
 local lvlfile;
+
+local saveDisplayTime = 64;
+local saveTimer = 0;
+local saveImage = Graphics.loadImage(Misc.resolveFile("graphics/HUD/save.png"))
+
+local defaultSave = Misc.saveGame;
+function Misc.saveGame(...)
+	defaultSave(...);
+	saveTimer = saveDisplayTime;
+end
+
 if(isOverworld) then
 	vectr = API.load("vectr");
 	map3d = API.load("map3d");
@@ -91,6 +102,10 @@ end
 
 local function drawHUD()
 	local sideoffset = 75;
+	if(saveTimer > 0) then
+		Graphics.drawImageWP(saveImage, 800-24, 600-24, (saveTimer/saveDisplayTime), 10);
+		saveTimer = saveTimer - 1;
+	end
 	if((isOverworld and showhud == WHUD_ALL) or (not isOverworld and showhud)) then
 		Graphics.drawImage(HUD_IMG.demos,400-sideoffset-64,20);
 		Text.print(GLOBAL_DEMOS, 1, 400-sideoffset-64, 39)

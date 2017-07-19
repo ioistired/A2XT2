@@ -1,3 +1,5 @@
+local savedata = API.load("a2xt_savedata");
+
 local map3d = API.load("map3d");
 map3d.HUDMode = map3d.HUD_NONE;
 
@@ -58,6 +60,7 @@ function onInputUpdate()
 		if(tranTimer == 1) then
 			leveldata.applyFilters(world.levelObj.filename);
 			player.jumpKeyPressing = true;
+			savedata.onEnterLevel(world.levelObj.filename);
 		end
 		player.leftKeyPressing = false;
 		player.rightKeyPressing = false;

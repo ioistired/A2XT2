@@ -115,8 +115,7 @@ for i = 1,3 do
 end
 
 local blackmarket = {};
-
-blackmarket.settings = npcManager.setNpcSettings(table.join(
+local marketSettings = table.join(
 				 defaults,
 				 {id = 986,
 				  gfxheight = 96, 
@@ -125,10 +124,47 @@ blackmarket.settings = npcManager.setNpcSettings(table.join(
 				  gfxoffsetx = 32,
 				  height = 64,
 				  noblockcollision = 1,
-				  nogravity = 1}));
+				  nogravity = 1});
+marketSettings.frames = 4;
+marketSettings.framespeed = 12;
+
+npcManager.registerEvent(marketSettings.id, blackmarket, "onTickNPC");
+npcManager.registerEvent(marketSettings.id, blackmarket, "onDrawNPC");
+blackmarket.settings = npcManager.setNpcSettings(marketSettings);
+
+function blackmarket:onTickNPC()
+	self.data.playing = false;
+	self.animationTimer = 0;
+end
+
+function blackmarket:onDrawNPC()
+	if(self.data.frameTimer and self.data.frameTimer > 0) then
+		self.data.frameTimer = self.data.frameTimer - 1;
+	else
+	
+	if(self.data.playing) then
+		if(self.animationFrame < 3) then
+			self.animationFrame = self.animationFrame + 1;
+			self.data.frameTimer = blackmarket.settings.framespeed;
+		else
+			self.animationFrame = 3;
+			self.data.frameTimer = 0;
+		end
+	else
+		if(self.animationFrame > 0) then
+			self.animationFrame = self.animationFrame - 1;
+			self.data.frameTimer = blackmarket.settings.framespeed;
+		else
+			self.animationFrame = 0;
+			self.data.frameTimer = 0;
+		end
+	end
+	end
+end
 
 function blackmarket:onMessage()
-	self.animationFrame = 1;
+	self.data.frameTimer = blackmarket.settings.framespeed;
+	self.data.playing = true;
 end
 
 function friendlies.onInitAPI()
