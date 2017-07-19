@@ -11,3 +11,4 @@ LEVEL:Hoeloe-Temporis
 	Name=Temporis
 	Author=Hoeloe
 	Type=TOWN
+	Peng=993

@@ -95,7 +95,7 @@ local completion = {};
 
 local worlds = {};
 
-local keywords = {"name","author","type","exit","secret","raocoins","chars","filters"}
+local keywords = {"name","author","type","exit","secret","raocoins","chars","filters","peng"}
 
 local function split(s, x)
 	local r = {};
@@ -242,6 +242,8 @@ local function parseFile(f, fname)
 						dat.Raocoins = parseBool(kv[2]);
 					elseif(kv[1] == "chars") then
 						dat.Chars = parseCharFilter(kv[2]);
+					elseif(kv[1] == "peng") then
+						dat.Peng = tonumber(kv[2]);
 					end
 				end
 			end
@@ -281,6 +283,13 @@ function leveldata.onInitAPI()
 	
 	if(SaveData.completion == nil) then
 		SaveData.completion = {};
+	end
+	
+	if(not isOverworld) then
+		local name = string.sub(Level.filename(), 0, -5);
+		if(not SaveData.completion[name]) then
+			SaveData.completion[name] = {};
+		end
 	end
 	--completion = SaveData.completion;--savedata:get();
 	--for k,v in pairs(completion) do
@@ -401,10 +410,7 @@ if(not isOverworld) then
 		local name = string.sub(Level.filename(), 0, -5);
 		local data = lvl[name];
 		if(data) then
-			if(not SaveData.completion[name]) then
-				SaveData.completion[name] = {};
-			end
-				
+		
 			--Level has been beaten
 			if(winState == data.Exit) then
 				SaveData.completion[name].Exit = true;

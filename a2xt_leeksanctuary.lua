@@ -54,6 +54,9 @@ leeks.ICON_LEEKS = Graphics.loadImage(Misc.resolveFile("graphics/HUD/leeks.png")
 leeks.ICON_RAOCOINS = Graphics.loadImage(Misc.resolveFile("graphics/HUD/raocoins.png"))
 leeks.ICON_DEMOS = Graphics.loadImage(Misc.resolveFile("graphics/HUD/demos.png"))
 
+leeks.ICON_PENG_EMPTY = Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_peng_empty.png"))
+leeks.ICON_PENG = Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_peng.png"))
+
 leeks.TYPE_SECRET = leveldata.TYPE_EOW+1;
 leeks.MAXTYPE = leeks.TYPE_SECRET+1;
 
@@ -295,6 +298,7 @@ local function drawLevel(info,i,basex,y,alpha)
 				exitindex = exitindex + leeks.MAXTYPE;
 			end
 			local xoffset = 0;
+			
 			if(info[i].Secret) then
 				xoffset = 12;
 				local secretindex = leeks.TYPE_SECRET;
@@ -303,6 +307,16 @@ local function drawLevel(info,i,basex,y,alpha)
 				end
 				Graphics.drawImage(leeks.ICONS_EXIT[secretindex],basex+xoffset - 8,y, alpha)
 			end
+			
+			if(info[i].Peng ~= nil) then
+				xoffset = 12;
+				local pengimg = leeks.ICON_PENG_EMPTY;
+				if(SaveData.pengs ~= nil and SaveData.pengs[tostring(info[i].Peng)]) then
+					pengimg = leeks.ICON_PENG;
+				end
+				Graphics.drawImage(pengimg,basex+xoffset - 8,y, alpha)
+			end
+			
 			Graphics.drawImage(leeks.ICONS_EXIT[exitindex],basex-xoffset - 8,y, alpha)
 			
 			y = y + 30;
