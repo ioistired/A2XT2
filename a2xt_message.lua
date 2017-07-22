@@ -21,6 +21,19 @@ function a2xt_message.onInitAPI()
 end
 
 
+textblox.presetProps[textblox.PRESET_BUBBLE].borderTable = {
+                                                            ulImg   = textblox.IMGREF_BUBBLE_BORDER_UL,
+                                                            uImg    = textblox.IMGREF_BUBBLE_BORDER_U,
+                                                            urImg   = textblox.IMGREF_BUBBLE_BORDER_UR,
+                                                            rImg    = textblox.IMGREF_BUBBLE_BORDER_R,
+                                                            drImg   = textblox.IMGREF_BUBBLE_BORDER_DR,
+                                                            dImg    = textblox.IMGREF_BUBBLE_BORDER_D,
+                                                            dlImg   = textblox.IMGREF_BUBBLE_BORDER_DL,
+                                                            lImg    = textblox.IMGREF_BUBBLE_BORDER_L,
+                                                            thick   = 16
+                                                           }
+textblox.presetProps[textblox.PRESET_BUBBLE].xMargin = 0
+textblox.presetProps[textblox.PRESET_BUBBLE].yMargin = 8
 
 --***************************
 --** Variables             **
@@ -36,8 +49,14 @@ local nameBarName = ""
 local nameBarFade = 0
 
 local uiBoxImg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/levelBorder.png"))
+local thoughtBubbleImg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/thoughtBubble.png"))
+local thoughtBubbleBallImg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/thoughtBubbleBall.png"))
 
+local playerScreenX,playerScreenY = 0,0
 local playerSideX,playerSideY = 0,0
+
+local blipSound = Audio.SfxOpen(Misc.resolveFile("sound/grab.ogg"))
+local confirmSound = Audio.SfxOpen(Misc.resolveFile("sound/message.ogg"))
 
 
 -- Prompt stuff
@@ -65,8 +84,8 @@ a2xt_message.presetSequences._promptTest = function(args)
 	a2xt_message.waitMessageEnd()
 
 	-- PROMPT 1: YES/NO
-	a2xt_message.showMessageBox {target=talker, type="bubble", text="If options are not specified for a prompt, a basic YES or NO choice is provided.<br>The text for the two options are randomly selected.", closeWith="prompt"}
-	a2xt_message.waitMessageDone()
+	a2xt_message.showMessageBox {target=talker, type="bubble", text="If options are not specified for a prompt, a basic YES or NO choice is provided.<br>The text for the two options are randomly selected.", closeWith="prompt", instant=true}
+	--a2xt_message.waitMessageDone()
 
 	a2xt_message.showPrompt()
 	a2xt_message.waitPrompt()
@@ -97,11 +116,15 @@ a2xt_message.presetSequences._promptTest = function(args)
 
 	a2xt_message.showMessageBox {target=talker, type="bubble", text="Test concluded.  Check the message API's presetSequences._promptTest to see the code for this sequence."}
 	a2xt_message.waitMessageEnd()
-
+	eventu.waitSeconds(0.1)
+	
 	--windowDebug("Test")
 	a2xt_scene.endScene()
 end
-
+a2xt_message.presetSequences.catllamaStable = function(args)
+	local talker = args.npc
+	
+end
 
 --***************************
 --** Utility Functions     **
@@ -114,7 +137,9 @@ local function invLerp (minVal, maxVal, amountVal)
 	return  (amountVal-minVal) / (maxVal - minVal)
 end
 local function uiBox (args)
-	return imagic.Create{primitive=imagic.TYPE_BOX, x=args.x,y=args.y, width=args.width, height=args.height, align=imagic.ALIGN_CENTRE, bordertexture=uiBoxImg, borderwidth = 32};
+	args.image = args.image or uiBoxImg
+
+	return imagic.Create{primitive=imagic.TYPE_BOX, x=args.x,y=args.y, width=args.width, height=args.height, align=imagic.ALIGN_CENTRE, bordertexture=args.image, borderwidth = 32};
 end
 
 
@@ -298,6 +323,7 @@ function a2xt_message.showMessageBox (args)
 	props.bind        = textblox.BIND_SCENE
 	props.pauseGame   = false
 	props.z           = 2
+	props.instant     = args.instant
 
 	if  args.closeWith ~= nil  then
 		props.inputClose = false
@@ -327,8 +353,8 @@ function a2xt_message.showPrompt(args)
 	if  args == nil  then  args = {};  end;
 	
 	a2xt_message.promptChoice = 0
-	local options = args.options  or  {rng.randomEntry({"Sure","K","Arrighty","ACCEPT","Radicola","Yeh","Okie doke","Aw HELL yea","Neat beans","Sure","Sure, why not","YES","All of my yes","Totes","Okay","I guess","Great!","Awesome!","Heck yeah!","Fully approve.","I see no problem with this.","Meh, whatever.","[Shake excitedly]","I feel good about this.","Full steam ahead!","Oh, very much so.","Yes yes yes yes yes yes yes","[nod solemnly]","Supersauce","[resigning nod]","I'm leaning yes","My mind says no but my heart says yes","Jump up, superstar"}),
-	rng.randomEntry({"Lame.","Nah","No","NO","Are you serious...?","no no no no no no no no no","Don't","Do not","Do not want","DECLINE","[growl in contempt]","I dunno...","NO. BAD.","Nnnnnnope!","Goodbye!","NEGATIVE","STRONGLY DISAGREE","DECLINE","[Excessive display of disapproval]","Maybe next time","Negatory, good buddy","Who put you on the planet?","Think of the consequences, you fool!","How about no?","Count me out.","No. Just, no.","I don't even","Never.","You will regret this.","[piercing gaze]","Despair engulfs me.","why","Do I have to answer that?","A curse upon thee!"})}
+	local options = args.options  or  {rng.randomEntry({"Sure","K","Arrighty","ACCEPT","Radicola","Yeh","Okie doke","Aw HELL yea","Neat beans","Sure","Sure, why not","YES","All of my yes","Totes","Okay","I guess","Great!","Awesome!","Heck yeah!","Fully approve.","This pleases me","I'm down with it.","Righteous","I see no problem with this.","Meh, whatever.","[Shake excitedly]","I feel good about this.","Full steam ahead!","Oh, very much so.","Yes yes yes yes yes yes yes","[nod solemnly]","Supersauce","[resigning nod]","I'm leaning yes","My mind says no but my heart says yes","Jump up, superstar"}),
+	rng.randomEntry({"Lame.","Nah","No","NO","Are you serious...?","no no no no no no no no no","Don't","Do not","Do not want","DECLINE","[growl in contempt]","I dunno...","NO. BAD.","Nnnnnnope!","Goodbye!","NEGATIVE","STRONGLY DISAGREE","DECLINE","[Excessive display of disapproval]","Maybe next time","Downright bogus","Negatory, good buddy","Who put you on the planet?","Think of the consequences, you fool!","How about no?","Count me out.","No. Just, no.","I don't even","Never.","You will regret this.","[piercing gaze]","Despair engulfs me.","why","Do I have to answer that?","A curse upon thee!"})}
 
 
 	a2xt_message.promptChoice = 1
@@ -342,56 +368,67 @@ function a2xt_message.showPrompt(args)
 		end
 	end
 
-	local pressedLast = {
-	                     jump = player.jumpKeyPressing,
-	                     up = player.upKeyPressing,
-	                     down = player.downKeyPressing
-	                    }
 
 	local barWidth, barHeight = textblox.printExt (fullStr, {x=-2000,y=0,z=0.1, alpha=bga, font=textblox.FONT_SPRITEDEFAULT4X2, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
 	barWidth = barWidth+110
 	barHeight = barHeight+60
-	local barX = 400 + playerSideX*(350 - 0.5*barWidth)
-	local barY = 300 + playerSideY*(250 - 0.5*barHeight)
-
-	local optionsBar = uiBox{x=barX,y=barY, width=barWidth,height=barHeight}
+	local barX = 400 - playerSideX*(350 - 0.5*barWidth)
+	local barY = 300 - playerSideY*(250 - 0.5*barHeight)
 
 	eventu.run (function()
+
+		cman.playerCam[1]:Transition {time=0.75, xOffset=-barWidth*0.25*playerSideX, easeBoth=cman.EASE.QUAD}
 		while (not a2xt_message.promptChosen) do
 
 			-- Move the cursor
 				if      a2xt_scene.currInputs.up  and  not a2xt_scene.prevInputs.up  then
-					--Audio.playSFX("message.ogg")
+					Audio.SfxPlayObj(blipSound,0)
 					a2xt_message.promptChoice = math.max(1, a2xt_message.promptChoice-1)
 					a2xt_message.promptChoiceStr = options[a2xt_message.promptChoice]
 
 				elseif  a2xt_scene.currInputs.down  and  not a2xt_scene.prevInputs.down  then
-					--Audio.playSFX("message.ogg")
+					Audio.SfxPlayObj(blipSound,0)
 					a2xt_message.promptChoice = math.min(#options, a2xt_message.promptChoice+1)
 					a2xt_message.promptChoiceStr = options[a2xt_message.promptChoice]
 				end
 
 				-- Confirm
 				if  a2xt_scene.currInputs.jump  and  not a2xt_scene.prevInputs.jump  then
-					--Audio.playSFX("grab.ogg")
+					Audio.SfxPlayObj(confirmSound,0)
 					a2xt_message.promptChosen = true
+					cman.playerCam[1]:Transition {time=0.75, xOffset=0, easeBoth=cman.EASE.QUAD}
+					eventu.waitSeconds(0.25)
 					eventu.signal ("_promptEnded")
 				end
 
-				-- Draw the options
-				optionsBar:Draw{priority=6, colour=0x071227FF, bordercolour=0xFFFFFFFF};
-				for  i=1,#options  do
-					local optionStr = options[i]
-					if  a2xt_message.promptChoice == i  then
-						optionStr = "<lt> <color yellow>"..optionStr.."<color default> <gt>"
+				-- Draw the options and stuff
+				if  (not a2xt_message.promptChosen)  then
+					for  i=1,8  do
+						local timeLoop = ((lunatime.tick()+i*32)/256)%1
+						local bubbleBall = imagic.Create{primitive=imagic.TYPE_BOX, 
+						                                 x=lerp(playerScreenX,barX, 0.1 + 0.9*timeLoop),
+						                                 y=lerp(playerScreenY,barY, timeLoop) + 10*math.sin(math.rad(-270*timeLoop)),
+						                                 width=lerp(0,30, timeLoop),
+						                                 height=lerp(0,30, timeLoop),
+						                                 align=imagic.ALIGN_CENTRE,
+						                                 texture=thoughtBubbleBallImg,
+						                                 scene=false
+						                                };
+						bubbleBall:Draw {priority=6, colour=0xFFFFFFFF}
 					end
-					textblox.printExt (optionStr, {x=barX, y=barY - 0.5*barHeight + 10 + i*(uiFont.charHeight*uiFont.scaleY + uiFont.leading), z=7, alpha=bga, font=uiFont, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
-				end
 
-				-- Update inputs
-				pressedLast["jump"] = player.jumpKeyPressing
-				pressedLast["up"] = player.upKeyPressing
-				pressedLast["down"] = player.downKeyPressing
+					local timeLoop = (lunatime.tick()/256)%1
+					local xAdd,yAdd = 8*math.sin(math.rad(360*timeLoop)), 8*math.sin(math.rad(90 + 360*timeLoop))
+					local optionsBar = uiBox{image=thoughtBubbleImg, x=barX+xAdd, y=barY+yAdd, width=barWidth,height=barHeight}
+					optionsBar:Draw{priority=6, colour=0xFFFFFFFF, bordercolour=0xFFFFFFFF};
+					for  i=1,#options  do
+						local optionStr = options[i]
+						if  a2xt_message.promptChoice == i  then
+							optionStr = "<color rainbow><lt><wave 2> "..optionStr.." <wave 0><gt>"
+						end
+						textblox.printExt (optionStr, {x=barX+xAdd, y=barY + yAdd - 0.5*barHeight + 10 + i*(uiFont.charHeight*uiFont.scaleY + uiFont.leading), z=7, alpha=bga, color=0x000000FF, font=uiFont, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
+					end
+				end
 
 				eventu.waitFrames(0)
 			end
@@ -483,8 +520,8 @@ function a2xt_message.onTick()
 	local cam = Camera.get()[1]
 	local excam = cman.playerCam[1]
 	if  excam ~= nil  then
-		local playerX,playerY = excam:SceneToScreenPoint (player.x+player.width*0.5, player.y+player.height-32)
-		playerSideX, playerSideY = (400-playerX)/math.abs(400-playerX), (300-playerY)/math.abs(300-playerY)
+		playerScreenX,playerScreenY = excam:SceneToScreenPoint (player.x+player.width*0.5, player.y+player.height-32)
+		playerSideX, playerSideY = (400-playerScreenX)/math.abs(400-playerScreenX), (300-playerScreenY)/math.abs(300-playerScreenY)
 	end
 
 	if  closestNpc ~= nil  and  not a2xt_scene.inCutscene  then
