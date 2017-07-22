@@ -183,7 +183,10 @@ function friendlies.getTalkNPC()
 		end
 	end
 	
-	return pnpc.wrap(best);
+	if  best ~= nil  then
+		best = pnpc.wrap(best)
+	end
+	return best;
 end
 
 function friendlies.onMessageBox(eventObj, message)
