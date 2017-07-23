@@ -390,7 +390,7 @@ local function drawWater(cam)
 			end	
 		end	
 		
-			reflections:captureAt(0);
+			reflections:captureAt(-2);
 			local reflecty = waterY - cam.y;
 			local th = (reflecty/600);
 			local stretchFactor = 0.9;
@@ -401,7 +401,7 @@ local function drawWater(cam)
 								vertexColors = {brightness,brightness,brightness,0,brightness,brightness,brightness,0,brightness,brightness,brightness,0,brightness,brightness,brightness,0},
 								primitive = Graphics.GL_TRIANGLE_FAN, 
 								texture=reflections, 
-								priority = 0, 
+								priority = -2, 
 								shader = waterShader,
 								uniforms = 
 											{

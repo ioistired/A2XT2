@@ -510,9 +510,9 @@ end
 --** Events                **
 --***************************
 function a2xt_message.onDraw()
-		Text.print(tostring(player:mem(0x10A, FIELD_WORD)), 20, 300)
+		--Text.print(tostring(player:mem(0x10A, FIELD_WORD)), 20, 300)
 		
-		if  a2xt_scene.inCutscene  then
+		if  a2xt_scene.inCutscene or nameBarName == nil or nameBarName == "" then
 			nameBarFade = 0
 		else
 			local bgalpha = 0.75;
@@ -524,7 +524,9 @@ function a2xt_message.onDraw()
 			nameBar:Draw{priority=0, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
 		end
 end
-function a2xt_message.onTick()
+function a2xt_message.onCameraUpdate(eventobj, camindex)
+	if(camindex > 1) then return end;
+	
 	-- Free reference to the most recent message if necessary
 	if  mostRecentMessage ~= nil  then
 		if  mostRecentMessage.destroyMe  then
@@ -570,6 +572,15 @@ function a2xt_message.onTick()
 			if  v.friendly  and  v.msg ~= nil  and  not v:mem(0x40, FIELD_BOOL)  and  not v:mem(0x64, FIELD_BOOL)  then
 				v = pnpc.wrap(v)
 
+				--A2XT quick-parse
+				if(v.data.name == nil) then
+					local nm,msg = v.msg.str:match("^([^{}]+):%s*(.+)$");
+					if(nm ~= nil and msg ~= nil) then
+						v.data.name = nm;
+						v:mem(0x4C, FIELD_STRING, msg);
+					end
+				end
+				
 				-- Initialize the pnpc data
 				if  v.data.a2xt_message == nil  then
 					v.data.a2xt_message = {
@@ -587,9 +598,9 @@ function a2xt_message.onTick()
 				data.iconSpr.y = v.y-8
 
 				if  excam ~= nil  then
-					data.iconSpr.x, data.iconSpr.y = excam:SceneToScreenPoint (v.x+v.width*0.5, v.y-8)
+					data.iconSpr.x, data.iconSpr.y =  excam:SceneToScreenPoint(data.iconSpr.x, data.iconSpr.y)
 				end
-
+				
 				local dx = (v.x+v.width*0.5) - (player.x+player.width*0.5);
 				local dy = (v.y+v.height*0.5) - (player.y+player.height*0.5);
 				local d = math.sqrt(dx*dx + dy*dy)
@@ -599,7 +610,7 @@ function a2xt_message.onTick()
 
 					-- UI changes when player is adjacent;  swell icon, name bar
 					if  v == closestNpc  and  d < 48  then
-						if  v.data.name ~= nil  then
+						if  v.data.name ~= nil then
 							nameBarName = v.data.name
 						end
 						data.currScale = math.min(2, data.currScale+0.2)
@@ -618,6 +629,8 @@ function a2xt_message.onTick()
 						data.iconSpr.scale = 2*data.currScale
 					end
 				end
+				
+				data.iconSpr:Draw();
 			end
 		end
 	end
