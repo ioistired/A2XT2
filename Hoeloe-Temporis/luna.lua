@@ -254,7 +254,9 @@ function onTick()
 	elseif(player.section == 7) then --furba farm
 		if(not a2xt_scene.inCutscene and rng.random() < 0.02) then
 			local npc = pnpc.wrap(rng.irandomEntry(NPC.get(89,7)));
-			local bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Meep.", closeWith = "auto"}
+			if(npc.data.meep == nil or npc.data.meep:isFinished()) then
+				npc.data.meep = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Meep.<pause 20>", closeWith = "auto"}
+			end
 		end
 	end
 	

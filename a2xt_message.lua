@@ -339,6 +339,7 @@ function a2xt_message.showMessageBox (args)
 
 	if  args.closeWith ~= nil  then
 		props.inputClose = false
+		props.inputProgress = false
 		if  args.closeWith == "auto"  then
 			props.autoClose = true
 		end
@@ -360,6 +361,24 @@ function a2xt_message.showMessageBox (args)
 
 	-- Create a textblox block and set up some management/reference stuff
 	local bubble = textblox.Block (messageCtrl.x,messageCtrl.y, text, props)
+	
+	bubble.closeSound = "sound/text-next.ogg"
+	bubble.finishSound = ""
+	bubble.typeSounds = {"sound/text-blip1.ogg", "sound/text-blip2.ogg"}
+	bubble.typeSoundChunks = {};
+	for  k,v in pairs (bubble.typeSounds)  do
+		bubble.typeSoundChunks[k] = Audio.SfxOpen (textblox.getPath (v))
+	end
+	
+	if  args.closeWith == "auto"  then
+		bubble.closeSound = "";
+		bubble.finishSound = "";
+		if((args.startSound ~= nil or (bubble.typeSounds ~= nil and #bubble.typeSounds > 0)) and #text < 10) then
+			Audio.playSFX(textblox.getPath (args.startSound or rng.irandomEntry(bubble.typeSounds)));
+			bubble.typeSounds = {};
+		end
+	end
+	
 	eventu.run (cor_manageMessage, messageCtrl, bubble)
 	mostRecentMessage = bubble
 
