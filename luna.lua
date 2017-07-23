@@ -13,6 +13,9 @@ local spintrail = API.load("a2xt_spintrail");
 local leveldata = API.load("a2xt_leveldata");
 local sanctuary = API.load("a2xt_leeksanctuary");
 local npcs = API.load("a2xt_npcs");
+local scene = API.load("a2xt_scene");
+local messages = API.load("a2xt_message");
+local shops = API.load("a2xt_shops");
 
 function onInputUpdate()
         --*****************************

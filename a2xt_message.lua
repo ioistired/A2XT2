@@ -129,6 +129,19 @@ end
 --***************************
 --** Utility Functions     **
 --***************************
+local function addItem (str, item)
+	local newStr = string.gsub(str, "%[item%]", item)
+	return newStr;
+end
+local function getItemList (ids, names, prices)
+	local options = {}
+	for  i=1,#ids  do
+		local id = ids[i]
+		options[i] = names[id].." ("..tostring(prices[id]).."rc)"
+	end
+	return options
+end
+
 
 local function lerp (minVal, maxVal, percentVal)
 	return (1-percentVal) * minVal + percentVal*maxVal;
@@ -250,15 +263,15 @@ local function cor_manageMessage(bubbleTarget, bubble)
 		                   }
 		
 		conditionMet = conditions[condType]
-		--[[
+		---[[
 		local cam = cman.playerCam[1]
 		if  cam ~= nil  then
 			if  bubbleTarget.obj ~= nil  then
-				local screenX,screenY = cam:SceneToScreenPoint (bubbleTarget.obj.x, bubbleTarget.obj.y)
+				local screenX,screenY = cam:SceneToScreenPoint (bubbleTarget.obj.x + bubbleTarget.obj.width*0.5, bubbleTarget.obj.y + bubbleTarget.obj.height*0.5)
 
 				bubbleTarget.offY = 0
 				if  bubbleTarget.obj ~= player  then
-					bubbleTarget.offY = -64 * cam.zoom
+					bubbleTarget.offY = -32 * cam.zoom
 				end
 
 				bubbleTarget.x = screenX + cam.cam.x + bubbleTarget.offX
@@ -339,7 +352,12 @@ function a2xt_message.showMessageBox (args)
 	end
 
 	-- Provide default text
-	local text = args.text  or  props.text  or  "[NO TEXT SPECIFIED]"
+	local text = args.text  or  props.text  or  "NO TEXT SPECIFIED"
+
+	-- Handle all special tags
+	text = string.gsub(text, "(%[price%s*)(%d*)(%])", function (a,b,c)
+		return b.."rc"
+	end)
 
 	-- Create a textblox block and set up some management/reference stuff
 	local bubble = textblox.Block (messageCtrl.x,messageCtrl.y, text, props)
@@ -353,8 +371,8 @@ function a2xt_message.showPrompt(args)
 	if  args == nil  then  args = {};  end;
 	
 	a2xt_message.promptChoice = 0
-	local options = args.options  or  {rng.randomEntry({"Sure","K","Arrighty","ACCEPT","Radicola","Yeh","Okie doke","Aw HELL yea","Neat beans","Sure","Sure, why not","YES","All of my yes","Totes","Okay","I guess","Great!","Awesome!","Heck yeah!","Fully approve.","This pleases me","I'm down with it.","Righteous","I see no problem with this.","Meh, whatever.","[Shake excitedly]","I feel good about this.","Full steam ahead!","Oh, very much so.","Yes yes yes yes yes yes yes","[nod solemnly]","Supersauce","[resigning nod]","I'm leaning yes","My mind says no but my heart says yes","Jump up, superstar"}),
-	rng.randomEntry({"Lame.","Nah","No","NO","Are you serious...?","no no no no no no no no no","Don't","Do not","Do not want","DECLINE","[growl in contempt]","I dunno...","NO. BAD.","Nnnnnnope!","Goodbye!","NEGATIVE","STRONGLY DISAGREE","DECLINE","[Excessive display of disapproval]","Maybe next time","Downright bogus","Negatory, good buddy","Who put you on the planet?","Think of the consequences, you fool!","How about no?","Count me out.","No. Just, no.","I don't even","Never.","You will regret this.","[piercing gaze]","Despair engulfs me.","why","Do I have to answer that?","A curse upon thee!"})}
+	local options = args.options  or  {rng.randomEntry({"Sure","K","Arrighty","ACCEPT","Radicola","Yeh","Okie doke","Aw HELL yea","Neat beans","Sure","Sure, why not","YES","All of my yes","Totes","Okay","I guess","Great!","Awesome!","Heck yeah!","Fully approve.","This pleases me","I'm down with it.","Righteous","I see no problem with this.","Meh, whatever.","*Shake excitedly*","I feel good about this.","Full steam ahead!","Oh, very much so.","Yes yes yes yes yes yes yes","*nod solemnly*","Supersauce","*resigning nod*","I'm leaning yes","My mind says no but my heart says yes","Jump up, superstar"}),
+	rng.randomEntry({"Lame.","Nah","No","NO","Are you serious...?","no no no no no no no no no","Don't","Do not","Do not want","DECLINE","*growl in contempt*","I dunno...","NO. BAD.","Nnnnnnope!","Goodbye!","NEGATIVE","STRONGLY DISAGREE","DECLINE","*Excessive display of disapproval*","Maybe next time","Downright bogus","Negatory, good buddy","Who put you on the planet?","Think of the consequences, you fool!","How about no?","Count me out.","No. Just, no.","I don't even","Never.","You will regret this.","*piercing gaze*","Despair engulfs me.","why","Do I have to answer that?","A curse upon thee!"})}
 
 
 	a2xt_message.promptChoice = 1
@@ -378,6 +396,7 @@ function a2xt_message.showPrompt(args)
 	eventu.run (function()
 
 		cman.playerCam[1]:Transition {time=0.75, xOffset=-barWidth*0.25*playerSideX, easeBoth=cman.EASE.QUAD}
+		eventu.waitSeconds(0.5)
 		while (not a2xt_message.promptChosen) do
 
 			-- Move the cursor
@@ -397,8 +416,7 @@ function a2xt_message.showPrompt(args)
 					Audio.SfxPlayObj(confirmSound,0)
 					a2xt_message.promptChosen = true
 					cman.playerCam[1]:Transition {time=0.75, xOffset=0, easeBoth=cman.EASE.QUAD}
-					eventu.waitSeconds(0.25)
-					eventu.signal ("_promptEnded")
+					--eventu.signal ("_promptEnded")
 				end
 
 				-- Draw the options and stuff
@@ -477,14 +495,14 @@ function a2xt_message.waitMessageEnd(message)
 	return eventu.waitSignal("_messageEnd")
 end
 function a2xt_message.waitPrompt()
-	--[[
 	eventu.run(function ()
 		while (not a2xt_message.promptChosen)  do
 			eventu.waitFrames(0)
 		end
-		eventu.signal("_prompt")
+		eventu.waitSeconds(0.35)
+		eventu.signal("_promptEnded")
 	end)
-	--]]
+
 
 	return eventu.waitSignal("_promptEnded")
 end
@@ -493,6 +511,8 @@ end
 --** Events                **
 --***************************
 function a2xt_message.onDraw()
+		Text.print(tostring(player:mem(0x10A, FIELD_WORD)), 20, 300)
+		
 		if  a2xt_scene.inCutscene  then
 			nameBarFade = 0
 		else
