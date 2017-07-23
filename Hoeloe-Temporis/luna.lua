@@ -11,6 +11,8 @@ local rng=API.load("rng")
 local pnpc=API.load("pnpc");
 local audio = API.load("audioMaster");
 local imagic = API.load("imagic");
+local a2xt_message = API.load("a2xt_message");
+local a2xt_scene = API.load("a2xt_scene")
 
 sanctuary.world = 1;
 sanctuary.sections[4] = true
@@ -248,6 +250,11 @@ function onTick()
 					end
 				end
 			end
+		end
+	elseif(player.section == 7) then --furba farm
+		if(not a2xt_scene.inCutscene and rng.random() < 0.02) then
+			local npc = pnpc.wrap(rng.irandomEntry(NPC.get(89,7)));
+			local bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Meep.", closeWith = "auto"}
 		end
 	end
 	
