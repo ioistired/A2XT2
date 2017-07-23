@@ -170637,8 +170637,8 @@
 ""
 ""
 ""
--139836
--140230
+-139840
+-140256
 1
 107
 #FALSE#
@@ -170657,11 +170657,7 @@
 -1
 198
 #FALSE#
-"Biv: Oh, that temple we built to hold the Leek of Time?
-
-Turns out that Leek isn't anything special. Actually, all Leeks have the ability to bend space and time!
-
-Super Leeks are particularly good at it, because they're bigger. Relativity, yo!"
+"Biv: Oh, that temple we built to hold the Leek of Time?<page>Turns out that Leek isn't anything special. Actually, all Leeks have the ability to bend space and time!<page>Super Leeks are particularly good at it, because they're bigger. Relativity, yo!"
 #TRUE#
 #FALSE#
 #FALSE#
@@ -170746,12 +170742,12 @@ Super Leeks are particularly good at it, because they're bigger. Relativity, yo!
 ""
 ""
 ""
--175772
--181222
+-175776
+-181248
 -1
 107
 #FALSE#
-"{key=dickson_info_throne, name=Bes, icon=0, verb=talk, scene=text_bes}"
+"Bes: You may be wondering what you semi-liquid acquaintance is doing sitting on that throne there.<page>He is under the impression that he is the King of Time.<page>We thought this would be the most effective way to pacify him, or at least the way that would cause the least collateral damage.<page>To be perfectly honest, he's just so overjoyed to be in power that he hasn't actually tried to use it.<page>So far all he's done is lock himself in demanding 'tribute'.<page>Well, it's all for the best. Just humour him, it'll make things much easier."
 #TRUE#
 #TRUE#
 #FALSE#
@@ -170991,7 +170987,7 @@ Super Leeks are particularly good at it, because they're bigger. Relativity, yo!
 1
 198
 #FALSE#
-""
+"Sef: I've decided to raise some Furbas.<page>I've built this nice pen to keep them in.<page>...I haven't worked out what they're good for yet, but they are cute."
 #TRUE#
 #FALSE#
 #FALSE#
@@ -171066,7 +171062,7 @@ Super Leeks are particularly good at it, because they're bigger. Relativity, yo!
 -1
 198
 #FALSE#
-"...These are heavy."
+"Pad: ...These are heavy."
 #TRUE#
 #FALSE#
 #FALSE#
@@ -171096,7 +171092,7 @@ Super Leeks are particularly good at it, because they're bigger. Relativity, yo!
 1
 101
 #FALSE#
-"Welcome to Temporis, home of the Chronotons. Feel free to use our Temporal Shift Devices as you like."
+"Xet: Welcome to Temporis, home of the Chronotons. Feel free to use our Temporal Shift Devices as you like."
 #TRUE#
 #FALSE#
 #FALSE#
@@ -171111,9 +171107,7 @@ Super Leeks are particularly good at it, because they're bigger. Relativity, yo!
 -1
 101
 #FALSE#
-"This mural depicts one of the Great Battles of Space-Time.
-
-...Or it will, but it's not finished yet."
+"Cyd: This mural depicts one of the Great Battles of Space-Time.<page>...Or it will, but it's not finished yet."
 #TRUE#
 #TRUE#
 #FALSE#
@@ -171123,12 +171117,12 @@ Super Leeks are particularly good at it, because they're bigger. Relativity, yo!
 ""
 ""
 ""
--174564
--179174
+-174560
+-179200
 1
 107
 #FALSE#
-"*sigh* This is going to take months..."
+"Yem: *sigh* This is going to take months..."
 #TRUE#
 #FALSE#
 #FALSE#

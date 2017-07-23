@@ -1,5 +1,7 @@
 gfxwidth=32
 gfxheight=64
+width=32
+height=64
 frames=1
 framestyle=1
 name="Chronoton 1"
