@@ -17,7 +17,6 @@ function a2xt_message.onInitAPI()
 	registerEvent (a2xt_message, "onTick", "onTick", false)
 	registerEvent (a2xt_message, "onCameraUpdate", "onCameraUpdate", false)
 	registerEvent (a2xt_message, "onDraw", "onDraw", false)
-	registerEvent (a2xt_message, "onMessageBox", "onMessageBox", false)
 end
 
 
@@ -623,14 +622,8 @@ function a2xt_message.onTick()
 		end
 	end
 end
-function a2xt_message.onMessageBox (eventObj, message)
+function a2xt_npcs.onMessage (eventObj, message, npc)
 	if  not a2xt_scene.inCutscene  then
-		local npc
-
-		if(player.upKeyPressing) then
-			npc = a2xt_npcs.getTalkNPC();
-		end
-
 		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=message}}
 	end
 	eventObj.cancelled = true
