@@ -582,6 +582,7 @@ function a2xt_message.waitPrompt()
 	return eventu.waitSignal("_promptEnded")
 end
 
+local nameBarObj = nil;
 --***************************
 --** Events                **
 --***************************
@@ -594,10 +595,22 @@ function a2xt_message.onDraw()
 			local bgalpha = 0.75;
 			local bga = math.floor(nameBarFade*bgalpha*255);
 
-			local strWidth = textblox.printExt (nameBarName, {x=400,y=300 + 150*playerSideY,z=0.1, alpha=bga, font=textblox.FONT_SPRITEDEFAULT4X2, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
+			local transitionSpeed = 0.5;
+			
+			local y = 300 + 150*playerSideY;
+			if(nameBarObj ~= nil) then
+				y = lerp(nameBarObj.y, 300 + 150*playerSideY, transitionSpeed);
+			end
+			local strWidth = textblox.printExt (nameBarName, {x=400,y=y,z=0.1, alpha=bga, font=textblox.FONT_SPRITEDEFAULT4X2, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
 
-			local nameBar = uiBox {x=400,y=300 + 150*playerSideY, width=strWidth+80, height=70}
-			nameBar:Draw{priority=0.01, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
+			if(nameBarObj == nil) then
+				nameBarObj = uiBox {x=400,y=300 + 150*playerSideY, width=strWidth+80, height=70}
+			end
+			nameBarObj.x = 400
+			nameBarObj.y = y
+			nameBarObj.border.x = nameBarObj.x;
+			nameBarObj.border.y = nameBarObj.y;
+			nameBarObj:Draw{priority=0.01, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
 		end
 end
 function a2xt_message.onCameraUpdate(eventobj, camindex)
@@ -611,6 +624,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 	end
 
 	-- Other stuff
+	local lastNameBar = nameBarName;
 	nameBarName = ""
 
 	local closestNpc = a2xt_message.getTalkNPC()
@@ -688,6 +702,9 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 					if  v == closestNpc  and  d < 48  then
 						if  v.data.name ~= nil then
 							nameBarName = v.data.name
+							if(lastNameBar ~= v.data.name) then
+								nameBarObj = nil;
+							end
 						end
 						data.currScale = math.min(2, data.currScale+0.2)
 					else

@@ -14,6 +14,10 @@ local imagic = API.load("imagic");
 local a2xt_message = API.load("a2xt_message");
 local a2xt_scene = API.load("a2xt_scene")
 
+local textblox = API.load("textblox");
+
+textblox.npcPresets[151] = textblox.PRESET_BUBBLE
+
 sanctuary.world = 1;
 sanctuary.sections[4] = true
 
