@@ -5,10 +5,12 @@ local cman = API.load("cameraman")
 local eventu = API.load("eventu")
 local imagic = API.load("imagic")
 local pnpc = API.load("pnpc")
+local npcconfig = API.load("npcconfig")
+local colliders = API.load("colliders")
 
 local rng = API.load("rng")
 
-local a2xt_npcs = API.load("a2xt_npcs")
+--local a2xt_npcs = API.load("a2xt_npcs")
 local a2xt_scene = API.load("a2xt_scene")
 local a2xt_message = {}
 
@@ -17,6 +19,10 @@ function a2xt_message.onInitAPI()
 	registerEvent (a2xt_message, "onTick", "onTick", false)
 	registerEvent (a2xt_message, "onCameraUpdate", "onCameraUpdate", false)
 	registerEvent (a2xt_message, "onDraw", "onDraw", false)
+	registerEvent (a2xt_message, "onMessageBox", "onMessageBox", false)
+	
+	registerCustomEvent(a2xt_message, "onMessageEnd");
+	registerCustomEvent(a2xt_message, "onMessage");
 end
 
 
@@ -165,7 +171,7 @@ local function cor_talkZoomIn (args)
 		eventu.waitFrames(0)
 	end
 	local cam = cman.playerCam[1]
-	cam:Transition {time=0.75, targets={player, args.npc}, zoom=1.4, easeBoth=cman.EASE.QUAD}
+	cam:Transition {time=0.75, targets={player, {x=args.npc.x+args.npc.width*0.5, y = args.npc.y+args.npc.height*0.5}}, --[[zoom=1.4,]] easeBoth=cman.EASE.QUAD}
 end
 local function cor_talkZoomOut()
 	while (cman.playerCam[1] == nil)  do
@@ -176,35 +182,74 @@ local function cor_talkZoomOut()
 	-- End the cutscene and zoom back out
 	cam:Transition {time=0.5, targets={player}, zoom=1, easeBoth=cman.EASE.QUAD}
 end
+
+local function checkForSpace(player, range, direction, dbg)
+	local px,py = player.x+player.width*0.5, player.y;
+	local blockList = nil;
+	if(direction == 1) then
+		blockList = colliders.getColliding{a = colliders.Box(player.x, player.y, range + player.width, player.height), b = colliders.BLOCK_SOLID, btype=colliders.BLOCK};
+	else
+		blockList = colliders.getColliding{a = colliders.Box(player.x - range, player.y, player.x + player.width, player.height), b = colliders.BLOCK_SOLID, btype=colliders.BLOCK};
+	end
+	if(#blockList > 0) then
+		for i = 1,3 do
+			py = py + player.height * 0.25;
+			local b, p, n, obj = colliders.raycast({px,py}, {-direction * range, 0}, blockList, dbg or false)
+			if(b and (math.abs(n.x) > 0.65 or obj.y <= player.y)) then
+				return false;
+			end
+		end
+	end
+	return true;
+end
+
 local function cor_positionPlayer (args)
 	local npc = args.npc
 	if  npc ~= nil  then  npc = pnpc.wrap(npc);  end;
 
 	-- Move player into position
 	local d = 0
-	while (math.abs(d) < 48)  do
-		local dx = (npc.x+npc.width*0.5) - (player.x+player.width*0.5);
-		local dy = (npc.y+npc.height*0.5) - (player.y+player.height*0.5);
-		d = math.sqrt(dx*dx + dy*dy)
-
-		if  player.x < npc.x  then
-			npc.direction = -1
-			player.speedX = -2
-			player:mem(0x106, FIELD_WORD, -1)
-		elseif  player.x > npc.x  then
-			npc.direction = 1
-			player.speedX = 2
-			player:mem(0x106, FIELD_WORD, 1)
+	local settings = npcManager.getNpcSettings(npc.id);
+	local range = (settings.talkrange or 48);
+	
+	local l,r = checkForSpace(player, range, -1), checkForSpace(player, range, 1)
+	local timeout = lunatime.toTicks(3);
+	if(l or r) then
+		while (math.abs(d) < range and timeout > 0)  do
+			local dx = (npc.x+npc.width*0.5) - (player.x+player.width*0.5);
+			local dy = (npc.y+npc.height*0.5) - (player.y+player.height*0.5);
+			d = math.sqrt(dx*dx + dy*dy)
+			
+			if(not settings.noturn) then
+				if  l and (player.x < npc.x or not r) then
+					npc.direction = -1
+				elseif r and (player.x > npc.x or not l)  then
+					npc.direction = 1
+				end
+			end
+			
+			if(npc.direction == -1) then
+				player.speedX = -2
+				player:mem(0x106, FIELD_WORD, -1)
+			elseif  (npc.direction == 1)  then
+				player.speedX = 2
+				player:mem(0x106, FIELD_WORD, 1)
+			end
+			timeout = timeout - 1;
+			eventu.waitFrames(0)
 		end
-		eventu.waitFrames(0)
 	end
+	
+	
 
 	player.speedX = 0
-	if  player.x < npc.x  then
+	
+	if  npc.direction == -1  then
 		player:mem(0x106, FIELD_WORD, 1)
-	elseif  player.x > npc.x  then
+	elseif  npc.direction == 1  then
 		player:mem(0x106, FIELD_WORD, -1)
 	end
+	
 	eventu.waitSeconds(0.25)
 	eventu.signal("playerPositioned")
 end
@@ -248,8 +293,18 @@ local function cor_talkToNPC (args)
 			eventu.waitFrames(0)
 		end
 		a2xt_scene.endScene()
+		a2xt_message.onMessageEnd(npc);
 	end
 end
+
+local function getBubbleTarget(obj)
+	local x,y = obj.x + obj.width*0.5, obj.y + obj.height*0.5;
+	if(obj.__type == "NPC") then
+		x = x + npcconfig[obj.id].gfxoffsetx*(-obj.direction)
+	end
+	return x,y
+end
+
 local function cor_manageMessage(bubbleTarget, bubble)
 
 	local condType = bubbleTarget.closeWith  or  "default"
@@ -266,7 +321,7 @@ local function cor_manageMessage(bubbleTarget, bubble)
 		local cam = cman.playerCam[1]
 		if  cam ~= nil  then
 			if  bubbleTarget.obj ~= nil  then
-				local screenX,screenY = cam:SceneToScreenPoint (bubbleTarget.obj.x + bubbleTarget.obj.width*0.5, bubbleTarget.obj.y + bubbleTarget.obj.height*0.5)
+				local screenX,screenY = cam:SceneToScreenPoint (getBubbleTarget(bubbleTarget.obj))
 
 				bubbleTarget.offY = 0
 				if  bubbleTarget.obj ~= player  then
@@ -556,7 +611,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 	-- Other stuff
 	nameBarName = ""
 
-	local closestNpc = a2xt_npcs.getTalkNPC()
+	local closestNpc = a2xt_message.getTalkNPC()
 	local cam = Camera.get()[1]
 	local excam = cman.playerCam[1]
 	if  excam ~= nil  then
@@ -613,7 +668,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 				local data = v.data.a2xt_message
 
 				data.delete = false
-				data.iconSpr.x = v.x+v.width*0.5
+				data.iconSpr.x = v.x+v.width*0.5+npcconfig[v.id].gfxoffsetx*(-v.direction)
 				data.iconSpr.y = v.y-8
 
 				if  excam ~= nil  then
@@ -654,12 +709,42 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 		end
 	end
 end
-function a2xt_npcs.onMessage (eventObj, message, npc)
+
+function a2xt_message.getTalkNPC()
+	local best = nil;
+	local distance = math.huge;
+	for _,v in ipairs(NPC.getIntersecting(player.x,player.y,player.x+player.width,player.y+player.height)) do
+		if(v:mem(0x44,FIELD_BOOL)) then
+			local dx = (v.x+v.width*0.5) - (player.x+player.width*0.5);
+			local dy = (v.y+v.height*0.5) - (player.y+player.height*0.5);
+			if(dx*dx + dy*dy < distance) then
+				best = v;
+			end
+		end
+	end
+	
+	if  best ~= nil  then
+		best = pnpc.wrap(best)
+	end
+	return best;
+end
+
+function a2xt_message.onMessageBox(eventObj, message)
+	local npc = nil;
+	if(player.upKeyPressing) then
+		npc = a2xt_message.getTalkNPC();
+	end
+	
 	if  not a2xt_scene.inCutscene  then
 		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=message}}
 	end
 	eventObj.cancelled = true
+	
+	a2xt_message.onMessage(npc, message);
 end
+--[[
+function a2xt_npcs.onMessage (eventObj, message, npc)
+end]]
 
 
 
