@@ -425,7 +425,8 @@ local function drawWater(cam)
 		end
 end
 
-function onCameraUpdate()
+function onCameraUpdate(obj, camid)
+	if(camid ~= 1) then return end;
 	if(waterShader == nil) then
 		waterShader = Shader();
 		waterShader:compileFromFile(nil, "reflection.frag");
@@ -433,30 +434,34 @@ function onCameraUpdate()
 	local cam = Camera.get()[1];
 	
 	if(player.section < 2) then
-	ybound = ylimit+20000*player.section;
-	ycam = ybound - 560;
-	
-	if(player.y < ybound and cam.y > ycam and (cam.x < -193536 or cam.x > -192448)) then
-		targetcamY = ycam;
-	else
-		targetcamY = cam.y;
-	end
-	
-	if(refreshCamera or cam.y < ycam) then
-		lastcamY = targetcamY;
-		refreshCamera = false;
-	end
-	
-	if(lastcamY == nil) then
+		ybound = ylimit+20000*player.section;
+		ycam = ybound - 560;
+		
+		if(player.y < ybound and cam.y > ycam and (cam.x < -193536 or cam.x > -192448)) then
+			targetcamY = ycam;
+		else
+			targetcamY = cam.y;
+		end
+		
+		if(refreshCamera) then
+			lastcamY = targetcamY;
+			refreshCamera = false;
+		end
+		
+		if(lastcamY == nil) then
+			lastcamY = cam.y;
+		end
+		
+		if(math.abs(lastcamY-targetcamY) > 500) then
+			lastcamY = cam.y;
+		end
+		
+		if(targetcamY > ycam+600) then
+			cam.y = targetcamY;
+		else
+			cam.y = lastcamY*0.8 + targetcamY*0.2;
+		end
 		lastcamY = cam.y;
-	end
-	
-	if(math.abs(lastcamY-targetcamY) > 500) then
-		lastcamY = cam.y;
-	end
-	
-	cam.y = lastcamY*0.8 + targetcamY*0.2;
-	lastcamY = cam.y;
 	end
 	
 	for _,v in ipairs(torches) do

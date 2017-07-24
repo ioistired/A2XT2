@@ -156,7 +156,7 @@ local function invLerp (minVal, maxVal, amountVal)
 end
 local function uiBox (args)
 	args.image = args.image or uiBoxImg
-
+	
 	return imagic.Create{primitive=imagic.TYPE_BOX, x=args.x,y=args.y, width=args.width, height=args.height, align=imagic.ALIGN_CENTRE, bordertexture=args.image, borderwidth = 32};
 end
 
@@ -171,7 +171,7 @@ local function cor_talkZoomIn (args)
 		eventu.waitFrames(0)
 	end
 	local cam = cman.playerCam[1]
-	cam:Transition {time=0.75, targets={player, {x=args.npc.x+args.npc.width*0.5, y = args.npc.y+args.npc.height*0.5}}, --[[zoom=1.4,]] easeBoth=cman.EASE.QUAD}
+	cam:Transition {time=0.75, targets={player, {x=args.npc.x+args.npc.width*0.5, y = args.npc.y+args.npc.height*0.5}}, zoom=1.4, easeBoth=cman.EASE.QUAD}
 end
 local function cor_talkZoomOut()
 	while (cman.playerCam[1] == nil)  do
@@ -597,7 +597,7 @@ function a2xt_message.onDraw()
 			local strWidth = textblox.printExt (nameBarName, {x=400,y=300 + 150*playerSideY,z=0.1, alpha=bga, font=textblox.FONT_SPRITEDEFAULT4X2, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
 
 			local nameBar = uiBox {x=400,y=300 + 150*playerSideY, width=strWidth+80, height=70}
-			nameBar:Draw{priority=0, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
+			nameBar:Draw{priority=0.01, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
 		end
 end
 function a2xt_message.onCameraUpdate(eventobj, camindex)
