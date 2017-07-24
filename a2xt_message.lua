@@ -43,8 +43,8 @@ textblox.presetProps[textblox.PRESET_BUBBLE].yMargin = 8
 --***************************
 --** Variables             **
 --***************************
-local iconSeqs = {[1]="2p2,3,4,5", [2]="2p2,3,4,5", [2]="2p2,3,4,5"}
-local iconSet = animatx.Set {sheet=Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_talk.png")), states=3, frames=5, sequences=iconSeqs}
+local iconSeqs = {[1]="2p2,3,4,5", [2]="2p2,3,4,5", [3]="2p2,3,4,5", [4]="2p2,3,4,5"}
+local iconSet = animatx.Set {sheet=Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_talk.png")), states=4, frames=5, sequences=iconSeqs}
 
 local uiFont = textblox.FONT_SPRITEDEFAULT4X2
 
@@ -183,13 +183,13 @@ local function cor_talkZoomOut()
 	cam:Transition {time=0.5, targets={player}, zoom=1, easeBoth=cman.EASE.QUAD}
 end
 
-local function checkForSpace(player, range, direction, dbg)
-	local px,py = player.x+player.width*0.5, player.y;
+local function checkForSpace(player, npc, range, direction, dbg)
+	local px,py = npc.x+npc.width*0.5, player.y;
 	local blockList = nil;
 	if(direction == 1) then
-		blockList = colliders.getColliding{a = colliders.Box(player.x, player.y, range + player.width, player.height), b = colliders.BLOCK_SOLID, btype=colliders.BLOCK};
+		blockList = colliders.getColliding{a = colliders.Box(npc.x+npc.width*0.5, player.y, range + player.width, player.height), b = colliders.BLOCK_SOLID, btype=colliders.BLOCK};
 	else
-		blockList = colliders.getColliding{a = colliders.Box(player.x - range, player.y, player.x + player.width, player.height), b = colliders.BLOCK_SOLID, btype=colliders.BLOCK};
+		blockList = colliders.getColliding{a = colliders.Box(npc.x+npc.width*0.5 - range, player.y, player.x + player.width, player.height), b = colliders.BLOCK_SOLID, btype=colliders.BLOCK};
 	end
 	if(#blockList > 0) then
 		for i = 1,3 do
@@ -212,7 +212,7 @@ local function cor_positionPlayer (args)
 	local settings = npcManager.getNpcSettings(npc.id);
 	local range = (settings.talkrange or 48);
 	
-	local l,r = checkForSpace(player, range, -1), checkForSpace(player, range, 1)
+	local l,r = checkForSpace(player, npc, range, -1), checkForSpace(player, npc, range, 1)
 	local timeout = lunatime.toTicks(3);
 	if(l or r) then
 		while (math.abs(d) < range and timeout > 0)  do
@@ -221,19 +221,21 @@ local function cor_positionPlayer (args)
 			d = math.sqrt(dx*dx + dy*dy)
 			
 			if(not settings.noturn) then
-				if  l and (player.x < npc.x or not r) then
+				if  l and (player.x + player.width*0.5 < npc.x + npc.width*0.5 or not r) then
 					npc.direction = -1
-				elseif r and (player.x > npc.x or not l)  then
+				elseif r and (player.x + player.width*0.5 > npc.x + npc.width*0.5 or not l)  then
 					npc.direction = 1
 				end
 			end
 			
-			if(npc.direction == -1) then
+			if(npc.direction == -1 and l) then
 				player.speedX = -2
 				player:mem(0x106, FIELD_WORD, -1)
-			elseif  (npc.direction == 1)  then
+			elseif  (npc.direction == 1 and r)  then
 				player.speedX = 2
 				player:mem(0x106, FIELD_WORD, 1)
+			else --we ain't going anywhere
+				break;
 			end
 			timeout = timeout - 1;
 			eventu.waitFrames(0)
