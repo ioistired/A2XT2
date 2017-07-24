@@ -1,7 +1,8 @@
-local npcconfig = API.load("npcconfig", true)
+local npcconfig = API.load("npcconfig")
 local npcManager = API.load("npcManager")
 local pnpc = API.load("pnpc")
 local audio = API.load("audioMaster")
+local a2xt_message = API.load("a2xt_message")
 
 local friendlies = {}
 
@@ -63,8 +64,8 @@ pengs[1] = table.join(
 				 {id = 999,
 				  gfxheight = 48, 
 				  gfxwidth = 56, 
-				  width = 32, 
-				  height = 32},
+				  width = 64, 
+				  height = 64},
 				  defaults);
 				  
 local bigpengs = {[988] = true, [993] = true, [995] = true}
@@ -84,6 +85,8 @@ for i = 987,995 do
 	if(tinypeng == s.id) then
 		s.gfxheight = 32;
 		s.gfxwidth = 32;
+		s.width = 32;
+		s.height = 32;
 	end
 	table.insert(pengs, s);
 end
@@ -122,42 +125,43 @@ local marketSettings = table.join(
 				  gfxoffsetx = 32,
 				  height = 64,
 				  noblockcollision = 1,
-				  nogravity = 1});
+				  nogravity = 1,
+				  noturn = 1,
+				  talkrange = 56});
 marketSettings.frames = 4;
 marketSettings.framespeed = 12;
 
 npcManager.registerEvent(marketSettings.id, blackmarket, "onTickNPC");
-npcManager.registerEvent(marketSettings.id, blackmarket, "onDrawNPC");
 blackmarket.settings = npcManager.setNpcSettings(marketSettings);
 
 function blackmarket:onTickNPC()
-	self.data.playing = false;
-	self.animationTimer = 0;
-end
 
-function blackmarket:onDrawNPC()
 	if(self.data.frameTimer and self.data.frameTimer > 0) then
 		self.data.frameTimer = self.data.frameTimer - 1;
 	else
-	
-	if(self.data.playing) then
-		if(self.animationFrame < 3) then
-			self.animationFrame = self.animationFrame + 1;
-			self.data.frameTimer = blackmarket.settings.framespeed;
-		else
-			self.animationFrame = 3;
-			self.data.frameTimer = 0;
+		local offset = 0;
+		if(self.direction == 1) then
+			offset = 4;
 		end
-	else
-		if(self.animationFrame > 0) then
-			self.animationFrame = self.animationFrame - 1;
-			self.data.frameTimer = blackmarket.settings.framespeed;
+		if(self.data.playing) then
+			if(self.animationFrame < 3+offset) then
+				self.animationFrame = self.animationFrame + 1;
+				self.data.frameTimer = blackmarket.settings.framespeed;
+			else
+				self.animationFrame = 3+offset;
+				self.data.frameTimer = 0;
+			end
 		else
-			self.animationFrame = 0;
-			self.data.frameTimer = 0;
+			if(self.animationFrame > offset) then
+				self.animationFrame = self.animationFrame - 1;
+				self.data.frameTimer = blackmarket.settings.framespeed;
+			else
+				self.animationFrame = offset;
+				self.data.frameTimer = 0;
+			end
 		end
 	end
-	end
+	self.animationTimer = 2;
 end
 
 function blackmarket:onMessage()
@@ -165,11 +169,17 @@ function blackmarket:onMessage()
 	self.data.playing = true;
 end
 
-function friendlies.onInitAPI()
-	registerEvent(friendlies, "onMessageBox");
-	registerCustomEvent(friendlies, "onMessage")
+function blackmarket:onMessageEnd()
+	self.data.frameTimer = blackmarket.settings.framespeed;
+	self.data.playing = false;
 end
 
+function friendlies.onInitAPI()
+	--registerEvent(friendlies, "onMessageBox");
+	--registerCustomEvent(friendlies, "onMessage")
+end
+
+--[[
 function friendlies.getTalkNPC()
 	local best = nil;
 	local distance = math.huge;
@@ -202,7 +212,7 @@ function friendlies.onMessageBox(eventObj, message)
 		end
 	end
 	friendlies.onMessage(eventObj, message, npc);
-end
+end]]
 
 function signs:onTickNPC()
 	self.friendly = true;
@@ -211,15 +221,45 @@ function signs:onTickNPC()
 end
 
 function pengs:onMessage()
-	audio.PlaySound{sound = Misc.resolveFile("sound/noot.ogg"), volume = 1}
 	if(not pengData[self.id].collected) then
-		pengData[self.id].collected = true;
 		self.data.collected = true;
 		if(SaveData.pengs == nil) then
 			SaveData.pengs = {}
 		end
-		SaveData.pengs[tostring(self.id)] = true;
-		Misc.saveGame();
+	end
+end
+
+function pengs:onMessageEnd(id)
+	if(not pengData[id].collected) then
+		pengData[id].collected = true
+		SaveData.pengs[tostring(id)] = true;
+		--Misc.saveGame();
+		audio.PlaySound{sound = Misc.resolveFile("sound/noot.ogg"), volume = 1}
+		local a = Animation.spawn(10,self.x+self.width*0.5,self.y+self.height*0.5);
+		a.x = a.x-a.width*0.5;
+		a.y = a.y-a.height*0.5;
+		self:kill(9);
+	end
+end
+
+function a2xt_message.onMessage(npc, text)
+	if(npc ~= nil) then
+		if(npc.id == blackmarket.settings.id) then
+			blackmarket.onMessage(npc)
+		elseif(pengData[npc.id]) then
+			pengs.onMessage(npc,id);
+		end
+	end
+end
+
+function a2xt_message.onMessageEnd(npc)
+	if(npc) then
+		local id = npc.id;
+		if(pengData[id]) then
+			pengs.onMessageEnd(npc, id);
+		elseif(id == blackmarket.settings.id) then
+			blackmarket.onMessageEnd(npc);
+		end
 	end
 end
 
@@ -231,10 +271,7 @@ end
 
 function pengs:onTickNPC()
 	if(self.data.collected) then
-		local a = Animation.spawn(10,self.x+self.width*0.5,self.y+self.height*0.5);
-		a.x = a.x-a.width*0.5;
-		a.y = a.y-a.height*0.5;
-		self:kill(9);
+	
 	else
 		self.friendly = true;
 		local i = 1;

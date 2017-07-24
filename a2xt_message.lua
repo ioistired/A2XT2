@@ -5,10 +5,12 @@ local cman = API.load("cameraman")
 local eventu = API.load("eventu")
 local imagic = API.load("imagic")
 local pnpc = API.load("pnpc")
+local npcconfig = API.load("npcconfig")
+local colliders = API.load("colliders")
 
 local rng = API.load("rng")
 
-local a2xt_npcs = API.load("a2xt_npcs")
+--local a2xt_npcs = API.load("a2xt_npcs")
 local a2xt_scene = API.load("a2xt_scene")
 local a2xt_message = {}
 
@@ -17,6 +19,10 @@ function a2xt_message.onInitAPI()
 	registerEvent (a2xt_message, "onTick", "onTick", false)
 	registerEvent (a2xt_message, "onCameraUpdate", "onCameraUpdate", false)
 	registerEvent (a2xt_message, "onDraw", "onDraw", false)
+	registerEvent (a2xt_message, "onMessageBox", "onMessageBox", false)
+	
+	registerCustomEvent(a2xt_message, "onMessageEnd");
+	registerCustomEvent(a2xt_message, "onMessage");
 end
 
 
@@ -37,8 +43,8 @@ textblox.presetProps[textblox.PRESET_BUBBLE].yMargin = 8
 --***************************
 --** Variables             **
 --***************************
-local iconSeqs = {[1]="2p2,3,4,5", [2]="2p2,3,4,5", [2]="2p2,3,4,5"}
-local iconSet = animatx.Set {sheet=Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_talk.png")), states=3, frames=5, sequences=iconSeqs}
+local iconSeqs = {[1]="2p2,3,4,5", [2]="2p2,3,4,5", [3]="2p2,3,4,5", [4]="2p2,3,4,5"}
+local iconSet = animatx.Set {sheet=Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_talk.png")), states=4, frames=5, sequences=iconSeqs}
 
 local uiFont = textblox.FONT_SPRITEDEFAULT4X2
 
@@ -150,7 +156,7 @@ local function invLerp (minVal, maxVal, amountVal)
 end
 local function uiBox (args)
 	args.image = args.image or uiBoxImg
-
+	
 	return imagic.Create{primitive=imagic.TYPE_BOX, x=args.x,y=args.y, width=args.width, height=args.height, align=imagic.ALIGN_CENTRE, bordertexture=args.image, borderwidth = 32};
 end
 
@@ -165,7 +171,7 @@ local function cor_talkZoomIn (args)
 		eventu.waitFrames(0)
 	end
 	local cam = cman.playerCam[1]
-	cam:Transition {time=0.75, targets={player, args.npc}, zoom=1.4, easeBoth=cman.EASE.QUAD}
+	cam:Transition {time=0.75, targets={player, {x=args.npc.x+args.npc.width*0.5, y = args.npc.y+args.npc.height*0.5}}, zoom=1.4, easeBoth=cman.EASE.QUAD}
 end
 local function cor_talkZoomOut()
 	while (cman.playerCam[1] == nil)  do
@@ -176,35 +182,76 @@ local function cor_talkZoomOut()
 	-- End the cutscene and zoom back out
 	cam:Transition {time=0.5, targets={player}, zoom=1, easeBoth=cman.EASE.QUAD}
 end
+
+local function checkForSpace(player, npc, range, direction, dbg)
+	local px,py = npc.x+npc.width*0.5, player.y;
+	local blockList = nil;
+	if(direction == 1) then
+		blockList = colliders.getColliding{a = colliders.Box(npc.x+npc.width*0.5, player.y, range + player.width, player.height), b = colliders.BLOCK_SOLID, btype=colliders.BLOCK};
+	else
+		blockList = colliders.getColliding{a = colliders.Box(npc.x+npc.width*0.5 - range, player.y, player.x + player.width, player.height), b = colliders.BLOCK_SOLID, btype=colliders.BLOCK};
+	end
+	if(#blockList > 0) then
+		for i = 1,3 do
+			py = py + player.height * 0.25;
+			local b, p, n, obj = colliders.raycast({px,py}, {-direction * range, 0}, blockList, dbg or false)
+			if(b and (math.abs(n.x) > 0.65 or obj.y <= player.y)) then
+				return false;
+			end
+		end
+	end
+	return true;
+end
+
 local function cor_positionPlayer (args)
 	local npc = args.npc
 	if  npc ~= nil  then  npc = pnpc.wrap(npc);  end;
 
 	-- Move player into position
 	local d = 0
-	while (math.abs(d) < 48)  do
-		local dx = (npc.x+npc.width*0.5) - (player.x+player.width*0.5);
-		local dy = (npc.y+npc.height*0.5) - (player.y+player.height*0.5);
-		d = math.sqrt(dx*dx + dy*dy)
-
-		if  player.x < npc.x  then
-			npc.direction = -1
-			player.speedX = -2
-			player:mem(0x106, FIELD_WORD, -1)
-		elseif  player.x > npc.x  then
-			npc.direction = 1
-			player.speedX = 2
-			player:mem(0x106, FIELD_WORD, 1)
+	local settings = npcManager.getNpcSettings(npc.id);
+	local range = (settings.talkrange or 48);
+	
+	local l,r = checkForSpace(player, npc, range, -1), checkForSpace(player, npc, range, 1)
+	local timeout = lunatime.toTicks(3);
+	if(l or r) then
+		while (math.abs(d) < range and timeout > 0)  do
+			local dx = (npc.x+npc.width*0.5) - (player.x+player.width*0.5);
+			local dy = (npc.y+npc.height*0.5) - (player.y+player.height*0.5);
+			d = math.sqrt(dx*dx + dy*dy)
+			
+			if(not settings.noturn) then
+				if  l and (player.x + player.width*0.5 < npc.x + npc.width*0.5 or not r) then
+					npc.direction = -1
+				elseif r and (player.x + player.width*0.5 > npc.x + npc.width*0.5 or not l)  then
+					npc.direction = 1
+				end
+			end
+			
+			if(npc.direction == -1 and l) then
+				player.speedX = -2
+				player:mem(0x106, FIELD_WORD, -1)
+			elseif  (npc.direction == 1 and r)  then
+				player.speedX = 2
+				player:mem(0x106, FIELD_WORD, 1)
+			else --we ain't going anywhere
+				break;
+			end
+			timeout = timeout - 1;
+			eventu.waitFrames(0)
 		end
-		eventu.waitFrames(0)
 	end
+	
+	
 
 	player.speedX = 0
-	if  player.x < npc.x  then
+	
+	if  npc.direction == -1  then
 		player:mem(0x106, FIELD_WORD, 1)
-	elseif  player.x > npc.x  then
+	elseif  npc.direction == 1  then
 		player:mem(0x106, FIELD_WORD, -1)
 	end
+	
 	eventu.waitSeconds(0.25)
 	eventu.signal("playerPositioned")
 end
@@ -248,8 +295,18 @@ local function cor_talkToNPC (args)
 			eventu.waitFrames(0)
 		end
 		a2xt_scene.endScene()
+		a2xt_message.onMessageEnd(npc);
 	end
 end
+
+local function getBubbleTarget(obj)
+	local x,y = obj.x + obj.width*0.5, obj.y + obj.height*0.5;
+	if(obj.__type == "NPC") then
+		x = x + npcconfig[obj.id].gfxoffsetx*(-obj.direction)
+	end
+	return x,y
+end
+
 local function cor_manageMessage(bubbleTarget, bubble)
 
 	local condType = bubbleTarget.closeWith  or  "default"
@@ -266,7 +323,7 @@ local function cor_manageMessage(bubbleTarget, bubble)
 		local cam = cman.playerCam[1]
 		if  cam ~= nil  then
 			if  bubbleTarget.obj ~= nil  then
-				local screenX,screenY = cam:SceneToScreenPoint (bubbleTarget.obj.x + bubbleTarget.obj.width*0.5, bubbleTarget.obj.y + bubbleTarget.obj.height*0.5)
+				local screenX,screenY = cam:SceneToScreenPoint (getBubbleTarget(bubbleTarget.obj))
 
 				bubbleTarget.offY = 0
 				if  bubbleTarget.obj ~= player  then
@@ -339,6 +396,7 @@ function a2xt_message.showMessageBox (args)
 
 	if  args.closeWith ~= nil  then
 		props.inputClose = false
+		props.inputProgress = false
 		if  args.closeWith == "auto"  then
 			props.autoClose = true
 		end
@@ -360,6 +418,24 @@ function a2xt_message.showMessageBox (args)
 
 	-- Create a textblox block and set up some management/reference stuff
 	local bubble = textblox.Block (messageCtrl.x,messageCtrl.y, text, props)
+	
+	bubble.closeSound = "sound/text-next.ogg"
+	bubble.finishSound = ""
+	bubble.typeSounds = {"sound/text-blip1.ogg", "sound/text-blip2.ogg"}
+	bubble.typeSoundChunks = {};
+	for  k,v in pairs (bubble.typeSounds)  do
+		bubble.typeSoundChunks[k] = Audio.SfxOpen (textblox.getPath (v))
+	end
+	
+	if  args.closeWith == "auto"  then
+		bubble.closeSound = "";
+		bubble.finishSound = "";
+		if((args.startSound ~= nil or (bubble.typeSounds ~= nil and #bubble.typeSounds > 0)) and #text < 10) then
+			Audio.playSFX(textblox.getPath (args.startSound or rng.irandomEntry(bubble.typeSounds)));
+			bubble.typeSounds = {};
+		end
+	end
+	
 	eventu.run (cor_manageMessage, messageCtrl, bubble)
 	mostRecentMessage = bubble
 
@@ -506,6 +582,7 @@ function a2xt_message.waitPrompt()
 	return eventu.waitSignal("_promptEnded")
 end
 
+local nameBarObj = nil;
 --***************************
 --** Events                **
 --***************************
@@ -518,10 +595,22 @@ function a2xt_message.onDraw()
 			local bgalpha = 0.75;
 			local bga = math.floor(nameBarFade*bgalpha*255);
 
-			local strWidth = textblox.printExt (nameBarName, {x=400,y=300 + 150*playerSideY,z=0.1, alpha=bga, font=textblox.FONT_SPRITEDEFAULT4X2, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
+			local transitionSpeed = 0.5;
+			
+			local y = 300 + 150*playerSideY;
+			if(nameBarObj ~= nil) then
+				y = lerp(nameBarObj.y, 300 + 150*playerSideY, transitionSpeed);
+			end
+			local strWidth = textblox.printExt (nameBarName, {x=400,y=y,z=0.1, alpha=bga, font=textblox.FONT_SPRITEDEFAULT4X2, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
 
-			local nameBar = uiBox {x=400,y=300 + 150*playerSideY, width=strWidth+80, height=70}
-			nameBar:Draw{priority=0, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
+			if(nameBarObj == nil) then
+				nameBarObj = uiBox {x=400,y=300 + 150*playerSideY, width=strWidth+80, height=70}
+			end
+			nameBarObj.x = 400
+			nameBarObj.y = y
+			nameBarObj.border.x = nameBarObj.x;
+			nameBarObj.border.y = nameBarObj.y;
+			nameBarObj:Draw{priority=0.01, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
 		end
 end
 function a2xt_message.onCameraUpdate(eventobj, camindex)
@@ -535,9 +624,10 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 	end
 
 	-- Other stuff
+	local lastNameBar = nameBarName;
 	nameBarName = ""
 
-	local closestNpc = a2xt_npcs.getTalkNPC()
+	local closestNpc = a2xt_message.getTalkNPC()
 	local cam = Camera.get()[1]
 	local excam = cman.playerCam[1]
 	if  excam ~= nil  then
@@ -594,7 +684,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 				local data = v.data.a2xt_message
 
 				data.delete = false
-				data.iconSpr.x = v.x+v.width*0.5
+				data.iconSpr.x = v.x+v.width*0.5+npcconfig[v.id].gfxoffsetx*(-v.direction)
 				data.iconSpr.y = v.y-8
 
 				if  excam ~= nil  then
@@ -612,6 +702,9 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 					if  v == closestNpc  and  d < 48  then
 						if  v.data.name ~= nil then
 							nameBarName = v.data.name
+							if(lastNameBar ~= v.data.name) then
+								nameBarObj = nil;
+							end
 						end
 						data.currScale = math.min(2, data.currScale+0.2)
 					else
@@ -635,12 +728,42 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 		end
 	end
 end
-function a2xt_npcs.onMessage (eventObj, message, npc)
+
+function a2xt_message.getTalkNPC()
+	local best = nil;
+	local distance = math.huge;
+	for _,v in ipairs(NPC.getIntersecting(player.x,player.y,player.x+player.width,player.y+player.height)) do
+		if(v:mem(0x44,FIELD_BOOL)) then
+			local dx = (v.x+v.width*0.5) - (player.x+player.width*0.5);
+			local dy = (v.y+v.height*0.5) - (player.y+player.height*0.5);
+			if(dx*dx + dy*dy < distance) then
+				best = v;
+			end
+		end
+	end
+	
+	if  best ~= nil  then
+		best = pnpc.wrap(best)
+	end
+	return best;
+end
+
+function a2xt_message.onMessageBox(eventObj, message)
+	local npc = nil;
+	if(player.upKeyPressing) then
+		npc = a2xt_message.getTalkNPC();
+	end
+	
 	if  not a2xt_scene.inCutscene  then
 		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=message}}
 	end
 	eventObj.cancelled = true
+	
+	a2xt_message.onMessage(npc, message);
 end
+--[[
+function a2xt_npcs.onMessage (eventObj, message, npc)
+end]]
 
 
 
