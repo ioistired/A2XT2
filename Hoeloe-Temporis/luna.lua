@@ -460,7 +460,7 @@ function onCameraUpdate(obj, camid)
 			lastcamY = cam.y;
 		end
 		
-		if(targetcamY > ycam+600) then
+		if(targetcamY > ycam+600 and math.abs(lastcamY-targetcamY) < 32) then
 			cam.y = targetcamY;
 		else
 			cam.y = lastcamY*0.8 + targetcamY*0.2;
