@@ -81,6 +81,17 @@ a2xt_message.type = {bubble=textblox.PRESET_BUBBLE, system=textblox.PRESET_SYSTE
 a2xt_message.presetSequences = {}
 a2xt_message.presetSequences._multipageTest = "Beginning multi-page test.<page>AAAAAAAAAAAAAAAA<page>AAAAAAAAAAAAAAAAAAAA<page>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA<page>*inhales*<page>AAAAAAAAAAoh hi there<page>Test concluded.  Check the message API's presetSequences._multipageTest to see the code for this sequence."
 
+local yesTable = {"Sure","K","Arrighty","ACCEPT","Radicola","Yeh","Okie doke","Aw HELL yea","Neat beans","Sure","Sure, why not","YES","All of my yes","Totes","Okay","I guess","Great!","Awesome!","Heck yeah!","Fully approve.","This pleases me","I'm down with it.","Righteous","I see no problem with this.","Meh, whatever.","*Shake excitedly*","I feel good about this.","Full steam ahead!","Oh, very much so.","Yes yes yes yes yes yes yes","*nod solemnly*","Supersauce","*resigning nod*","I'm leaning yes","My mind says no but my heart says yes","Jump up, superstar"};
+local noTable = {"Lame.","Nah","No","NO","Are you serious...?","no no no no no no no no no","Don't","Do not","Do not want","DECLINE","*growl in contempt*","I dunno...","NO. BAD.","Nnnnnnope!","Goodbye!","NEGATIVE","STRONGLY DISAGREE","DECLINE","*Excessive display of disapproval*","Maybe next time","Downright bogus","Negatory, good buddy","Who put you on the planet?","Think of the consequences, you fool!","How about no?","Count me out.","No. Just, no.","I don't even","Never.","You will regret this.","*piercing gaze*","Despair engulfs me.","why","Do I have to answer that?","A curse upon thee!"}
+
+function a2xt_message.getYesOption()
+	return rng.irandomEntry(yesTable);
+end
+
+function a2xt_message.getNoOption()
+	return rng.irandomEntry(noTable);
+end
+
 a2xt_message.presetSequences._promptTest = function(args)
 	local talker = args.npc
 
@@ -130,13 +141,14 @@ end
 a2xt_message.presetSequences.catllamaStable = function(args)
 	local npc = args.npc
 	
-	local intro = args.text;
-	if(#intro < 1) then
-		intro = "Hi there! Welcome to the Catllama Stable! Here, you can rent catllamas using raocoins!<page>You can also return them if you don't want it any more, and we'll pay you for it!"
-	end
-	
+	local intro = args.text or "Hi there! Welcome to the Catllama Stable! Here, you can rent catllamas using raocoins!<page>You can also return them if you don't want it any more, and we'll pay you for it!"
+
 	-- Start the message box
 	local bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text=intro}
+	a2xt_message.waitMessageEnd()
+	
+	a2xt_message.showPrompt{options={"What is all this?", a2xt_message.getNoOption()}}
+	a2xt_message.waitPrompt()
 	
 	while (not bubble.deleteMe) do
 		eventu.waitFrames(0)
@@ -293,8 +305,12 @@ local function cor_talkToNPC (args)
 	local extMessage = a2xt_message.presetSequences[npc.data.event]
 	if  type(extMessage) == "function"  then
 
+		local t = string.trim(args.text);
+		if(#t < 1) then
+			t = nil;
+		end
 		-- Run the new cutscene
-		a2xt_scene.startScene {interrupt=true, scene=extMessage, sceneArgs={npc=npc, text=string.trim(args.text)}}
+		a2xt_scene.startScene {interrupt=true, scene=extMessage, sceneArgs={npc=npc, text=t}}
 
 	else
 		local messageText = args.text
@@ -461,8 +477,7 @@ function a2xt_message.showPrompt(args)
 	if  args == nil  then  args = {};  end;
 	
 	a2xt_message.promptChoice = 0
-	local options = args.options  or  {rng.randomEntry({"Sure","K","Arrighty","ACCEPT","Radicola","Yeh","Okie doke","Aw HELL yea","Neat beans","Sure","Sure, why not","YES","All of my yes","Totes","Okay","I guess","Great!","Awesome!","Heck yeah!","Fully approve.","This pleases me","I'm down with it.","Righteous","I see no problem with this.","Meh, whatever.","*Shake excitedly*","I feel good about this.","Full steam ahead!","Oh, very much so.","Yes yes yes yes yes yes yes","*nod solemnly*","Supersauce","*resigning nod*","I'm leaning yes","My mind says no but my heart says yes","Jump up, superstar"}),
-	rng.randomEntry({"Lame.","Nah","No","NO","Are you serious...?","no no no no no no no no no","Don't","Do not","Do not want","DECLINE","*growl in contempt*","I dunno...","NO. BAD.","Nnnnnnope!","Goodbye!","NEGATIVE","STRONGLY DISAGREE","DECLINE","*Excessive display of disapproval*","Maybe next time","Downright bogus","Negatory, good buddy","Who put you on the planet?","Think of the consequences, you fool!","How about no?","Count me out.","No. Just, no.","I don't even","Never.","You will regret this.","*piercing gaze*","Despair engulfs me.","why","Do I have to answer that?","A curse upon thee!"})}
+	local options = args.options  or  {a2xt_message.getYesOption(), a2xt_message.getNoOption()}
 
 
 	a2xt_message.promptChoice = 1
