@@ -709,7 +709,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 				-- Initialize the pnpc data
 				if  v.data.a2xt_message == nil  then
 					v.data.a2xt_message = {
-										   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y, z=-45, alpha=0, state=1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
+										   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y, z=1, alpha=0, state=1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
 										   talkedTo = false,
 										   currScale = 1
 										  }
