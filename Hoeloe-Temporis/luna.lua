@@ -11,6 +11,7 @@ local rng=API.load("rng")
 local pnpc=API.load("pnpc");
 local audio = API.load("audioMaster");
 local imagic = API.load("imagic");
+local cameraman = API.load("cameraman");
 local a2xt_message = API.load("a2xt_message");
 local a2xt_scene = API.load("a2xt_scene")
 
@@ -439,7 +440,7 @@ function onCameraUpdate(obj, camid)
 	
 	if(player.section < 2) then
 		ybound = ylimit+20000*player.section;
-		ycam = ybound - 560;
+		ycam = ybound - 560 + (cam.height - cameraman.playerCam[1].zoomedHeight)*0.6;
 		
 		if(player.y < ybound and cam.y > ycam and (cam.x < -193536 or cam.x > -192448)) then
 			targetcamY = ycam;

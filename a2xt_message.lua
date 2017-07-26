@@ -126,9 +126,23 @@ a2xt_message.presetSequences._promptTest = function(args)
 	--windowDebug("Test")
 	a2xt_scene.endScene()
 end
+
 a2xt_message.presetSequences.catllamaStable = function(args)
-	local talker = args.npc
+	local npc = args.npc
 	
+	local intro = args.text;
+	if(#intro < 1) then
+		intro = "Hi there! Welcome to the Catllama Stable! Here, you can rent catllamas using raocoins!<page>You can also return them if you don't want it any more, and we'll pay you for it!"
+	end
+	
+	-- Start the message box
+	local bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text=intro}
+	
+	while (not bubble.deleteMe) do
+		eventu.waitFrames(0)
+	end
+	
+	a2xt_scene.endScene()
 end
 
 --***************************
@@ -276,11 +290,11 @@ local function cor_talkToNPC (args)
 	eventu.run(cor_cleanupAfterNPC)
 
 	-- Check for indexed cutscenes or message strings
-	local extMessage = a2xt_message.presetSequences[args.text]
+	local extMessage = a2xt_message.presetSequences[npc.data.event]
 	if  type(extMessage) == "function"  then
 
 		-- Run the new cutscene
-		a2xt_scene.startScene {interrupt=true, scene=extMessage, sceneArgs={npc=npc}}
+		a2xt_scene.startScene {interrupt=true, scene=extMessage, sceneArgs={npc=npc, text=string.trim(args.text)}}
 
 	else
 		local messageText = args.text
@@ -295,8 +309,8 @@ local function cor_talkToNPC (args)
 			eventu.waitFrames(0)
 		end
 		a2xt_scene.endScene()
-		a2xt_message.onMessageEnd(npc);
 	end
+	a2xt_message.onMessageEnd(npc);
 end
 
 local function getBubbleTarget(obj)
@@ -353,6 +367,7 @@ end
 --***************************
 --** API Member Functions  **
 --***************************
+
 function a2xt_message.showMessageBox (args)
 	if  type(args) ~= "table"  then
 		args = {text=args}
@@ -644,7 +659,8 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 
 	-- Hide icons when they shouldn't be visible (work out deletion later)
 	for  k,v in pairs (NPC.get())  do
-		if  v.friendly  and  v.msg ~= nil  and  not v:mem(0x40, FIELD_BOOL)  and  not v:mem(0x64, FIELD_BOOL)  then
+		if  v.friendly  and  v.msg ~= nil  and  not v.isHidden  and  not v:mem(0x64, FIELD_BOOL)  then
+			
 			v = pnpc.wrap(v)
 			if  v.data.a2xt_message ~= nil  then
 				local data = v.data.a2xt_message
@@ -659,8 +675,12 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 	if  not a2xt_scene.inCutscene  then
 		for  k,v in pairs (NPC.getIntersecting(cam.x-48, cam.y-64, cam.x+cam.width+64, cam.y+cam.height+64))  do
 			-- If the NPC qualifies
-			if  v.friendly  and  v.msg ~= nil  and  not v:mem(0x40, FIELD_BOOL)  and  not v:mem(0x64, FIELD_BOOL)  then
-				v = pnpc.wrap(v)
+			v = pnpc.wrap(v)
+			if(v.data.event and v.msg.str == "") then
+				v.msg = " ";
+			end
+			if  v.friendly  and  v.msg ~= nil  and  not v.isHidden  and  not v:mem(0x64, FIELD_BOOL)  then
+				
 
 				--A2XT quick-parse
 				if(v.data.name == nil) then

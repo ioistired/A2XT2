@@ -253,8 +253,8 @@
 #FALSE#
 #FALSE#
 ""
--192912
--199230
+-39632
+-40314
 24
 54
 0
@@ -171002,7 +171002,7 @@
 1
 151
 #FALSE#
-""
+"{event = catllamaStable}"
 #TRUE#
 #TRUE#
 #FALSE#
