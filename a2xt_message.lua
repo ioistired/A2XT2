@@ -709,7 +709,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 				-- Initialize the pnpc data
 				if  v.data.a2xt_message == nil  then
 					v.data.a2xt_message = {
-										   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y, z=1, alpha=0, state=1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
+										   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y, z=-45, alpha=0, state=1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
 										   talkedTo = false,
 										   currScale = 1
 										  }
@@ -746,7 +746,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 						data.currScale = math.max(1, data.currScale-0.2)
 					end
 
-					if  data.currScale >= 2  then
+					if  data.currScale >= 1.5  then
 						if  data.iconSpr.frame == 1  then  data.iconSpr.frame = 2;  end;
 						data.iconSpr.speed = 1
 						data.iconSpr.scale = data.currScale

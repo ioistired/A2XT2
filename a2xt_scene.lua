@@ -235,9 +235,9 @@ end
 
 function a2xt_scene.onDraw()
 	-- Draw letterboxing and tint boxes
-	letterboxTop:Draw(5,letterboxCurrent.color)
-	letterboxBottom:Draw(5,letterboxCurrent.color)
-	tintBox:Draw(5,tintBox.color)
+	letterboxTop:Draw(1,letterboxCurrent.color)
+	letterboxBottom:Draw(1,letterboxCurrent.color)
+	tintBox:Draw(1,tintBox.color)
 
 	--[[
 	Text.print (tostring(currentScene), 20, 100)
