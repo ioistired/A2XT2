@@ -272,6 +272,60 @@ message.presetSequences.catnipStable = function(args)
 end
 
 
+message.presetSequences.steve = function(args)
+	local npc = args.npc
+	local price = 10;
+	
+	local intro = "Hello there young mortal.<page>I am a ssssssseller of thingsssss. A merchant of ssssortssss.<page>My name issss Sssssteve.<page>I will happily take sssssome food off your handsssss, and in return grant you sssssome treasssssure.<page>Jusssst "..price.." will sssssuffice. Ssssso, will you accept thisssss arrangement?";
+	if(SaveData.spokenToSteve) then
+		intro = rng.irandomEntry{"Ahhhhh, my favourite cusssstomer.<page>Can I interesssst you in my waressss? Jussst "..price.." food."}
+	end
+	SaveData.spokenToSteve = true;
+	
+	-- Start the message box
+	local bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text=intro, closeWith="prompt"}
+	message.waitMessageDone()
+	
+	scene.displayFoodHud(true);
+	message.showPrompt()
+	message.waitPrompt()
+	
+	while (not bubble.deleteMe) do
+		eventu.waitFrames(0)
+	end
+	
+	local shouldBuy = false;
+	
+	if  message.promptChoice == 1  then
+		if(GLOBAL_LIVES >= price) then
+			GLOBAL_LIVES = GLOBAL_LIVES - price;
+			bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Thankssss for your patronage."}
+			shouldBuy = true;
+		else
+			bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Ah it sssseemssss you don't have enough food.<page>Come back when you have acquired sssssome more."}
+		end
+	else
+		bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Well then. Don't hessssitate if you change your mind."}
+	end
+	eventu.waitFrames(64)
+	scene.displayFoodHud(false);
+	
+	while (not bubble.deleteMe) do
+		eventu.waitFrames(0)
+	end
+	
+	if(shouldBuy) then
+			local npc = NPC.spawn(rng.irandomEntry{185, 183, 277, 187, 188, 34, 169, 170, 10, 35, 191}, npc.x + npc.width*0.5 + npc.direction * 32, npc.y, player.section);
+			npc.speedY = -2;			
+			if(npc.id == 10) then
+				npc.ai1 = 1;
+			elseif(npc.id == 34) then
+				npc.speedY = 0;
+			end
+			npc.dontMove = true;
+	end
+	scene.endScene()
+end
 
 
 --***************************
