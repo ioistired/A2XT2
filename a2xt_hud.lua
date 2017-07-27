@@ -100,6 +100,20 @@ function hud.onInitAPI()
 	registerEvent(hud, "onDrawEnd", "onDrawEnd", false);
 end
 
+
+--Specific things for currency huds
+function hud.drawFood(x, y)
+	Graphics.drawImage(HUD_IMG.food, x,y);
+	if(GLOBAL_LIVES < 0) then
+		Text.print("-", x, y+19)
+	end
+	Text.print(GLOBAL_LIVES, 1, x, y+19)
+end
+
+function hud.drawRC(x,y)
+	printHUDObj(HUD_IMG.raocoins, raocoins.currency:get(), x, y);
+end
+
 local function drawHUD()
 	local sideoffset = 75;
 	if(saveTimer > 0) then
@@ -110,12 +124,7 @@ local function drawHUD()
 		Graphics.drawImage(HUD_IMG.demos,400-sideoffset-64,20);
 		Text.print(GLOBAL_DEMOS, 1, 400-sideoffset-64, 39)
 		
-		Graphics.drawImage(HUD_IMG.food, 400-sideoffset-140,20);
-		if(GLOBAL_LIVES < 0) then
-			Text.print("-", 400-sideoffset-140, 39)
-		end
-		Text.print(GLOBAL_LIVES, 1, 400-sideoffset-140, 39)
-		
+		hud.drawFood(400-sideoffset-140,20);
 	
 		if(isOverworld and player:mem(0x16, FIELD_WORD) == 0) then
 			player:mem(0x16, FIELD_WORD, 1);
@@ -140,7 +149,7 @@ local function drawHUD()
 		printHUDObj(HUD_IMG.coins, mem(0x00B2C5A8,FIELD_WORD), 400+sideoffset+96, 20);
 		printHUDObj(HUD_IMG.leeks, mem(0x00B251E0,FIELD_WORD), 400+sideoffset+96, 38);
 		
-		printHUDObj(HUD_IMG.raocoins, raocoins.currency:get(), 400+sideoffset, 20);
+		hud.drawRC(400+sideoffset, 20);
 		
 		for i=1,math.min(5,raocoins.local_counter),1 do
 			Graphics.drawImage(HUD_IMG.raocoins,400+sideoffset+12*(i-1),38);

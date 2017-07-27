@@ -432,6 +432,7 @@ end
 
 function onCameraUpdate(obj, camid)
 	if(camid ~= 1) then return end;
+	
 	if(waterShader == nil) then
 		waterShader = Shader();
 		waterShader:compileFromFile(nil, "reflection.frag");

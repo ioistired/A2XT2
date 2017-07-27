@@ -157,6 +157,57 @@ a2xt_message.presetSequences.catllamaStable = function(args)
 	a2xt_scene.endScene()
 end
 
+a2xt_message.presetSequences.steve = function(args)
+	local npc = args.npc
+	local price = 10;
+	
+	local intro = "Hello there young mortal.<page>I am a ssssssseller of thingsssss. A merchant of ssssortssss.<page>My name issss Sssssteve.<page>I will happily take sssssome food off your handsssss, and in return grant you sssssome treasssssure.<page>Jusssst "..price.." will sssssuffice. Ssssso, will you accept thisssss arrangement?";
+	if(SaveData.spokenToSteve) then
+		intro = rng.irandomEntry{"Ahhhhh, my favourite cusssstomer.<page>Can I interesssst you in my waressss? Jussst "..price.." food."}
+	end
+	SaveData.spokenToSteve = true;
+	
+	-- Start the message box
+	local bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text=intro}
+	a2xt_message.waitMessageEnd()
+	
+	a2xt_scene.displayFoodHud(true);
+	a2xt_message.showPrompt()
+	a2xt_message.waitPrompt()
+	
+	local shouldBuy = false;
+	
+	if  a2xt_message.promptChoice == 1  then
+		if(GLOBAL_LIVES >= price) then
+			GLOBAL_LIVES = GLOBAL_LIVES - price;
+			bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Thankssss for your patronage."}
+			shouldBuy = true;
+		else
+			bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Ah it sssseemssss you don't have enough food.<page>Come back when you have acquired sssssome more."}
+		end
+	else
+		bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Well then. Don't hessssitate if you change your mind."}
+	end
+	eventu.waitFrames(64)
+	a2xt_scene.displayFoodHud(false);
+	
+	while (not bubble.deleteMe) do
+		eventu.waitFrames(0)
+	end
+	
+	a2xt_scene.endScene()
+	if(shouldBuy) then
+			local npc = NPC.spawn(rng.irandomEntry{185, 183, 277, 187, 188, 34, 169, 170, 10, 35, 191}, npc.x + npc.width*0.5 + npc.direction * 32, npc.y, player.section);
+			npc.speedY = -2;			
+			if(npc.id == 10) then
+				npc.ai1 = 1;
+			elseif(npc.id == 34) then
+				npc.speedY = 0;
+			end
+			npc.dontMove = true;
+	end
+end
+
 --***************************
 --** Utility Functions     **
 --***************************
@@ -281,12 +332,15 @@ local function cor_positionPlayer (args)
 	eventu.waitSeconds(0.25)
 	eventu.signal("playerPositioned")
 end
+
 local function cor_cleanupAfterNPC (args)
 	while (a2xt_scene.inCutscene) do
 		eventu.waitFrames(0)
 	end
 	eventu.run (cor_talkZoomOut)
 end
+
+local talkNPC = nil;
 
 local function cor_talkToNPC (args)
 	-- PNPC wrap the npc
@@ -326,7 +380,7 @@ local function cor_talkToNPC (args)
 		end
 		a2xt_scene.endScene()
 	end
-	a2xt_message.onMessageEnd(npc);
+	talkNPC = npc;
 end
 
 local function getBubbleTarget(obj)
@@ -616,6 +670,13 @@ local nameBarObj = nil;
 --***************************
 --** Events                **
 --***************************
+function a2xt_message.onTick()
+	if(not a2xt_scene.inCutscene and talkNPC) then
+		a2xt_message.onMessageEnd(talkNPC);
+		talkNPC = nil;
+	end
+end
+
 function a2xt_message.onDraw()
 		--Text.print(tostring(player:mem(0x10A, FIELD_WORD)), 20, 300)
 		
