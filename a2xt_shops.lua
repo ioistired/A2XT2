@@ -18,6 +18,15 @@ local a2xt_shops = {}
 --** Variables             **
 --***************************
 
+local stable_mount_to_npc = {95, 98, 99, 100, 148, 149, 150, 228}
+local stable_npc_to_mount = {}
+
+for k,v in ipairs(stable_mount_to_npc) do
+	stable_npc_to_mount[v] = k;
+end
+
+
+
 a2xt_shops.settings = {
                       --[[ stable    = {   
                                     buyprices  = {2,4,4,4,8,6,6,6},
@@ -67,6 +76,12 @@ a2xt_shops.dialogue = {
                                               },
                                     about = "You look like you got a good head on your shoulders.  I reckon you know as well as I do that catllama-back ridin' is the only true way to travel.<page>We humble ranchers are here to provide you with a cuddly companion to help you get where you need to go.  Our catnips are the most dependable mounts you'll find for hundreds o' miles!<page>Of course, we hafta eat, so we can't go lending out rides for free.  We'll need a down payment of raocoins whenever you want to take one of our li'l fillies out with ya.<page>But we're not in this business fer the money.  If'n you bring 'em back home when you're done, we'll refund some of that fee as a show of good faith!<page>We'll accept wild catllamas y'all bring in as well, never hurts to add another member to the family!",
                                     browse = "Alrighty, just let me know which breed y'all want!",
+									alreadyriding = 
+											{
+												[1] = "Looks to me like you have some kind of sack-type device. Gonna struggle to ride one o' these majestic creatures with your legs all tied up like that!",
+												[2] = "Now that is one mighty fine contraption, but these catllamas are mighty afraid of machinery.<page>Why don't ya try parkin' that up and we'll see about gettin' ya a catllama instead.",
+												[3] = "Seems ta me like you already have one o' our furry friends here. I don't know about you but ridin' two at once seems a bit of a stretch.<page>Come see me an' we can arrange tradin' her in if you'd like."
+											},
                                     confirm = {
                                                "The [item], huh?  She'll run y'all about... I'd say [price].  Sound good?",
                                                "Sure y'all ready to part?  I can let ya keep her for a bit longer if you'd prefer.",
@@ -172,6 +187,8 @@ end
 --***************************
 --** Sequences             **
 --***************************
+
+--[[ --old catllama stable
 message.presetSequences.stable = function(args)
 	local talker = args.npc
 
@@ -204,7 +221,7 @@ message.presetSequences.stable = function(args)
 
 		-- Rent a catllama
 		if  variant == 1  then
-			--[[if  player.character == CHARACTER_MARIO  or  player.character == CHARACTER_LUIGI  then
+			if  player.character == CHARACTER_MARIO  or  player.character == CHARACTER_LUIGI  then
 
 				-- Get the options and their prices
 				local options = {"hi","no"}--a2xt_shops.getItemPromptList(settings.selection, dialog.items, settings.buyprices)
@@ -260,7 +277,7 @@ message.presetSequences.stable = function(args)
 			-- If the player is a non-Yoshi character, respond accordingly
 			else
 				message.showMessageBox {target=talker, type="bubble", text=dialog.notallowed[player.character]}
-			end]]
+			end
 
 
 		-- Return or sell a catllama
@@ -301,7 +318,74 @@ message.presetSequences.stable = function(args)
 	message.waitMessageEnd()
 	scene.endScene()
 end
+]]
 
+message.presetSequences.stable = function(args)
+	local talker = args.npc
+
+	local dialog   = a2xt_shops.dialogue.stable
+	local settings = a2xt_shops.settings.stable
+
+	local hasRide = (player:mem(0x108, FIELD_WORD) == 3)
+	
+	local variant = 1;
+	if(hasRide) then
+		variant = 3;
+	end
+
+	-- Begin with the prompt
+	message.promptChosen = false
+	message.showMessageBox {target=talker, type="bubble", text=dialog.welcome[variant], closeWith="prompt"}
+	message.waitMessageDone ()
+	message.showPrompt {options=dialog.options[variant]}
+	message.waitPrompt ()
+
+	local choice = message.promptChoice
+	if(not hasRide) then
+		choice = choice + 1;
+	end
+	
+	-- Rent/turn in
+	if  choice == 1 and hasRide  then
+		-- Return or sell a catllama
+		-- Calculate the refund/sale value
+		local price = settings.prices[stable_mount_to_npc[player:mem(0x10A, FIELD_WORD)]].sell;
+		local confirmMessage = addPrice(dialog.confirm[variant], price)
+
+		scene.displayRaocoinHud(true);
+		
+		-- Check to make sure the player wants to do this
+		message.promptChosen = false
+		message.showMessageBox {target=talker, type="bubble", text=confirmMessage, closeWith="prompt"}
+		message.waitMessageDone ()
+		message.showPrompt {}
+		message.waitPrompt ()
+		
+		-- Sell the catllama
+		if  message.promptChoice == 1  then
+			raocoins.add(price);
+			-- Add particle effects
+			player:mem(0x108, FIELD_WORD, 0)
+			message.showMessageBox {target=talker, type="bubble", text=dialog.buy[variant]}
+
+			-- Keep the catllama
+		else
+			message.showMessageBox {target=talker, type="bubble", text=dialog.nodeal[variant]}
+		end
+		
+	-- About
+	elseif  choice == 2  then
+		message.showMessageBox {target=talker, type="bubble", text=dialog.about}
+
+	-- Bye
+	elseif  choice == 3  then
+		message.showMessageBox {target=talker, type="bubble", text=dialog.goodbye[variant]}
+	end
+
+	message.waitMessageEnd()
+	scene.displayRaocoinHud(false);
+	scene.endScene()
+end
 
 message.presetSequences.steve = function(args)
 	local npc = args.npc
@@ -361,8 +445,6 @@ end
 message.presetSequences.shopItem = function(args)
 	local npc = args.npc;
 	
-	local catllamaIDs = {[95] = 1}
-	
 	local x,y = npc.data.shopkeep.x+npc.data.shopkeep.width*0.5, npc.data.shopkeep.y;
 	
 	local cam = cman.playerCam[1];
@@ -373,35 +455,40 @@ message.presetSequences.shopItem = function(args)
 	local bubble;
 	local dialog = a2xt_shops.dialogue[npc.data.shopkeep.type];
 	if(npc.data.shopkeep.type ~= "stable" or player.character == CHARACTER_MARIO  or  player.character == CHARACTER_LUIGI)  then
-		local confirmMessage = a2xt_shops.parse(dialog.confirm[1], dialog.items[npc.id], npc.data.price)
-		
-		scene.displayRaocoinHud(true);
-		
-		bubble = message.showMessageBox {x=x,y=y, text=confirmMessage, closeWith="prompt"}
-		message.waitMessageDone ()
-		message.showPrompt ()
-		message.waitPrompt ()
-		
-		if(message.promptChoice == 1)  then
-			if(raocoins.buy(npc.data.price)) then
-				bubble = message.showMessageBox {x=x,y=y, text=dialog.buy[1]}
-				message.waitMessageEnd ()
-				player:mem(0x108,FIELD_WORD,3);
-				player:mem(0x10A,FIELD_WORD,catllamaIDs[npc.id])
-			else
-				raocoins.currency:set(100);
-				bubble = message.showMessageBox {x=x,y=y, text=dialog.notenough}
-			end
+		if(player:mem(0x108, FIELD_WORD) > 0) then
+			bubble = message.showMessageBox {x=x,y=y, text=dialog.alreadyriding[player:mem(0x108, FIELD_WORD)]}
 		else
-			bubble = message.showMessageBox {x=x,y=y, text=dialog.nodeal[1]}
+			local confirmMessage = a2xt_shops.parse(dialog.confirm[1], dialog.items[npc.id], npc.data.price)
+			
+			scene.displayRaocoinHud(true);
+			
+			bubble = message.showMessageBox {x=x,y=y, text=confirmMessage, closeWith="prompt"}
+			message.waitMessageDone ()
+			message.showPrompt ()
+			message.waitPrompt ()
+			
+			if(message.promptChoice == 1)  then
+				if(raocoins.buy(npc.data.price)) then
+					bubble = message.showMessageBox {x=x,y=y, text=dialog.buy[1]}
+					message.waitMessageEnd ()
+					if(npc.data.shopkeep.type == "stable") then
+						player:mem(0x108,FIELD_WORD,3);
+						player:mem(0x10A,FIELD_WORD,stable_npc_to_mount[npc.id])
+					end
+				else
+					raocoins.currency:set(100);
+					bubble = message.showMessageBox {x=x,y=y, text=dialog.notenough}
+				end
+			else
+				bubble = message.showMessageBox {x=x,y=y, text=dialog.nodeal[1]}
+			end
+			message.waitMessageEnd ()
+			scene.displayRaocoinHud(false);
 		end
-		message.waitMessageEnd ()
-		scene.displayRaocoinHud(false);
 	else
 		bubble = message.showMessageBox {x=x,y=y, type="bubble", text=dialog.notallowed[player.character]}
 	end
-	
-	while (not bubble.deleteMe) do
+	while (bubble and not bubble.deleteMe) do
 		eventu.waitFrames(0)
 	end
 	

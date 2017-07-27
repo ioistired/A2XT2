@@ -96,6 +96,10 @@ function rc.buy(val)
 	return false;
 end
 
+function rc.add(val)
+	rc.currency:set(rc.currency:get()+val);
+end
+
 function rc.onStart()
 	if(not isOverworld) then
 		--Remove previously collected raocoins
