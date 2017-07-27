@@ -6,30 +6,55 @@ local eventu = API.load("eventu")
 local imagic = API.load("imagic")
 local pnpc = API.load("pnpc")
 local rng = API.load("rng")
+local defs = API.load("expandedDefines")
 
 local scene = API.load("a2xt_scene")
 local message = API.load("a2xt_message")
+local raocoins = API.load("a2xt_raocoincounter");
 
 local a2xt_shops = {}
 
 --***************************
 --** Variables             **
 --***************************
+
 a2xt_shops.settings = {
-                       stable    = {   
+                      --[[ stable    = {   
                                     buyprices  = {2,4,4,4,8,6,6,6},
                                     sellprices = {1,2,2,2,4,3,3,3},
                                     selection  = {1,2,3},
                                    }
+								   ]]
+							stable = { 
+									prices = {
+											[95] = 	{buy = 2, sell = 1},
+											[100] = {buy = 4, sell = 2},
+											[98] = 	{buy = 4, sell = 2},
+											[99] = 	{buy = 4, sell = 2},
+											[149] = {buy = 8, sell = 4},
+											[150] = {buy = 6, sell = 3},
+											[228] = {buy = 6, sell = 3},
+											[148] = {buy = 6, sell = 3}
+											}
+									}
                       }
+
+for _,v in pairs(a2xt_shops.settings) do
+	v.ids = {};
+	for k,_ in pairs(v.prices) do
+		table.insert(v.ids, k);
+	end
+end			  
+					  
 a2xt_shops.dialogue = {
                        stable    = {
                                     options = {
-                                               {"I'd like to rent out a catllama.", "What do you do here?", "I've got places to be."},
+                                               {--[["I'd like to rent out a catllama.",]] "What do you do here?", "I've got places to be."},
                                                {"I'm ready to return her.", "Can I hear the sales pitch again?", "I need more time with this majestic creature."},
                                                {"You interested in buying?", "...What's your angle?", "NO YOU CAN'T HAVE HER"}
                                               },
-                                    items = {"Common Verdegris","Azure Skyhowler","Whiffing Honeyjackal","Norwegian Pyrelynx","Flaminguanaco","Grizzlpaca","Sandy Meatcamel","Siberian Frostchucker"},
+									--TODO: Get these assigned to the right npc ids
+                                    items = {[95] = "Common Verdegris",[98] = "Azure Skyhowler",[99] = "Whiffing Honeyjackal",[100] = "Norwegian Pyrelynx",[150] = "Flaminguanaco",[149]="Grizzlpaca",[148]="Sandy Meatcamel",[228]="Siberian Frostchucker"},
                                     welcome = {
                                                "Why, howdy there!  You wouldn't happen to be interested in renting out one of our fine furry friends, now, would ya?",
                                                "Hey there, pardner!  I trust our girl's been treatin' ya right?",
@@ -138,10 +163,16 @@ function a2xt_shops.getItemPromptList (ids, names, prices)
 	return options
 end
 
+--TODO: Needs cleaning up because I can't be bothered to learn how gsub works right now
+function a2xt_shops.parse(str, item, price)
+	local newStr = string.gsub(string.gsub(str, "%[item%]", item), "%[price%]", tostring(price).."rc")
+	return newStr;
+end
+
 --***************************
 --** Sequences             **
 --***************************
-message.presetSequences.catnipStable = function(args)
+message.presetSequences.stable = function(args)
 	local talker = args.npc
 
 	local dialog   = a2xt_shops.dialogue.stable
@@ -173,10 +204,10 @@ message.presetSequences.catnipStable = function(args)
 
 		-- Rent a catllama
 		if  variant == 1  then
-			if  player.character == CHARACTER_MARIO  or  player.character == CHARACTER_LUIGI  then
+			--[[if  player.character == CHARACTER_MARIO  or  player.character == CHARACTER_LUIGI  then
 
 				-- Get the options and their prices
-				local options = a2xt_shops.getItemPromptList(settings.selection, dialog.items, settings.buyprices)
+				local options = {"hi","no"}--a2xt_shops.getItemPromptList(settings.selection, dialog.items, settings.buyprices)
 				options[#options+1] = "On second thought..."
 				local breakLoop = false
 
@@ -201,7 +232,7 @@ message.presetSequences.catnipStable = function(args)
 						-- If the player has enough raocoins, get confirmation
 						if  true  then
 							message.promptChosen = false
-							local catllamaPicked = settings.selection[message.promptChoice]
+							local catllamaPicked = 1--settings.selection[message.promptChoice]
 							local confirmMessage = string.gsub (dialog.confirm[1], "%[item%]", dialog.items[catllamaPicked])
 							message.showMessageBox {target=talker, type="bubble", text=confirmMessage, closeWith="prompt"}
 							message.waitMessageDone ()
@@ -229,7 +260,7 @@ message.presetSequences.catnipStable = function(args)
 			-- If the player is a non-Yoshi character, respond accordingly
 			else
 				message.showMessageBox {target=talker, type="bubble", text=dialog.notallowed[player.character]}
-			end
+			end]]
 
 
 		-- Return or sell a catllama
@@ -327,6 +358,56 @@ message.presetSequences.steve = function(args)
 	scene.endScene()
 end
 
+message.presetSequences.shopItem = function(args)
+	local npc = args.npc;
+	
+	local catllamaIDs = {[95] = 1}
+	
+	local x,y = npc.data.shopkeep.x+npc.data.shopkeep.width*0.5, npc.data.shopkeep.y;
+	
+	local cam = cman.playerCam[1];
+	local wid,hei = 128,96;
+	x = math.max(math.min(x, cam.left+cam.zoomedWidth-wid),cam.left+wid);
+	y = math.max(math.min(y, cam.top+cam.zoomedHeight-hei),cam.top+hei);
+	
+	local bubble;
+	local dialog = a2xt_shops.dialogue[npc.data.shopkeep.type];
+	if(npc.data.shopkeep.type ~= "stable" or player.character == CHARACTER_MARIO  or  player.character == CHARACTER_LUIGI)  then
+		local confirmMessage = a2xt_shops.parse(dialog.confirm[1], dialog.items[npc.id], npc.data.price)
+		
+		scene.displayRaocoinHud(true);
+		
+		bubble = message.showMessageBox {x=x,y=y, text=confirmMessage, closeWith="prompt"}
+		message.waitMessageDone ()
+		message.showPrompt ()
+		message.waitPrompt ()
+		
+		if(message.promptChoice == 1)  then
+			if(raocoins.buy(npc.data.price)) then
+				bubble = message.showMessageBox {x=x,y=y, text=dialog.buy[1]}
+				message.waitMessageEnd ()
+				player:mem(0x108,FIELD_WORD,3);
+				player:mem(0x10A,FIELD_WORD,catllamaIDs[npc.id])
+			else
+				raocoins.currency:set(100);
+				bubble = message.showMessageBox {x=x,y=y, text=dialog.notenough}
+			end
+		else
+			bubble = message.showMessageBox {x=x,y=y, text=dialog.nodeal[1]}
+		end
+		message.waitMessageEnd ()
+		scene.displayRaocoinHud(false);
+	else
+		bubble = message.showMessageBox {x=x,y=y, type="bubble", text=dialog.notallowed[player.character]}
+	end
+	
+	while (not bubble.deleteMe) do
+		eventu.waitFrames(0)
+	end
+	
+	scene.endScene()
+end
+
 
 --***************************
 --** Coroutines            **
@@ -337,6 +418,24 @@ end
 --***************************
 --** Events                **
 --***************************
+function a2xt_shops.onInitAPI()
+	registerEvent(a2xt_shops, "onStart");
+end
+
+function a2xt_shops.onStart()
+	for _,v in ipairs(NPC.get()) do
+		v = pnpc.getExistingWrapper(v);
+		if(v and v.data.event and a2xt_shops.settings[v.data.event]) then
+			for _,w in ipairs(NPC.get(a2xt_shops.settings[v.data.event].ids, v:mem(0x146, FIELD_WORD))) do
+				w = pnpc.wrap(w);
+				w.data.event = "shopItem";
+				w.data.talkIcon = 4;
+				w.data.price = a2xt_shops.settings[v.data.event].prices[w.id].buy;
+				w.data.shopkeep = {x = v.x, y = v.y, width = v.width, height = v.height, type=v.data.event};
+			end
+		end
+	end
+end
 
 
 return a2xt_shops

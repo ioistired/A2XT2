@@ -76,6 +76,26 @@ local function extractFilename(path)
 	end
 end
 
+function rc.get()
+	return rc.currency:get();
+end
+
+function rc.set(val)
+	rc.currency:set(val);
+end
+
+function rc.check(val)
+	return rc.currency:get() >= val;
+end
+	
+function rc.buy(val)
+	if(rc.check(val)) then
+		rc.currency:set(rc.currency:get()-val);
+		return true;
+	end
+	return false;
+end
+
 function rc.onStart()
 	if(not isOverworld) then
 		--Remove previously collected raocoins
