@@ -405,7 +405,17 @@ message.presetSequences.steve = function(args)
 	
 	local intro = "Hello there young mortal.<page>I am a ssssssseller of thingsssss. A merchant of ssssortssss.<page>My name issss Sssssteve.<page>I will happily take sssssome food off your handsssss, and in return grant you sssssome treasssssure.<page>Jusssst "..price.." will sssssuffice. Ssssso, will you accept thisssss arrangement?";
 	if(SaveData.spokenToSteve) then
-		intro = rng.irandomEntry{"Ahhhhh, my favourite cusssstomer.<page>Can I interesssst you in my waressss? Jussst "..price.." food."}
+		local introlist =
+		{
+			[CHARACTER_DEMO] = {"Your breed of ssssiblingsssss isssss hardly asssss important asssss oursssss.", "Demo? Ahh what a lovely name. I ssssensssse great sssstrength."},
+			[CHARACTER_IRIS] = {"Your breed of ssssiblingsssss isssss hardly asssss important asssss oursssss.", "Irisssss? You're doing thissss to mock me, aren't you?"},
+			[CHARACTER_RAOCOW] = {"I ssssensssse you come from ssssome disssstant landssss...", "You sssseeem ssssomewhat confussssed.", "Hmm. Raocow? What an unusssual name..."},
+			[CHARACTER_KOOD] = {"Ahh, you ssssseem to be sssssomeone of hidden depthssss.", "Kood? I sssssenssse you may be ssssomeone important ssssomeday."},
+			[CHARACTER_SHEATH] = {"Ahh, there you are.", "Sssssheath. A difficult name for a difficult perssssson."},
+		}
+		intro = rng.irandomEntry(table.append(introlist[player.character], {"Ahhhhh, my favourite cusssstomer."}));
+		
+		intro = intro.."<page>Can I interesssst you in my waressss? Jussst "..price.." food."
 	end
 	SaveData.spokenToSteve = true;
 	
