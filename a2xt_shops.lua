@@ -26,6 +26,18 @@ for k,v in ipairs(stable_mount_to_npc) do
 end
 
 
+local function spawnSmoke(x,y)
+	local a = Animation.spawn(10,x,y,player.section);
+	a.x = a.x-a.width*0.5;
+	a.y = a.y-a.height*0.5;
+end
+
+local function changePlayerState()
+	player:mem(0x140,FIELD_WORD,150);
+	spawnSmoke(player.x+player.width*0.5, player.y+player.height*0.5)
+	Audio.playSFX(34)
+end
+
 
 a2xt_shops.settings = {
                       --[[ stable    = {   
@@ -364,7 +376,7 @@ message.presetSequences.stable = function(args)
 		-- Sell the catllama
 		if  message.promptChoice == 1  then
 			raocoins.add(price);
-			-- Add particle effects
+			changePlayerState();
 			player:mem(0x108, FIELD_WORD, 0)
 			message.showMessageBox {target=talker, type="bubble", text=dialog.buy[variant]}
 
@@ -474,6 +486,7 @@ message.presetSequences.shopItem = function(args)
 					if(npc.data.shopkeep.type == "stable") then
 						player:mem(0x108,FIELD_WORD,3);
 						player:mem(0x10A,FIELD_WORD,stable_npc_to_mount[npc.id])
+						changePlayerState();
 					end
 				else
 					raocoins.currency:set(100);
@@ -505,8 +518,11 @@ end
 --***************************
 --** Events                **
 --***************************
+local shopItems = {};
+
 function a2xt_shops.onInitAPI()
 	registerEvent(a2xt_shops, "onStart");
+	registerEvent(a2xt_shops, "onTick");
 end
 
 function a2xt_shops.onStart()
@@ -519,10 +535,25 @@ function a2xt_shops.onStart()
 				w.data.talkIcon = 4;
 				w.data.price = a2xt_shops.settings[v.data.event].prices[w.id].buy;
 				w.data.shopkeep = {x = v.x, y = v.y, width = v.width, height = v.height, type=v.data.event};
+				w.data.spawnPos = {x = w.x, y = w.y}
+				if(v.data.event == "stable") then
+					w.animationTimer = rng.randomInt(0,90);
+					w.data.iconOffset = 32;
+				end
+				table.insert(shopItems, w);
 			end
 		end
 	end
 end
 
-
+function a2xt_shops.onTick()
+	for _,v in ipairs(shopItems) do
+		if(v.isValid) then
+			v.speedX = 0;
+			v.speedY = 0;
+			v.x = v.data.spawnPos.x;
+			v.y = v.data.spawnPos.y;
+		end
+	end
+end
 return a2xt_shops

@@ -732,7 +732,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 
 				data.delete = false
 				data.iconSpr.x = v.x+v.width*0.5+npcconfig[v.id].gfxoffsetx*(-v.direction)
-				data.iconSpr.y = v.y-8
+				data.iconSpr.y = v.y-(v.data.iconOffset or 8)
 
 				if  excam ~= nil  then
 					data.iconSpr.x, data.iconSpr.y =  excam:SceneToScreenPoint(data.iconSpr.x, data.iconSpr.y)
