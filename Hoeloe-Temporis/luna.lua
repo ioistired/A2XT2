@@ -115,6 +115,7 @@ local grabtorches = {};
 
 function onStart()
 	
+	
 	for _,v in ipairs(BGO.get(10)) do
 		if(v.x > Section(1).boundary.left and v.x < Section(1).boundary.right) then
 			waterwheel.x = v.x + 512;
