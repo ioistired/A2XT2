@@ -442,7 +442,8 @@ message.presetSequences.steve = function(args)
 	end
 	
 	if(shouldBuy) then
-			local npc = NPC.spawn(rng.irandomEntry{185, 183, 277, 187, 188, 34, 169, 170, 10, 35, 191}, npc.x + npc.width*0.5 + npc.direction * 32, npc.y, player.section);
+			local npc = NPC.spawn(rng.irandomEntry{9, 9, 14, 14, 34, 34, 264, 264, 90, 188, 169, 170, 10, 35, 191}, npc.x + npc.width*0.5 + npc.direction * 32, npc.y, player.section);
+			spawnSmoke(npc.x+npc.width*0.5, npc.y + npc.height*0.5)
 			npc.speedY = -2;			
 			if(npc.id == 10) then
 				npc.ai1 = 1;
