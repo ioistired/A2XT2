@@ -469,30 +469,30 @@ message.presetSequences.shopItem = function(args)
 	local npc = args.npc;
 	
 	local x,y = npc.data.shopkeep.x+npc.data.shopkeep.width*0.5, npc.data.shopkeep.y;
-	
+	--[[
 	local cam = cman.playerCam[1];
 	local wid,hei = 128,96;
 	x = math.max(math.min(x, cam.left+cam.zoomedWidth-wid),cam.left+wid);
-	y = math.max(math.min(y, cam.top+cam.zoomedHeight-hei),cam.top+hei);
+	y = math.max(math.min(y, cam.top+cam.zoomedHeight-hei),cam.top+hei);]]
 	
 	local bubble;
 	local dialog = a2xt_shops.dialogue[npc.data.shopkeep.type];
 	if(npc.data.shopkeep.type ~= "stable" or player.character == CHARACTER_MARIO  or  player.character == CHARACTER_LUIGI)  then
 		if(player:mem(0x108, FIELD_WORD) > 0) then
-			bubble = message.showMessageBox {x=x,y=y, text=dialog.alreadyriding[player:mem(0x108, FIELD_WORD)]}
+			bubble = message.showMessageBox {target = npc.data.shopkeep, text=dialog.alreadyriding[player:mem(0x108, FIELD_WORD)], keepOnscreen = true}
 		else
 			local confirmMessage = a2xt_shops.parse(dialog.confirm[1], dialog.items[npc.id], npc.data.price)
 			
 			scene.displayRaocoinHud(true);
 			
-			bubble = message.showMessageBox {x=x,y=y, text=confirmMessage, closeWith="prompt"}
+			bubble = message.showMessageBox {target = npc.data.shopkeep, text=confirmMessage, closeWith="prompt", keepOnscreen = true}
 			message.waitMessageDone ()
 			message.showPrompt ()
 			message.waitPrompt ()
 			
 			if(message.promptChoice == 1)  then
 				if(raocoins.buy(npc.data.price)) then
-					bubble = message.showMessageBox {x=x,y=y, text=dialog.buy[1]}
+					bubble = message.showMessageBox {target = npc.data.shopkeep, text=dialog.buy[1], keepOnscreen = true}
 					message.waitMessageEnd ()
 					if(npc.data.shopkeep.type == "stable") then
 						player:mem(0x108,FIELD_WORD,3);
@@ -501,16 +501,16 @@ message.presetSequences.shopItem = function(args)
 					end
 				else
 					raocoins.currency:set(100);
-					bubble = message.showMessageBox {x=x,y=y, text=dialog.notenough}
+					bubble = message.showMessageBox {target = npc.data.shopkeep, text=dialog.notenough, keepOnscreen = true}
 				end
 			else
-				bubble = message.showMessageBox {x=x,y=y, text=dialog.nodeal[1]}
+				bubble = message.showMessageBox {target = npc.data.shopkeep, text=dialog.nodeal[1], keepOnscreen = true}
 			end
 			message.waitMessageEnd ()
 			scene.displayRaocoinHud(false);
 		end
 	else
-		bubble = message.showMessageBox {x=x,y=y, type="bubble", text=dialog.notallowed[player.character]}
+		bubble = message.showMessageBox {target = npc.data.shopkeep, type="bubble", text=dialog.notallowed[player.character], keepOnscreen = true}
 	end
 	while (bubble and not bubble.deleteMe) do
 		eventu.waitFrames(0)

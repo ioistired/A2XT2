@@ -138,25 +138,6 @@ a2xt_message.presetSequences._promptTest = function(args)
 	a2xt_scene.endScene()
 end
 
-a2xt_message.presetSequences.catllamaStable = function(args)
-	local npc = args.npc
-	
-	local intro = args.text or "Hi there! Welcome to the Catllama Stable! Here, you can rent catllamas using raocoins!<page>You can also return them if you don't want it any more, and we'll pay you for it!"
-
-	-- Start the message box
-	local bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text=intro}
-	a2xt_message.waitMessageDone()
-	
-	a2xt_message.showPrompt{options={"What is all this?", a2xt_message.getNoOption()}}
-	a2xt_message.waitPrompt()
-	
-	while (not bubble.deleteMe) do
-		eventu.waitFrames(0)
-	end
-	
-	a2xt_scene.endScene()
-end
-
 --***************************
 --** Utility Functions     **
 --***************************
@@ -353,7 +334,7 @@ local function cor_manageMessage(bubbleTarget, bubble)
 		                    prompt  = a2xt_message.promptChosen
 		                   }
 		
-		conditionMet = conditions[condType]
+		conditionMet = conditions[condType] or conditions[default]
 		---[[
 		local cam = cman.playerCam[1]
 		if  cam ~= nil  then
@@ -364,9 +345,26 @@ local function cor_manageMessage(bubbleTarget, bubble)
 				if  bubbleTarget.obj ~= player  then
 					bubbleTarget.offY = -32 * cam.zoom
 				end
-
+				
+				
 				bubbleTarget.x = screenX + cam.cam.x + bubbleTarget.offX
 				bubbleTarget.y = screenY + cam.cam.y + bubbleTarget.offY
+				
+	
+				if(bubbleTarget.keepOnscreen) then
+					local wid,hei = bubbleTarget.obj.width, bubbleTarget.obj.height;
+					local origx,origy = bubbleTarget.x,bubbleTarget.y
+					bubbleTarget.x = math.max(math.min(bubbleTarget.x, cam.zoomedRight-wid),cam.zoomedLeft+wid);
+					bubbleTarget.y = math.max(math.min(bubbleTarget.y , cam.zoomedBottom-hei),cam.zoomedTop+hei);
+					local maxDist = 32;
+					if(math.abs(bubbleTarget.x - origx) > maxDist or math.abs(bubbleTarget.y - origy) > maxDist) then
+						bubble.hasTail = false;
+					else
+						bubble.hasTail = bubbleTarget.hasTail;
+					end
+				else
+					bubble.hasTail = bubbleTarget.hasTail;
+				end
 			end
 		end
 		--]]
@@ -375,9 +373,9 @@ local function cor_manageMessage(bubbleTarget, bubble)
 		--bubble.x = bubbleTarget.x
 		--bubble.y = bubbleTarget.y
 
+		--Text.dialog("doneyo")
 		eventu.waitFrames(0)
 	end
-
 	-- Close the bubble now that the conditions have been met
 	if  (not bubble.deleteMe)  then
 		bubble:closeSelf ()
@@ -402,9 +400,12 @@ function a2xt_message.showMessageBox (args)
 	                     y         = args.y          or  400,
 	                     offX      = args.offX       or  0,
 	                     offY      = args.offY       or  0,
-	                     closeWith = args.closeWith
+	                     closeWith = args.closeWith,
+						 keepOnscreen = args.keepOnscreen or false,
+						 hasTail = args.hasTail
 	                    }
 
+	if(messageCtrl.hasTail == nil) then messageCtrl.hasTail = true; end
 
 	if  args.target ~= nil  then
 		messageCtrl.x = args.target.x
@@ -542,7 +543,7 @@ function a2xt_message.showPrompt(args)
 						                                 texture=thoughtBubbleBallImg,
 						                                 scene=false
 						                                };
-						bubbleBall:Draw {priority=6, colour=0xFFFFFFFF}
+						bubbleBall:Draw {priority=0.9, colour=0xFFFFFFFF}
 					end
 
 					local timeLoop = (lunatime.tick()/256)%1
