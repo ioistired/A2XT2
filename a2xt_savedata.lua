@@ -1,4 +1,5 @@
 local lunajson = API.load("ext/lunajson");
+local vectr = API.load("vectr");
 
 local savedata = {}
 
@@ -58,6 +59,19 @@ local function loadTemp()
 	write(path, {});
 end
 
+local function deserialiseData(data)
+	for k,v in pairs(data) do
+		if(type(v) == "table") then
+			local vec = vectr.deserialise(v);
+			if(vec) then
+				data[k] = vec;
+			else
+				deserialiseData(v);
+			end
+		end
+	end
+end
+
 local function loadData()
 	loadTemp();
 	if(GameData.__TEMP_SAVE_DATA == nil) then
@@ -66,6 +80,9 @@ local function loadData()
 		data_save = GameData.__TEMP_SAVE_DATA;
 		GameData.__TEMP_SAVE_DATA = nil;
 	end
+	
+	deserialiseData(data_save);
+	deserialiseData(GameData);
 end
 
 loadData();

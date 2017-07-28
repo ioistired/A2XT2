@@ -136,6 +136,12 @@ blackmarket.settings = npcManager.setNpcSettings(marketSettings);
 
 function blackmarket:onTickNPC()
 
+	self.data.event = "steve";
+	if(SaveData.spokenToSteve) then
+		self.data.name = "Steve";
+	else
+		self.data.name = "???";
+	end
 	if(self.data.frameTimer and self.data.frameTimer > 0) then
 		self.data.frameTimer = self.data.frameTimer - 1;
 	else

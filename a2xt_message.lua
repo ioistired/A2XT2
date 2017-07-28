@@ -81,6 +81,17 @@ a2xt_message.type = {bubble=textblox.PRESET_BUBBLE, system=textblox.PRESET_SYSTE
 a2xt_message.presetSequences = {}
 a2xt_message.presetSequences._multipageTest = "Beginning multi-page test.<page>AAAAAAAAAAAAAAAA<page>AAAAAAAAAAAAAAAAAAAA<page>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA<page>*inhales*<page>AAAAAAAAAAoh hi there<page>Test concluded.  Check the message API's presetSequences._multipageTest to see the code for this sequence."
 
+local yesTable = {"Sure","K","Arrighty","ACCEPT","Radicola","Yeh","Okie doke","Aw HELL yea","Neat beans","Sure","Sure, why not","YES","All of my yes","Totes","Okay","I guess","Great!","Awesome!","Heck yeah!","Fully approve.","This pleases me","I'm down with it.","Righteous","I see no problem with this.","Meh, whatever.","*Shake excitedly*","I feel good about this.","Full steam ahead!","Oh, very much so.","Yes yes yes yes yes yes yes","*nod solemnly*","Supersauce","*resigning nod*","I'm leaning yes","My mind says no but my heart says yes","Jump up, superstar"};
+local noTable = {"Lame.","Nah","No","NO","Are you serious...?","no no no no no no no no no","Don't","Do not","Do not want","DECLINE","*growl in contempt*","I dunno...","NO. BAD.","Nnnnnnope!","Goodbye!","NEGATIVE","STRONGLY DISAGREE","DECLINE","*Excessive display of disapproval*","Maybe next time","Downright bogus","Negatory, good buddy","Who put you on the planet?","Think of the consequences, you fool!","How about no?","Count me out.","No. Just, no.","I don't even","Never.","You will regret this.","*piercing gaze*","Despair engulfs me.","why","Do I have to answer that?","A curse upon thee!"}
+
+function a2xt_message.getYesOption()
+	return rng.irandomEntry(yesTable);
+end
+
+function a2xt_message.getNoOption()
+	return rng.irandomEntry(noTable);
+end
+
 a2xt_message.presetSequences._promptTest = function(args)
 	local talker = args.npc
 
@@ -125,10 +136,6 @@ a2xt_message.presetSequences._promptTest = function(args)
 	
 	--windowDebug("Test")
 	a2xt_scene.endScene()
-end
-a2xt_message.presetSequences.catllamaStable = function(args)
-	local talker = args.npc
-	
 end
 
 --***************************
@@ -255,12 +262,15 @@ local function cor_positionPlayer (args)
 	eventu.waitSeconds(0.25)
 	eventu.signal("playerPositioned")
 end
+
 local function cor_cleanupAfterNPC (args)
 	while (a2xt_scene.inCutscene) do
 		eventu.waitFrames(0)
 	end
 	eventu.run (cor_talkZoomOut)
 end
+
+local talkNPC = nil;
 
 local function cor_talkToNPC (args)
 	-- PNPC wrap the npc
@@ -274,13 +284,19 @@ local function cor_talkToNPC (args)
 
 	-- Start the cleanup routine
 	eventu.run(cor_cleanupAfterNPC)
+	
+	a2xt_message.promptChosen = false;
 
 	-- Check for indexed cutscenes or message strings
-	local extMessage = a2xt_message.presetSequences[args.text]
+	local extMessage = a2xt_message.presetSequences[npc.data.event]
 	if  type(extMessage) == "function"  then
 
+		local t = string.trim(args.text);
+		if(#t < 1) then
+			t = nil;
+		end
 		-- Run the new cutscene
-		a2xt_scene.startScene {interrupt=true, scene=extMessage, sceneArgs={npc=npc}}
+		a2xt_scene.startScene {interrupt=true, scene=extMessage, sceneArgs={npc=npc, text=t}}
 
 	else
 		local messageText = args.text
@@ -295,8 +311,8 @@ local function cor_talkToNPC (args)
 			eventu.waitFrames(0)
 		end
 		a2xt_scene.endScene()
-		a2xt_message.onMessageEnd(npc);
 	end
+	talkNPC = npc;
 end
 
 local function getBubbleTarget(obj)
@@ -318,7 +334,7 @@ local function cor_manageMessage(bubbleTarget, bubble)
 		                    prompt  = a2xt_message.promptChosen
 		                   }
 		
-		conditionMet = conditions[condType]
+		conditionMet = conditions[condType] or conditions[default]
 		---[[
 		local cam = cman.playerCam[1]
 		if  cam ~= nil  then
@@ -329,9 +345,26 @@ local function cor_manageMessage(bubbleTarget, bubble)
 				if  bubbleTarget.obj ~= player  then
 					bubbleTarget.offY = -32 * cam.zoom
 				end
-
+				
+				
 				bubbleTarget.x = screenX + cam.cam.x + bubbleTarget.offX
 				bubbleTarget.y = screenY + cam.cam.y + bubbleTarget.offY
+				
+	
+				if(bubbleTarget.keepOnscreen) then
+					local wid,hei = bubbleTarget.obj.width, bubbleTarget.obj.height;
+					local origx,origy = bubbleTarget.x,bubbleTarget.y
+					bubbleTarget.x = math.max(math.min(bubbleTarget.x, cam.zoomedRight-wid),cam.zoomedLeft+wid);
+					bubbleTarget.y = math.max(math.min(bubbleTarget.y , cam.zoomedBottom-hei),cam.zoomedTop+hei);
+					local maxDist = 32;
+					if(math.abs(bubbleTarget.x - origx) > maxDist or math.abs(bubbleTarget.y - origy) > maxDist) then
+						bubble.hasTail = false;
+					else
+						bubble.hasTail = bubbleTarget.hasTail;
+					end
+				else
+					bubble.hasTail = bubbleTarget.hasTail;
+				end
 			end
 		end
 		--]]
@@ -340,9 +373,9 @@ local function cor_manageMessage(bubbleTarget, bubble)
 		--bubble.x = bubbleTarget.x
 		--bubble.y = bubbleTarget.y
 
+		--Text.dialog("doneyo")
 		eventu.waitFrames(0)
 	end
-
 	-- Close the bubble now that the conditions have been met
 	if  (not bubble.deleteMe)  then
 		bubble:closeSelf ()
@@ -353,6 +386,7 @@ end
 --***************************
 --** API Member Functions  **
 --***************************
+
 function a2xt_message.showMessageBox (args)
 	if  type(args) ~= "table"  then
 		args = {text=args}
@@ -366,9 +400,12 @@ function a2xt_message.showMessageBox (args)
 	                     y         = args.y          or  400,
 	                     offX      = args.offX       or  0,
 	                     offY      = args.offY       or  0,
-	                     closeWith = args.closeWith
+	                     closeWith = args.closeWith,
+						 keepOnscreen = args.keepOnscreen or false,
+						 hasTail = args.hasTail
 	                    }
 
+	if(messageCtrl.hasTail == nil) then messageCtrl.hasTail = true; end
 
 	if  args.target ~= nil  then
 		messageCtrl.x = args.target.x
@@ -396,8 +433,8 @@ function a2xt_message.showMessageBox (args)
 
 	if  args.closeWith ~= nil  then
 		props.inputClose = false
-		props.inputProgress = false
 		if  args.closeWith == "auto"  then
+			props.inputProgress = false
 			props.autoClose = true
 		end
 	end
@@ -446,8 +483,7 @@ function a2xt_message.showPrompt(args)
 	if  args == nil  then  args = {};  end;
 	
 	a2xt_message.promptChoice = 0
-	local options = args.options  or  {rng.randomEntry({"Sure","K","Arrighty","ACCEPT","Radicola","Yeh","Okie doke","Aw HELL yea","Neat beans","Sure","Sure, why not","YES","All of my yes","Totes","Okay","I guess","Great!","Awesome!","Heck yeah!","Fully approve.","This pleases me","I'm down with it.","Righteous","I see no problem with this.","Meh, whatever.","*Shake excitedly*","I feel good about this.","Full steam ahead!","Oh, very much so.","Yes yes yes yes yes yes yes","*nod solemnly*","Supersauce","*resigning nod*","I'm leaning yes","My mind says no but my heart says yes","Jump up, superstar"}),
-	rng.randomEntry({"Lame.","Nah","No","NO","Are you serious...?","no no no no no no no no no","Don't","Do not","Do not want","DECLINE","*growl in contempt*","I dunno...","NO. BAD.","Nnnnnnope!","Goodbye!","NEGATIVE","STRONGLY DISAGREE","DECLINE","*Excessive display of disapproval*","Maybe next time","Downright bogus","Negatory, good buddy","Who put you on the planet?","Think of the consequences, you fool!","How about no?","Count me out.","No. Just, no.","I don't even","Never.","You will regret this.","*piercing gaze*","Despair engulfs me.","why","Do I have to answer that?","A curse upon thee!"})}
+	local options = args.options  or  {a2xt_message.getYesOption(), a2xt_message.getNoOption()}
 
 
 	a2xt_message.promptChoice = 1
@@ -507,7 +543,7 @@ function a2xt_message.showPrompt(args)
 						                                 texture=thoughtBubbleBallImg,
 						                                 scene=false
 						                                };
-						bubbleBall:Draw {priority=6, colour=0xFFFFFFFF}
+						bubbleBall:Draw {priority=0.9, colour=0xFFFFFFFF}
 					end
 
 					local timeLoop = (lunatime.tick()/256)%1
@@ -586,6 +622,13 @@ local nameBarObj = nil;
 --***************************
 --** Events                **
 --***************************
+function a2xt_message.onTick()
+	if(not a2xt_scene.inCutscene and talkNPC) then
+		a2xt_message.onMessageEnd(talkNPC);
+		talkNPC = nil;
+	end
+end
+
 function a2xt_message.onDraw()
 		--Text.print(tostring(player:mem(0x10A, FIELD_WORD)), 20, 300)
 		
@@ -644,7 +687,8 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 
 	-- Hide icons when they shouldn't be visible (work out deletion later)
 	for  k,v in pairs (NPC.get())  do
-		if  v.friendly  and  v.msg ~= nil  and  not v:mem(0x40, FIELD_BOOL)  and  not v:mem(0x64, FIELD_BOOL)  then
+		if  v.friendly  and  v.msg ~= nil  and  not v.isHidden  and  not v:mem(0x64, FIELD_BOOL)  then
+			
 			v = pnpc.wrap(v)
 			if  v.data.a2xt_message ~= nil  then
 				local data = v.data.a2xt_message
@@ -659,8 +703,12 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 	if  not a2xt_scene.inCutscene  then
 		for  k,v in pairs (NPC.getIntersecting(cam.x-48, cam.y-64, cam.x+cam.width+64, cam.y+cam.height+64))  do
 			-- If the NPC qualifies
-			if  v.friendly  and  v.msg ~= nil  and  not v:mem(0x40, FIELD_BOOL)  and  not v:mem(0x64, FIELD_BOOL)  then
-				v = pnpc.wrap(v)
+			v = pnpc.wrap(v)
+			if(v.data.event and v.msg.str == "") then
+				v.msg = " ";
+			end
+			if  v.friendly  and  v.msg ~= nil  and  not v.isHidden  and  not v:mem(0x64, FIELD_BOOL)  then
+				
 
 				--A2XT quick-parse
 				if(v.data.name == nil) then
@@ -674,7 +722,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 				-- Initialize the pnpc data
 				if  v.data.a2xt_message == nil  then
 					v.data.a2xt_message = {
-										   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y, z=1, alpha=0, state=1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
+										   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y, z=1, alpha=0, state=v.data.talkIcon or 1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
 										   talkedTo = false,
 										   currScale = 1
 										  }
@@ -685,7 +733,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 
 				data.delete = false
 				data.iconSpr.x = v.x+v.width*0.5+npcconfig[v.id].gfxoffsetx*(-v.direction)
-				data.iconSpr.y = v.y-8
+				data.iconSpr.y = v.y-(v.data.iconOffset or 8)
 
 				if  excam ~= nil  then
 					data.iconSpr.x, data.iconSpr.y =  excam:SceneToScreenPoint(data.iconSpr.x, data.iconSpr.y)
@@ -711,11 +759,13 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 						data.currScale = math.max(1, data.currScale-0.2)
 					end
 
-					if  data.currScale >= 2  then
+					if  data.currScale >= 1.5  then
 						if  data.iconSpr.frame == 1  then  data.iconSpr.frame = 2;  end;
 						data.iconSpr.speed = 1
 						data.iconSpr.scale = data.currScale
-
+						if(data.iconSpr.state == 4 and v.data.price) then
+							textblox.printExt (v.data.price, {x=data.iconSpr.x + 2,y=data.iconSpr.y - 52,z=1, alpha=bga, font=textblox.FONT_SPRITEDEFAULT3X2, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
+						end
 					else
 						data.iconSpr.frame = 1
 						data.iconSpr.speed = 0

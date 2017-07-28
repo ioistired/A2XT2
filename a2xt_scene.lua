@@ -3,6 +3,7 @@ local imagic = API.load("imagic")
 local textblox = API.load("textblox")
 local animatx = API.load("animatx")
 local rng = API.load("rng")
+local hud = API.load("a2xt_hud")
 
 local a2xt_scene = {}
 
@@ -51,6 +52,9 @@ local skipProps        = {
                           halign=t_halign,
                           valign=t_valign
                          }
+						 
+local hud_food = false;
+local hud_rc = false;
 
 
 --***************************
@@ -223,6 +227,13 @@ function a2xt_scene.setSkippable(routine)
 	_,skipIntroRoutine = eventu.run(cor_skipMessage)
 end
 
+function a2xt_scene.displayFoodHud(show)
+	hud_food = show;
+end
+function a2xt_scene.displayRaocoinHud(show)
+	hud_rc = show;
+end
+
 --***************************
 --** Events                **
 --***************************
@@ -235,9 +246,9 @@ end
 
 function a2xt_scene.onDraw()
 	-- Draw letterboxing and tint boxes
-	letterboxTop:Draw(5,letterboxCurrent.color)
-	letterboxBottom:Draw(5,letterboxCurrent.color)
-	tintBox:Draw(5,tintBox.color)
+	letterboxTop:Draw(1,letterboxCurrent.color)
+	letterboxBottom:Draw(1,letterboxCurrent.color)
+	tintBox:Draw(1,tintBox.color)
 
 	--[[
 	Text.print (tostring(currentScene), 20, 100)
@@ -249,6 +260,13 @@ function a2xt_scene.onDraw()
 
 	-- Draw skip message
 	textblox.printExt (skipProps.text, skipProps)
+	
+	if(hud_food) then
+		hud.drawFood(40,20);
+	end
+	if(hud_rc) then
+		hud.drawRC(100,30);
+	end
 end
 
 function a2xt_scene.onInputUpdate()
