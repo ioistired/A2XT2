@@ -1,5 +1,3 @@
-local savedata = API.load("a2xt_savedata");
-
 local map3d = API.load("map3d");
 map3d.HUDMode = map3d.HUD_NONE;
 
