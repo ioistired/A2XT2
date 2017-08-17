@@ -62,6 +62,18 @@ local function option_exitgame()
 	confirmBox(gameexit);
 end
 
+local function option_restart()
+	quitting = true;
+	unpause();
+	mem(0x00B2C6DA, FIELD_WORD, -1);
+	mem(0x00B25720, FIELD_STRING, Level.filename());
+	mem(0x00B250B4, FIELD_WORD, 0);
+	mem(0x00B25134, FIELD_WORD, 0);
+	mem(0x00B2C89C, FIELD_WORD, 0);
+	mem(0x00B2C620, FIELD_WORD, 0);
+	mem(0x00B2C5B4, FIELD_WORD, -1);
+end
+
 local options;
 
 if(isOverworld) then
@@ -85,6 +97,9 @@ else
 			  };
 end
 
+if(not isOverworld and mem(0x00B2C62A, FIELD_WORD) == 0) then --in editor
+	table.insert(options,2,{name = "reload level", action = option_restart});
+end
 local pauseBorder = Graphics.loadImage(Misc.resolveFile("graphics/HUD/levelBorder.png"));
 local pausebg = imagic.Create{primitive=imagic.TYPE_BOX, x=400,y=300, align=imagic.ALIGN_CENTRE, width = 400, height = (40*#options)+40, bordertexture=pauseBorder, borderwidth = 32};
 
