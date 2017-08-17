@@ -74,32 +74,30 @@ local function option_restart()
 	mem(0x00B2C5B4, FIELD_WORD, -1);
 end
 
-local options;
+local options = {
+				{name = "continue", action = unpause}
+				};
 
-if(isOverworld) then
-	options = {
-				{name = "continue", action = unpause},
-				{name = "save", action = option_save},
-				{name = "quit game", action = option_exitgame}
-			  };
-elseif(leveldata.GetData().Type == leveldata.TYPE_TOWN) then
-	options = {
-				{name = "continue", action = unpause},
-				{name = "save", action = option_save},
-				{name = "exit to map", action = option_exitlevel},
-				{name = "quit game", action = option_exitgame}
-			  };
-else
-	options = {
-				{name = "continue", action = unpause},
-				{name = "exit to map", action = option_exitlevel},
-				{name = "quit game", action = option_exitgame}
-			  };
+do
+	if(isOverworld or leveldata.GetData().Type == leveldata.TYPE_TOWN) then
+		table.insert(options, {name = "save", action = option_save});
+	end
+
+	if(isOverworld or --[[is Intro Stage]] false) then
+		if(--[[unlocked hub]] true) then
+			table.insert(options, {name = "return to P.O.R.T.(S.)", action = function() end});
+		end
+	else
+		table.insert(options, {name = "exit to map", action = option_exitlevel});
+	end
+		
+	table.insert(options, {name = "quit game", action = option_exitgame});
+			
+	if(not isOverworld and mem(0x00B2C62A, FIELD_WORD) == 0) then --in editor
+		table.insert(options,2,{name = "reload level", action = option_restart});
+	end
 end
 
-if(not isOverworld and mem(0x00B2C62A, FIELD_WORD) == 0) then --in editor
-	table.insert(options,2,{name = "reload level", action = option_restart});
-end
 local pauseBorder = Graphics.loadImage(Misc.resolveFile("graphics/HUD/levelBorder.png"));
 local pausebg = imagic.Create{primitive=imagic.TYPE_BOX, x=400,y=300, align=imagic.ALIGN_CENTRE, width = 400, height = (40*#options)+40, bordertexture=pauseBorder, borderwidth = 32};
 
@@ -221,6 +219,8 @@ local function drawPause(priority)
 			tx1 = tx1*0.1;
 			ty1 = ty1*0.1;
 			
+			charbg.y = y-32
+			charbg.border.y = y-32;
 			charbg:Draw{priority=priority, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
 			
 			Graphics.drawImageWP(Graphics.sprites[pm.getCharacters()[player.character].name][player.powerup].img, 400-player.width*0.5+xOffset, y-player.height*0.5-32-48+yOffset, tx1*1000, ty1*1000, 100, 100, priority)
