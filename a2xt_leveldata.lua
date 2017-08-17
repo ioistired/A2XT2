@@ -18,6 +18,10 @@ local CASH = 2;
 local KEY = 3;
 local ROULETTE = 1;
 
+function _G.isTownLevel()
+	return leveldata.GetData().Type == leveldata.TYPE_TOWN;
+end
+
 leveldata.EXIT_LEEK = LEEK;
 leveldata.EXIT_TAPE = TAPE;
 leveldata.EXIT_JAR = JAR;

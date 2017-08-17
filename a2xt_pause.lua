@@ -1,6 +1,5 @@
 local textblox = API.load("textblox")
 local imagic = API.load("imagic")
-local leveldata = API.load("a2xt_leveldata");
 local pm = API.load("playerManager")
 
 local pause = {}
@@ -79,7 +78,7 @@ local options = {
 				};
 
 do
-	if(isOverworld or leveldata.GetData().Type == leveldata.TYPE_TOWN) then
+	if(isOverworld or isTownLevel()) then
 		table.insert(options, {name = "save", action = option_save});
 	end
 

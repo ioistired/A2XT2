@@ -262,10 +262,10 @@ function a2xt_scene.onDraw()
 	textblox.printExt (skipProps.text, skipProps)
 	
 	if(hud_food) then
-		hud.drawFood(40,20);
+		hud.drawFood(40,20,5);
 	end
 	if(hud_rc) then
-		hud.drawRC(100,30);
+		hud.drawRC(100,30,5);
 	end
 end
 

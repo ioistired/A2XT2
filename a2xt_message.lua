@@ -619,12 +619,16 @@ function a2xt_message.waitPrompt()
 end
 
 local nameBarObj = nil;
+local cache_levelFreeze = false;
 --***************************
 --** Events                **
 --***************************
 function a2xt_message.onTick()
 	if(not a2xt_scene.inCutscene and talkNPC) then
 		a2xt_message.onMessageEnd(talkNPC);
+		if(not isOverworld and not isTownLevel()) then
+			Defines.levelFreeze = cache_levelFreeze;
+		end
 		talkNPC = nil;
 	end
 end
@@ -812,6 +816,10 @@ function a2xt_message.onMessageBox(eventObj, message)
 	eventObj.cancelled = true
 	
 	a2xt_message.onMessage(npc, message);
+	if(not isOverworld and not isTownLevel()) then
+		cache_levelFreeze = Defines.levelFreeze;
+		Defines.levelFreeze = true;
+	end
 end
 --[[
 function a2xt_npcs.onMessage (eventObj, message, npc)
