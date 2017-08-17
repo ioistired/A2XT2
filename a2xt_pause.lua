@@ -1,5 +1,6 @@
 local textblox = API.load("textblox")
 local imagic = API.load("imagic")
+local leveldata = API.load("a2xt_leveldata");
 local pm = API.load("playerManager")
 
 local pause = {}
@@ -28,6 +29,7 @@ local quitting = false;
 local function confirmBox(func)
 	unregisterEvent(pm, "onInputUpdate", "onInputUpdate");
 	confirm = func;
+	Audio.playSFX(30);
 end
 
 local function unpause()
@@ -68,21 +70,23 @@ if(isOverworld) then
 				{name = "save", action = option_save},
 				{name = "quit game", action = option_exitgame}
 			  };
-else
+elseif(leveldata.GetData().Type == leveldata.TYPE_TOWN) then
 	options = {
 				{name = "continue", action = unpause},
 				{name = "save", action = option_save},
 				{name = "exit to map", action = option_exitlevel},
 				{name = "quit game", action = option_exitgame}
 			  };
+else
+	options = {
+				{name = "continue", action = unpause},
+				{name = "exit to map", action = option_exitlevel},
+				{name = "quit game", action = option_exitgame}
+			  };
 end
 
 local pauseBorder = Graphics.loadImage(Misc.resolveFile("graphics/HUD/levelBorder.png"));
-local pauseh = 200;
-if(isOverworld) then
-	pauseh = 160;
-end
-local pausebg = imagic.Create{primitive=imagic.TYPE_BOX, x=400,y=300, align=imagic.ALIGN_CENTRE, width = 400, height = pauseh, bordertexture=pauseBorder, borderwidth = 32};
+local pausebg = imagic.Create{primitive=imagic.TYPE_BOX, x=400,y=300, align=imagic.ALIGN_CENTRE, width = 400, height = (40*#options)+40, bordertexture=pauseBorder, borderwidth = 32};
 
 local confirmbg = imagic.Create{primitive=imagic.TYPE_BOX, x=400,y=300, align=imagic.ALIGN_CENTRE, width = 300, height = 120, bordertexture=pauseBorder, borderwidth = 32};
 
@@ -185,9 +189,8 @@ local function drawPause(priority)
 		
 		pausebg:Draw{priority=priority, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
 		
-		local y = 220;
+		local y = 300 - (20*#options);
 		if(isOverworld) then
-			y = 240;
 			
 			local ps = PlayerSettings.get(pm.getCharacters()[player.character].base, player.powerup);
 			
