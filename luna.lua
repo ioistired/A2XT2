@@ -3,14 +3,13 @@
 --**********
  --API.load("pSwitchTicking")
 
-API.load("a2xt_savedata");
 local settings = API.load("a2xt_settings");
 local raocoins = API.load("a2xt_raocoincounter");
 local democounter = API.load("a2xt_democounter");
 local hud = API.load("a2xt_hud");
-local music = API.load("a2xt_music");
-local spintrail = API.load("a2xt_spintrail");
 local leveldata = API.load("a2xt_leveldata");
+local pause = API.load("a2xt_pause");
+local spintrail = API.load("a2xt_spintrail");
 local sanctuary = API.load("a2xt_leeksanctuary");
 local npcs = API.load("a2xt_npcs");
 local scene = API.load("a2xt_scene");

@@ -619,12 +619,16 @@ function a2xt_message.waitPrompt()
 end
 
 local nameBarObj = nil;
+local cache_levelFreeze = false;
 --***************************
 --** Events                **
 --***************************
 function a2xt_message.onTick()
 	if(not a2xt_scene.inCutscene and talkNPC) then
 		a2xt_message.onMessageEnd(talkNPC);
+		if(not isOverworld and not isTownLevel()) then
+			Defines.levelFreeze = cache_levelFreeze;
+		end
 		talkNPC = nil;
 	end
 end
@@ -704,76 +708,78 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 		for  k,v in pairs (NPC.getIntersecting(cam.x-48, cam.y-64, cam.x+cam.width+64, cam.y+cam.height+64))  do
 			-- If the NPC qualifies
 			v = pnpc.wrap(v)
-			if(v.data.event and v.msg.str == "") then
-				v.msg = " ";
-			end
-			if  v.friendly  and  v.msg ~= nil  and  not v.isHidden  and  not v:mem(0x64, FIELD_BOOL)  then
-				
+			if(v.data) then --Is not a generator
+				if(v.data.event and v.msg.str == "") then
+					v.msg = " ";
+				end
+				if  v.friendly  and  v.msg ~= nil  and  not v.isHidden  and  not v:mem(0x64, FIELD_BOOL)  then
+					
 
-				--A2XT quick-parse
-				if(v.data.name == nil) then
-					local nm,msg = v.msg.str:match("^([^{}]+):%s*(.+)$");
-					if(nm ~= nil and msg ~= nil) then
-						v.data.name = nm;
-						v:mem(0x4C, FIELD_STRING, msg);
+					--A2XT quick-parse
+					if(v.data.name == nil) then
+						local nm,msg = v.msg.str:match("^([^{}]+):%s*(.+)$");
+						if(nm ~= nil and msg ~= nil) then
+							v.data.name = nm;
+							v:mem(0x4C, FIELD_STRING, msg);
+						end
 					end
-				end
-				
-				-- Initialize the pnpc data
-				if  v.data.a2xt_message == nil  then
-					v.data.a2xt_message = {
-										   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y, z=1, alpha=0, state=v.data.talkIcon or 1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
-										   talkedTo = false,
-										   currScale = 1
-										  }
-				end
+					
+					-- Initialize the pnpc data
+					if  v.data.a2xt_message == nil  then
+						v.data.a2xt_message = {
+											   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y, z=1, alpha=0, state=v.data.talkIcon or 1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
+											   talkedTo = false,
+											   currScale = 1
+											  }
+					end
 
-				-- Alpha based on distance
-				local data = v.data.a2xt_message
+					-- Alpha based on distance
+					local data = v.data.a2xt_message
 
-				data.delete = false
-				data.iconSpr.x = v.x+v.width*0.5+npcconfig[v.id].gfxoffsetx*(-v.direction)
-				data.iconSpr.y = v.y-(v.data.iconOffset or 8)
+					data.delete = false
+					data.iconSpr.x = v.x+v.width*0.5+npcconfig[v.id].gfxoffsetx*(-v.direction)
+					data.iconSpr.y = v.y-(v.data.iconOffset or 8)
 
-				if  excam ~= nil  then
-					data.iconSpr.x, data.iconSpr.y =  excam:SceneToScreenPoint(data.iconSpr.x, data.iconSpr.y)
-				end
-				
-				local dx = (v.x+v.width*0.5) - (player.x+player.width*0.5);
-				local dy = (v.y+v.height*0.5) - (player.y+player.height*0.5);
-				local d = math.sqrt(dx*dx + dy*dy)
+					if  excam ~= nil  then
+						data.iconSpr.x, data.iconSpr.y =  excam:SceneToScreenPoint(data.iconSpr.x, data.iconSpr.y)
+					end
+					
+					local dx = (v.x+v.width*0.5) - (player.x+player.width*0.5);
+					local dy = (v.y+v.height*0.5) - (player.y+player.height*0.5);
+					local d = math.sqrt(dx*dx + dy*dy)
 
-				if  (v.msg.str ~= nil  and  v.msg.str ~= "")  or  v.data.scene ~= nil  or  v.data.routine ~= nil  then
-					data.iconSpr.alpha = lerp(0.4, 1, math.max(0, invLerp(256,16, d)))
+					if  (v.msg.str ~= nil  and  v.msg.str ~= "")  or  v.data.scene ~= nil  or  v.data.routine ~= nil  then
+						data.iconSpr.alpha = lerp(0.4, 1, math.max(0, invLerp(256,16, d)))
 
-					-- UI changes when player is adjacent;  swell icon, name bar
-					if  v == closestNpc  and  d < 48  then
-						if  v.data.name ~= nil then
-							nameBarName = v.data.name
-							if(lastNameBar ~= v.data.name) then
-								nameBarObj = nil;
+						-- UI changes when player is adjacent;  swell icon, name bar
+						if  v == closestNpc  and  d < 48  then
+							if  v.data.name ~= nil then
+								nameBarName = v.data.name
+								if(lastNameBar ~= v.data.name) then
+									nameBarObj = nil;
+								end
 							end
+							data.currScale = math.min(2, data.currScale+0.2)
+						else
+							data.currScale = math.max(1, data.currScale-0.2)
 						end
-						data.currScale = math.min(2, data.currScale+0.2)
-					else
-						data.currScale = math.max(1, data.currScale-0.2)
-					end
 
-					if  data.currScale >= 1.5  then
-						if  data.iconSpr.frame == 1  then  data.iconSpr.frame = 2;  end;
-						data.iconSpr.speed = 1
-						data.iconSpr.scale = data.currScale
-						if(data.iconSpr.state == 4 and v.data.price) then
-							textblox.printExt (v.data.price, {x=data.iconSpr.x + 2,y=data.iconSpr.y - 52,z=1, alpha=bga, font=textblox.FONT_SPRITEDEFAULT3X2, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
+						if  data.currScale >= 1.5  then
+							if  data.iconSpr.frame == 1  then  data.iconSpr.frame = 2;  end;
+							data.iconSpr.speed = 1
+							data.iconSpr.scale = data.currScale
+							if(data.iconSpr.state == 4 and v.data.price) then
+								textblox.printExt (v.data.price, {x=data.iconSpr.x + 2,y=data.iconSpr.y - 52,z=1, alpha=bga, font=textblox.FONT_SPRITEDEFAULT3X2, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
+							end
+						else
+							data.iconSpr.frame = 1
+							data.iconSpr.speed = 0
+							data.iconSpr.scale = 2*data.currScale
 						end
-					else
-						data.iconSpr.frame = 1
-						data.iconSpr.speed = 0
-						data.iconSpr.scale = 2*data.currScale
 					end
+					
+					data.iconSpr:Draw();
 				end
-				
-				data.iconSpr:Draw();
 			end
 		end
 	end
@@ -810,6 +816,10 @@ function a2xt_message.onMessageBox(eventObj, message)
 	eventObj.cancelled = true
 	
 	a2xt_message.onMessage(npc, message);
+	if(not isOverworld and not isTownLevel()) then
+		cache_levelFreeze = Defines.levelFreeze;
+		Defines.levelFreeze = true;
+	end
 end
 --[[
 function a2xt_npcs.onMessage (eventObj, message, npc)

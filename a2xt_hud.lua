@@ -74,13 +74,13 @@ local HEART_IMG = {
 					[CHARACTER_SHEATH] = {empty = Graphics.loadImage(Misc.resolveGraphicsFile("graphics/HUD/hp_heart_empty.png")), full = Graphics.loadImage(Misc.resolveGraphicsFile("graphics/HUD/hp_heart.png"))}
 				  }
 				
-local function printHUDObj(img, value, x, y)
-		Graphics.drawImage(img, x, y);
-		Graphics.drawImage(HUD_IMG.x, x+16, y);
-		Text.print(value, 1, x+32, y+1);
+local function printHUDObj(img, value, x, y,priority)
+		Graphics.drawImageWP(img, x, y,priority);
+		Graphics.drawImageWP(HUD_IMG.x, x+16, y,priority);
+		Text.printWP(value, 1, x+32, y+1,priority);
 end
 
-local function drawNPC(id, x, y)
+local function drawNPC(id, x, y, priority)
 		if(id == 0) then
 			return;
 		end
@@ -92,7 +92,7 @@ local function drawNPC(id, x, y)
 		if(gfxh == 0) then
 			gfxh = npcconfig[id].height;
 		end
-		Graphics.draw{x=x-gfxw*0.5,y=y-gfxh*0.5,type=RTYPE_IMAGE,image=Graphics.sprites.npc[id].img,sourceX=0,sourceY=0,sourceWidth=gfxw,sourceHeight=gfxh};
+		Graphics.draw{x=x-gfxw*0.5,y=y-gfxh*0.5,type=RTYPE_IMAGE,image=Graphics.sprites.npc[id].img,sourceX=0,sourceY=0,priority=priority,sourceWidth=gfxw,sourceHeight=gfxh};
 end
 
 function hud.onInitAPI()
@@ -102,37 +102,37 @@ end
 
 
 --Specific things for currency huds
-function hud.drawFood(x, y)
-	Graphics.drawImage(HUD_IMG.food, x,y);
+function hud.drawFood(x, y, priority)
+	Graphics.drawImageWP(HUD_IMG.food, x, y, priority);
 	if(GLOBAL_LIVES < 0) then
-		Text.print("-", x, y+19)
+		Text.printWP("-", x, y+19,priority)
 	end
-	Text.print(GLOBAL_LIVES, 1, x, y+19)
+	Text.printWP(GLOBAL_LIVES, 1, x, y+19,priority)
 end
 
-function hud.drawRC(x,y)
-	printHUDObj(HUD_IMG.raocoins, raocoins.currency:get(), x, y);
+function hud.drawRC(x,y,priority)
+	printHUDObj(HUD_IMG.raocoins, raocoins.currency:get(), x, y,priority);
 end
 
-local function drawHUD()
+local function drawHUD(priority)
 	local sideoffset = 75;
 	if(saveTimer > 0) then
 		Graphics.drawImageWP(saveImage, 800-24, 600-24, (saveTimer/saveDisplayTime), 10);
 		saveTimer = saveTimer - 1;
 	end
 	if((isOverworld and showhud == WHUD_ALL) or (not isOverworld and showhud)) then
-		Graphics.drawImage(HUD_IMG.demos,400-sideoffset-64,20);
-		Text.print(GLOBAL_DEMOS, 1, 400-sideoffset-64, 39)
+		Graphics.drawImageWP(HUD_IMG.demos,400-sideoffset-64,20,priority);
+		Text.printWP(GLOBAL_DEMOS, 1, 400-sideoffset-64, 39,priority)
 		
-		hud.drawFood(400-sideoffset-140,20);
+		hud.drawFood(400-sideoffset-140,20,priority);
 	
 		if(isOverworld and player:mem(0x16, FIELD_WORD) == 0) then
 			player:mem(0x16, FIELD_WORD, 1);
 		end
 		if(player.character == CHARACTER_DEMO or player.character == CHARACTER_IRIS) then
-			Graphics.drawImage(HUD_IMG.itembox,368,12);
+			Graphics.drawImageWP(HUD_IMG.itembox,368,12,priority);
 			
-			drawNPC(player.reservePowerup,400,44);
+			drawNPC(player.reservePowerup,400,44,priority);
 		else
 			local wid = 32;
 			for i=1,3 do
@@ -142,17 +142,17 @@ local function drawHUD()
 				else
 					g = HEART_IMG[player.character].empty;
 				end
-				Graphics.drawImage(g,400 - (wid*1.5) + wid * (i-1),20);
+				Graphics.drawImageWP(g,400 - (wid*1.5) + wid * (i-1),20,priority);
 			end
 		end
 		
-		printHUDObj(HUD_IMG.coins, mem(0x00B2C5A8,FIELD_WORD), 400+sideoffset+96, 20);
-		printHUDObj(HUD_IMG.leeks, mem(0x00B251E0,FIELD_WORD), 400+sideoffset+96, 38);
+		printHUDObj(HUD_IMG.coins, mem(0x00B2C5A8,FIELD_WORD), 400+sideoffset+96, 20,priority);
+		printHUDObj(HUD_IMG.leeks, mem(0x00B251E0,FIELD_WORD), 400+sideoffset+96, 38,priority);
 		
-		hud.drawRC(400+sideoffset, 20);
+		hud.drawRC(400+sideoffset, 20,priority);
 		
 		for i=1,math.min(5,raocoins.local_counter),1 do
-			Graphics.drawImage(HUD_IMG.raocoins,400+sideoffset+12*(i-1),38);
+			Graphics.drawImageWP(HUD_IMG.raocoins,400+sideoffset+12*(i-1),38,priority);
 		end
 		
 		--Draw overworld-specific hud pieces
@@ -197,21 +197,21 @@ local function drawHUD()
 					if(levelbg == nil) then
 						levelbg = imagic.Create{primitive=imagic.TYPE_BOX, x=x,y=y+hei*0.5, align=imagic.ALIGN_CENTRE, width = wid+64, height = hei+32, bordertexture=img_levelbg, borderwidth = 32};
 					end
-					levelbg:Draw{priority=0, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
-					textblox.printExt(data.Name, {x = x, y = y+4, width=600, font = GENERIC_FONT, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=0, color=0xFFFFFF00+lvla})
-					textblox.printExt(author, {x = x, y = y+4+GENERIC_FONT.charHeight+2, width=600, font = GENERIC_FONT, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=0, color=0xFFFFFF00+lvla})
+					levelbg:Draw{priority=priority, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
+					textblox.printExt(data.Name, {x = x, y = y+4, width=600, font = GENERIC_FONT, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=priority, color=0xFFFFFF00+lvla})
+					textblox.printExt(author, {x = x, y = y+4+GENERIC_FONT.charHeight+2, width=600, font = GENERIC_FONT, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=priority, color=0xFFFFFF00+lvla})
 					
 					local chrs = leveldata.CharsOrDefault(data);
 					local iconx = x+10-(10*#chrs)-8;
 					for k,v in ipairs(chrs) do
-						Graphics.drawImageWP(icons_chars[v], iconx, y + GENERIC_FONT.charHeight * 2 + 10, lvlalpha, 0)
+						Graphics.drawImageWP(icons_chars[v], iconx, y + GENERIC_FONT.charHeight * 2 + 10, lvlalpha, priority)
 						iconx = iconx + 20;
 					end
 					
 					if(data.Filters) then
 						iconx = x+10-(10*#data.Filters)-8;
 						for k,v in ipairs(data.Filters) do
-							Graphics.drawImageWP(icons_filters[v], iconx, y + GENERIC_FONT.charHeight * 2 + 30, lvlalpha, 0)
+							Graphics.drawImageWP(icons_filters[v], iconx, y + GENERIC_FONT.charHeight * 2 + 30, lvlalpha, priority)
 							iconx = iconx + 20;
 						end
 					end
@@ -223,17 +223,17 @@ local function drawHUD()
 	end
 end
 
-function renderHUD()
+function renderHUD(idx, priority)
 	showhud = Graphics.isHudActivated();
 		
-	drawHUD();
+	drawHUD(priority);
 end
 
 function hud.onDraw()
 	if(isOverworld) then
 		showhud = Graphics.getOverworldHudState();
 		Graphics.activateOverworldHud(WHUD_NONE);
-		drawHUD();
+		drawHUD(5);
 	else
 		showhud = Graphics.isHudActivated();
 	end

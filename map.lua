@@ -1,5 +1,3 @@
-local savedata = API.load("a2xt_savedata");
-
 local map3d = API.load("map3d");
 map3d.HUDMode = map3d.HUD_NONE;
 
@@ -7,12 +5,12 @@ local vectr = API.load("vectr");
 
 local settings = API.load("a2xt_settings");
 local leveldata = API.load("a2xt_leveldata");
-local music = API.load("a2xt_music");
+local pause = API.load("a2xt_pause");
 local democounter = API.load("a2xt_democounter");
 local hud = API.load("a2xt_hud");
 
 local vert_default = Misc.resolveFile("map3d/standard.vert");
-local frag_blur = Misc.resolveFile("shaders/blur.frag");
+local frag_blur = Misc.resolveFile("shaders/blur_pixel.frag");
 local shader_blur;
 local buffer = Graphics.CaptureBuffer(800,600);
 
@@ -60,7 +58,6 @@ function onInputUpdate()
 		if(tranTimer == 1) then
 			leveldata.applyFilters(world.levelObj.filename);
 			player.jumpKeyPressing = true;
-			savedata.onEnterLevel(world.levelObj.filename);
 		end
 		player.leftKeyPressing = false;
 		player.rightKeyPressing = false;
