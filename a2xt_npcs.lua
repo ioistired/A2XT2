@@ -1,3 +1,4 @@
+local rng = API.load("rng")
 local npcconfig = API.load("npcconfig")
 local npcManager = API.load("npcManager")
 local pnpc = API.load("pnpc")
@@ -288,5 +289,690 @@ function pengs:onTickNPC()
 		self.dontMove = true;
 	end
 end
+
+
+
+-- ***********************
+-- ** PAL STUFF         **
+-- ***********************
+local vectr = API.load("vectr");
+local eventu = API.load("eventu");
+local colliders = API.load("colliders");
+
+local pal = {}
+local palSettings = table.join(
+				 defaults,
+				 {id = 985,
+				  gfxheight = 48, 
+				  gfxwidth = 48, 
+				  width = 32,
+				  gfxoffsetx = 0,
+				  gfxoffsety = 2,
+				  height = 32});
+palSettings.frames = 22;
+palSettings.framespeed = 12;
+
+npcManager.registerEvent(palSettings.id, pal, "onTickNPC");
+pal.settings = npcManager.setNpcSettings(palSettings);
+
+local REACTIONS = {
+                   FOLLOW = {},
+                   ANGER  = {5,98,99,100,148,149,150,228, 987,988,989,990,991,992,993,994,995,999},
+                   SCARE  = {},
+                   DIG    = {91}
+                  }
+local REACTPRIORITY = {
+                       NONE   = 0,
+                       PLAYER = 2,
+                       FOLLOW = 1,
+                       DIG    = 3,
+                       ANGER  = 4,
+                       SCARE  = 5
+                      }
+
+-- generate list of all ids to react to + lookup table in which k = npc id and v = type of reaction
+local REACTIDS = {}
+local REACTTYPES = {}
+for k1,v1 in pairs(REACTIONS) do
+	for _,v2 in pairs(v1) do
+		table.insert(REACTIDS, v2)
+		REACTTYPES[v2] = k1
+	end
+end
+
+
+-- Utility functs (feel free to outsource some of these to another API)
+local function clearShot (objA,objB)
+	local x1,y1,x2,y2 = objA.x,objA.y, objB.x,objB.y
+
+	if  not (x1 == nil  or  x2 == nil  or  y1 == nil  or  y2 == nil)  then
+		if  objA.width ~= nil  then
+			x1 = x1+objA.width*0.5
+			y1 = y1+objA.height*0.5
+		end
+		if  objB.width ~= nil  then
+			x2 = x2+objB.width*0.5
+			y2 = y2+objB.height*0.5
+		end
+
+		return true--colliders.linecast({x1,y1},{x2,y2},colliders.BLOCK_SEMISOLID)
+	else
+		return false
+	end
+end
+
+local function objDirection (objA,objB)
+	local x1,x2 = objA.x,objB.x
+
+	if  not (x1 == nil  or  x2 == nil)  then
+		if  objA.width ~= nil  then
+			x1 = x1+objA.width*0.5
+		end
+		if  objB.width ~= nil  then
+			x2 = x2+objB.width*0.5
+		end
+
+		if  x1 > x2  then
+			return DIR_LEFT
+		else
+			return DIR_RIGHT
+		end
+	else
+		return nil
+	end
+end
+
+local function objDistance (objA,objB)
+	local x1,y1,x2,y2 = objA.x,objA.y, objB.x,objB.y
+
+	if  not (x1 == nil  or  x2 == nil  or  y1 == nil  or  y2 == nil)  then
+		if  objA.width ~= nil  then
+			x1 = x1+objA.width*0.5
+			y1 = y1+objA.height*0.5
+		end
+		if  objB.width ~= nil  then
+			x2 = x2+objB.width*0.5
+			y2 = y2+objB.height*0.5
+		end
+
+		local dist = math.sqrt(math.pow(x2-x1,2) + math.pow(y2-y1,2))
+		return dist
+	else
+		return math.huge
+	end
+end
+
+local function setPalState(npcRef, type, funct)
+	if  npcRef == nil  then  return;  end;
+	local data = npcRef.data.pal
+
+	if  data[type].state ~= funct  then
+		if  data[type].cor ~= nil  then
+			eventu.abort(data[type].cor)
+		end
+		data[type].state = funct
+		_,data[type].cor = eventu.run(funct,npcRef)
+	end
+end
+local function setPalMoveState(npcRef, funct)
+	setPalState(npcRef, "move", funct)
+end
+local function setPalAnimState(npcRef, funct)
+	setPalState(npcRef, "anim", funct)
+end
+
+
+-- ANIMATION ROUTINES
+local ANIM = {}
+
+ANIM.STAND = function(npcRef)
+	while (true) do
+		local data = npcRef.data.pal
+		data.anim.frame = 1
+		if  data.bark.mouthOpen  then
+			data.anim.frame = 2
+		end
+		eventu.waitFrames(0)
+	end
+end
+
+ANIM.ANGER = function(npcRef)
+	while (true) do
+		local data = npcRef.data.pal
+		data.anim.frame = 18
+		if  data.bark.mouthOpen  then
+			data.anim.frame = 2
+		end
+		eventu.waitFrames(0)
+	end
+end
+
+ANIM.WORRY = function(npcRef)
+	while (true) do
+		local data = npcRef.data.pal
+		data.anim.frame = 17
+		if  data.bark.mouthOpen  then
+			data.anim.frame = 2
+		end
+		eventu.waitFrames(0)
+	end
+end
+
+ANIM.SCARE = function(npcRef)
+	while (true) do
+		local data = npcRef.data.pal
+		data.anim.frame = 19
+		if  data.bark.mouthOpen  then
+			data.anim.frame = 2
+		end
+		eventu.waitFrames(0)
+	end
+end
+
+ANIM.WALK = function(npcRef)
+	local x1,y1 = rng.random(10,790), rng.random(10,590)
+	local data = npcRef.data.pal
+	while (true) do
+		for i=0,2 do
+			data.anim.frame = 1 + 2*i
+			if  data.bark.mouthOpen  then
+				data.anim.frame = data.animFrame+1
+			end
+
+			Graphics.draw {type=RTYPE_TEXT, x=x1, y=y1, text="WALK"}
+			eventu.waitFrames(math.max(3, 2*(4-math.abs(npcRef.speedX))))
+		end
+	end
+end
+
+ANIM.AIR = function(npcRef)
+	local data = npcRef.data.pal
+	while (true) do
+		data.anim.frame = 1
+		if  npcRef.speedY < 0  then
+			data.anim.frame = 3
+		elseif  npcRef.speedY > 0  then
+			data.anim.frame = 5
+		end
+
+		if  data.bark.mouthOpen  then
+			data.anim.frame = data.animFrame+1
+		end
+		eventu.waitFrames(0)
+	end
+end
+
+ANIM.DIG = function(npcRef)
+	local data = npcRef.data.pal 
+	while (true) do
+		data.anim.frame = 14
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+
+		data.anim.frame = 15
+		-- dirt particle
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+
+		data.anim.frame = 16
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+
+		data.anim.frame = 13
+		-- dirt particle
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+	end
+end
+
+ANIM.SNIFF = function(npcRef)
+	local data = npcRef.data.pal 
+	while (true) do
+		data.anim.frame = 9
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+
+		data.anim.frame = 10
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+	end
+end
+
+ANIM.TARGETBARK = function(npcRef)
+	local data = npcRef.data.pal 
+	while (true) do
+		data.anim.frame = 9
+		if  data.bark.mouthOpen  then
+			data.anim.frame = 2
+		end
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+
+		data.anim.frame = 10
+		if  data.bark.mouthOpen  then
+			data.anim.frame = 2
+		end
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+	end
+end
+
+ANIM.WAG = function(npcRef)
+	local data = npcRef.data.pal 
+	while (true) do
+		data.anim.frame = 11
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+
+		data.anim.frame = 12
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+	end
+end
+
+ANIM.SLEEP = function(npcRef)
+	local data = npcRef.data.pal 
+	while (true) do
+		data.anim.frame = 7
+		-- emit z particle
+		eventu.waitFrames (pal.settings.framespeed*8)
+
+		data.anim.frame = 8
+		eventu.waitFrames (pal.settings.framespeed*8)
+	end
+end
+
+ANIM.LOOK = function(npcRef)
+	local data = npcRef.data.pal 
+	while (true) do
+		-- Look away from camera
+		data.anim.frame = 20
+		eventu.waitFrames (pal.settings.framespeed*2)
+
+		-- Look behind
+		data.anim.frame = 1
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+		data.anim.frame = 21
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+		data.anim.frame = 22
+		eventu.waitFrames (pal.settings.framespeed*2)
+
+		-- Look forward
+		data.anim.frame = 21
+		eventu.waitFrames (pal.settings.framespeed*0.5)
+		data.anim.frame = 1
+		eventu.waitFrames (pal.settings.framespeed*2)
+	end
+end
+
+
+-- MOVEMENT ROUTINES
+local MOVE = {}
+
+MOVE.ROAM = function(npcRef)
+	local dir = -1
+	local sleepCounter = 0
+	local data = npcRef.data.pal
+
+	while (sleepCounter < 5) do
+		-- Turn around randomly or if too far from home position
+		local changedDir = false
+		if  rng.random(1) < 0.5  then
+			dir = -dir
+			changedDir = true
+		end
+		if  objDistance(npcRef, data.homePos) > 256  then
+			if  npcRef.x < data.homePos.x  then  dir = 1;   end;
+			if  npcRef.x > data.homePos.x  then  dir = -1;  end;
+			changedDir = true
+		end
+
+		npcRef.direction = DIR_LEFT
+		if  dir == 1  then  npcRef.direction = DIR_RIGHT;  end;
+		if  changedDir  then
+			eventu.waitFrames(lunatime.toTicks(rng.random(0.25,0.75)))
+		end
+
+		-- Walk forward
+		npcRef.speedX = dir*rng.random(1,2)
+		setPalAnimState(npcRef, ANIM.WALK)
+		eventu.waitFrames(lunatime.toTicks(rng.random(0.5,1.5)))
+
+		-- Stop, sometimes look around
+		npcRef.speedX = 0
+		setPalAnimState(npcRef, ANIM.STAND)
+		if  rng.random(1) < 0.5  then
+			setPalAnimState(npcRef, ANIM.LOOK)
+		end
+		eventu.waitFrames(lunatime.toTicks(rng.random(1,3)))
+		while (data.anim.frame ~= 1)  do
+			eventu.waitFrames(0)
+		end
+
+		sleepCounter = sleepCounter + 1
+	end
+
+	setPalMoveState(npcRef, MOVE.SLEEP)
+end
+
+MOVE.FOLLOW = function(npcRef)
+	local data = npcRef.data.pal
+
+	npcRef.speedX = 0
+	npcRef.speedY = -4
+	setPalAnimState(self, ANIM.AIR)
+	eventu.waitFrames(1)
+
+	if  data.follow.target.isValid  then
+		npcRef.direction = objDirection(npcRef, data.follow.target)
+	end
+	eventu.waitFrames(30)
+
+	while (data.follow.target ~= nil) do
+
+		-- Determine the type of reaction and the distance to stop at
+		setPalAnimState(self, ANIM.STAND)
+		npcRef.speedX = 0
+		data.bark.active = false
+
+		if  data.follow.target.isValid  then
+			local stopDist = 64
+			local rType = "PLAYER"
+			local dirToTarget = objDirection(npcRef, data.follow.target)
+			npcRef.direction = objDirection(npcRef, data.follow.target)
+
+			if  data.follow.type == "npc"  then
+				rType = REACTTYPES[data.follow.target.id]
+
+				if  rType == "DIG"    then  stopDist = 24;   end;
+				if  rType == "SCARE"  then  stopDist = 256;  end;
+				if  rType == "ANGER"  then  stopDist = 128;  end;
+			end
+
+			-- When at the right distance, behave according to the reaction type
+			if  data.follow.distance > stopDist-8  and  data.follow.distance < stopDist+8  then
+
+				setPalAnimState (npcRef, ANIM.STAND);
+				if  rType == "DIG"    then  data.startDigging = true;                                        end;
+				if  rType == "SCARE"  then  setPalAnimState (npcRef, ANIM.SCARE);  data.bark.active = true;  end;
+				if  rType == "ANGER"  then  setPalAnimState (npcRef, ANIM.ANGER);  data.bark.active = true;  end;
+
+			-- When closer than the stop distance, move based on reaction type
+			elseif  data.follow.distance < stopDist  then
+
+				if  rType == "SCARE"  or  rType == "ANGER"  then
+					setPalAnimState(npcRef, ANIM.WALK)
+					if  rType == "SCARE"  then
+						npcRef.animationFrame = npcRef.animationFrame + 22
+					end
+
+					npcRef.speedX = -(0.5 + 3.5 * (data.follow.distance/256))
+					if  dirToTarget == DIR_LEFT  then
+						npcRef.speedX = -npcRef.speedX
+					end
+				end
+				--Graphics.draw {type=RTYPE_TEXT, isSceneCoordinates=true, x=npcRef.x, y=npcRef.y-32, text=rType.." ("..rType..", "..tostring(dirToTarget)..")"}
+
+
+			-- When further than the stop distance, move based on reaction type
+			else
+				if rType == "SCARE"  then
+
+				else
+					setPalAnimState(npcRef, ANIM.WALK)
+					npcRef.speedX = (0.5 + 3.5 * (data.follow.distance/256))
+					if  dirToTarget == DIR_LEFT  then
+						npcRef.speedX = -npcRef.speedX
+					end
+				end
+			end
+		end
+
+		if  npcRef.speedX == 0  then
+			Graphics.draw {type=RTYPE_TEXT, isSceneCoordinates=true, x=npcRef.x, y=npcRef.y-32, text="STOPPED"}
+		end
+
+		eventu.waitFrames(0)
+	end
+
+	setPalMoveState(npcRef, MOVE.ROAM)
+end
+
+MOVE.DIG = function(npcRef)
+	local data = npcRef.data.pal
+
+	-- Stop moving and start sniffing
+	npcRef.speedX = 0
+	setPalAnimState (npcRef, ANIM.SNIFF)
+	eventu.waitFrames (pal.settings.framespeed*8)
+
+	-- Start digging
+	setPalAnimState (npcRef, ANIM.DIG)
+	eventu.waitFrames (pal.settings.framespeed*20)
+
+	-- Pluck the NPC
+	local npcToSpawn = data.follow.target.ai1
+	data.follow.target:kill()
+	local newNpc = NPC.spawn (npcToSpawn, data.follow.target.x+data.follow.target.width*0.5, data.follow.target.y-17, player.section, true, true)
+	newNpc.speedY = -8
+	newNpc.speedX = rng.random(-2,2)
+
+	-- reset the follow data
+	data.follow.distance = math.huge
+	data.follow.target   = nil
+	data.follow.type     = nil
+	data.follow.react    = "NONE"
+	data.follow.timer    = 1
+
+	-- Pal feels accomplished
+	setPalAnimState (npcRef, ANIM.WAG)
+	eventu.waitFrames (pal.settings.framespeed*8)
+
+	-- Go back to roaming
+	setPalMoveState (npcRef, MOVE.ROAM)
+end
+
+
+MOVE.HELD = function(npcRef)
+	while (true) do
+	end
+end
+
+MOVE.SCARERUN = function(npcRef)
+	setPalAnimState(npcRef, ANIM.WALK)
+	if  npcRef.direction == DIR_LEFT  then
+		npcRef.speedX = 4
+	else
+		npcRef.speedX = -4
+	end
+end
+
+MOVE.SLEEP = function(npcRef)
+	local data = npcRef.data.pal
+
+	-- Start moving
+	setPalAnimState(npcRef, ANIM.WALK)
+	data.accel = rng.randomEntry({-0.2, 0.2})
+	eventu.waitFrames(8)
+
+	-- Turn a few times
+	for  i=1,3  do
+		data.accel = -data.accel
+		eventu.waitFrames(16)
+	end
+
+	-- Stop
+	data.friction = math.abs(data.accel)
+	data.accel = 0
+	setPalAnimState(npcRef, ANIM.SNIFF)
+	while  (npcRef.speedX ~= 0)  do
+		eventu.waitFrames(0)
+	end
+
+	-- Sleep
+	data.friction = 0
+	setPalAnimState(npcRef, ANIM.SLEEP)
+end
+
+
+-- Per-tick stuff
+function pal:onTickNPC()
+
+	-- Initialize data table
+	if self.data.pal == nil  then
+	    self.data.pal = {
+	                     move = {
+	                             state = nil,
+	                             cor   = nil
+	                            },
+	                     anim = {
+	                             state = nil,
+	                             cor   = nil,
+	                             frame = 1
+	                            },
+	                     accel        = 0,
+	                     friction     = 0,
+	                     startDigging = false,
+	                     bark         = {
+	                                     active    = false,
+	                                     mouthOpen = false,
+	                                     freq      = 20,
+	                                     timer     = 0,
+	                                    },
+	                     follow       = {target=nil, distance=math.huge, type=nil, react="NONE", timer=1},
+	                     homePos      = {x=self.x,y=self.y}
+	                    }
+		setPalMoveState(self, MOVE.ROAM)
+		setPalAnimState(self, ANIM.STAND)
+	end
+
+	local data = self.data.pal
+
+
+	-- Stubborn following coroutine stopgap
+	if  data.startDigging  then
+		data.startDigging = false
+		setPalMoveState (self, MOVE.DIG)
+	end
+
+	-- Manage follow targeting
+	local allTargets = table.join ({player}, NPC.get(REACTIDS, player.section))
+	local closestDist = 128
+	local closestTarget = nil
+	local closestType = nil
+	local closestReact = "NONE"
+	for  _,v in pairs(allTargets)  do
+
+		-- Determine validity based on object type
+		local isValid = false
+		local targetType = nil
+		local reactType  = nil
+
+		if  v.ai1 ~= nil  then
+			-- if it's an NPC, the NPC must not be hidden unless it's something to dig up
+			isValid = (not v:mem(0x40, FIELD_WORD)  or  REACTTYPES[v.id] == "DIG")
+			if  isValid  then  v = pnpc.wrap(v);  end;
+			targetType = "npc"
+			reactType = REACTTYPES[v.id]
+		else
+			-- if it's the player, automatically valid
+			isValid = true
+			targetType = "player"
+			reactType = "PLAYER"
+		end
+
+		-- If the target is valid and there's a clear line of sight, 
+		--   get the distance and check whether it's the closest/highest-priority thing so far
+		if  isValid  and  clearShot(self,v)  then
+			local isNew = false
+			local dist = objDistance (self,v)
+			if  dist < 256  and  (dist <= closestDist  or  REACTPRIORITY[reactType] > REACTPRIORITY[closestReact]  or  (REACTPRIORITY[reactType] > REACTPRIORITY[closestReact]  and  dist < closestDist))  then
+				closestDist = dist
+				closestTarget = v
+				closestType = targetType
+				closestReact = reactType
+			end
+		end
+	end
+
+	-- If there is not a valid target to follow, stick to the current one for two seconds
+	if  closestTarget == nil  then
+		data.follow.timer = (data.follow.timer + 1) % lunatime.toTicks(2)
+
+		-- If those two seconds are up, stop following
+		if  data.follow.timer == 0  then
+			data.follow.distance = math.huge
+			data.follow.target   = nil
+			data.follow.type     = nil
+			data.follow.react    = "NONE"
+			data.follow.timer    = 1
+		end
+	-- If there is a valid target to follow... well, follow it!
+	else
+		data.follow.distance = objDistance(self, {x=closestTarget.x, y=self.y, width=closestTarget.width, height=self.height})
+		data.follow.target   = closestTarget
+		data.follow.type     = closestType
+		data.follow.react    = closestReact
+		data.follow.timer    = 1
+	end
+
+
+	-- Manage barking
+	if  data.bark.active  then
+		data.bark.timer = data.bark.timer + 1
+
+		-- Perform bark
+		if  data.bark.timer >= 0  then
+			data.bark.mouthOpen = false
+		end
+
+		if  data.bark.timer >= data.bark.freq  then
+			data.bark.timer = -10
+			data.bark.mouthOpen = true
+			-- sound effect
+		end
+	else
+		data.bark.timer = 0
+		data.bark.mouthOpen = false
+	end
+
+
+	-- Manage states
+		-- SLEEPING
+		if      data.move.state == MOVE.SLEEP  then
+			-- wake up if the player runs, lands or picks up
+
+		-- ROAMING
+		elseif  data.move.state == MOVE.ROAM   then
+
+			-- Stop barking
+			data.bark.active = false
+
+			-- If a target is found, switch to follow mode
+			if  data.follow.target ~= nil  then
+				setPalMoveState(self, MOVE.FOLLOW)
+			end
+
+		-- FOLLOWING
+		elseif  data.move.state == MOVE.FOLLOW   then
+			data.bark.freq = rng.randomInt (20,65)
+
+		-- FOLLOWING
+		elseif  data.move.state == MOVE.HELD   then
+			data.bark.active = true
+		end
+
+	-- Manage physics
+	if  data.accel ~= 0  then
+		self.speedX = self.speedX + data.accel
+	end
+	if  data.friction ~= 0  then
+		if  math.abs(self.speedX) < data.friction  then
+			self.speedX = 0
+		else
+			self.speedX = self.speedX - (self.speedX/math.abs(self.speedX))*data.friction
+		end
+	end
+
+	-- Manage animation
+	self.animationFrame = data.anim.frame-1;
+	if  self.direction == DIR_RIGHT  then
+		self.animationFrame = self.animationFrame + 22
+	end
+	self.animationTimer = 2;
+end
+
+
+
 
 return friendlies
