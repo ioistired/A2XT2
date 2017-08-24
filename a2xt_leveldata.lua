@@ -19,7 +19,12 @@ local KEY = 3;
 local ROULETTE = 1;
 
 function _G.isTownLevel()
-	return leveldata.GetData().Type == leveldata.TYPE_TOWN;
+	local d = leveldata.GetData();
+	if(d) then
+		return d.Type == leveldata.TYPE_TOWN;
+	else
+		return false;
+	end
 end
 
 leveldata.EXIT_LEEK = LEEK;

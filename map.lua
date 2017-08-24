@@ -1,5 +1,7 @@
 local map3d = API.load("map3d");
 map3d.HUDMode = map3d.HUD_NONE;
+map3d.CameraSettings.distance = 0
+map3d.CameraSettings.angle = 90;
 
 local vectr = API.load("vectr");
 
@@ -36,14 +38,23 @@ local fadeTime = 1.5;
 
 local lastOkPress = false;
 
+local function getLevelObj()
+	if(world.levelObj and math.abs(world.levelObj.y-world.playerY) < 8) then
+		return world.levelObj;
+	else
+		return nil;
+	end
+end
+
 function onInputUpdate()
 	if(mem(0x00B250E2, FIELD_BOOL) or Misc.isPausedByLua()) then
 		lastOkPress = true;
 		return;
 	end
+	local obj = getLevelObj();
 	if(player.jumpKeyPressing) then
 		player.jumpKeyPressing = false;
-		if(world.levelObj and not lastOkPress and not world.playerIsCurrentWalking) then
+		if(obj and not lastOkPress and not world.playerIsCurrentWalking) then
 			tranTimer = lunatime.toTicks(fadeTime);
 			maxTimer = tranTimer;
 			Audio.MusicStopFadeOut(fadeTime*1000);
@@ -56,7 +67,7 @@ function onInputUpdate()
 	if(tranTimer > 0) then
 		lastOkPress = true;
 		if(tranTimer == 1) then
-			leveldata.applyFilters(world.levelObj.filename);
+			leveldata.applyFilters(obj.filename);
 			player.jumpKeyPressing = true;
 		end
 		player.leftKeyPressing = false;

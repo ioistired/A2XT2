@@ -114,6 +114,14 @@ function hud.drawRC(x,y,priority)
 	printHUDObj(HUD_IMG.raocoins, raocoins.currency:get(), x, y,priority);
 end
 
+local function getOWLevelObj()
+	if(world.levelObj and math.abs(world.levelObj.y-world.playerY) < 8) then
+		return world.levelObj;
+	else
+		return nil;
+	end
+end
+
 local function drawHUD(priority)
 	local sideoffset = 75;
 	if(saveTimer > 0) then
@@ -157,9 +165,10 @@ local function drawHUD(priority)
 		
 		--Draw overworld-specific hud pieces
 		if(isOverworld) then
-			if(lunatime.tick() > 0 and (world.levelObj or lvlalpha > 0)) then
-				if(world.levelObj) then
-					lvlfile = world.levelObj.filename;
+			local lvlobj = getOWLevelObj();
+			if(lunatime.tick() > 0 and (lvlobj or lvlalpha > 0)) then
+				if(lvlobj) then
+					lvlfile = lvlobj.filename;
 				elseif(lvlfile == nil) then
 					levelbg = nil;
 					return;
@@ -167,10 +176,10 @@ local function drawHUD(priority)
 				
 				local data = leveldata.GetData(lvlfile);
 				if(data) then
-					if(world.levelObj) then
-						lvlalpha = vectr.lerp(lvlalpha, 1, 0.2);
+					if(lvlobj) then
+						lvlalpha = math.lerp(lvlalpha, 1, 0.2);
 					else
-						lvlalpha = vectr.lerp(lvlalpha, 0, 0.2);
+						lvlalpha = math.lerp(lvlalpha, 0, 0.2);
 						if(lvlalpha < 0.05) then
 							lvlfile = nil;
 						end
