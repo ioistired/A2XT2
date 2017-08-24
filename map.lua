@@ -1,7 +1,5 @@
 local map3d = API.load("map3d");
 map3d.HUDMode = map3d.HUD_NONE;
-map3d.CameraSettings.distance = 0
-map3d.CameraSettings.angle = 90;
 
 local vectr = API.load("vectr");
 
