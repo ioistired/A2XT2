@@ -16,17 +16,6 @@ local scene = API.load("a2xt_scene");
 local messages = API.load("a2xt_message");
 local shops = API.load("a2xt_shops");
 
-function onInputUpdate()
-        --*****************************
-        --|START + SELECT BUTTON COMBO|
-        --*****************************
-        if (player.dropItemKeyPressing and player.pauseKeyPressing) then
-                player.dropItemKeyPressing = false
-                player.pauseKeyPressing = false
-				Level.exit();
-        end
-end
-
 local function LoadHitboxes()
 
 	--******************************
@@ -59,4 +48,3 @@ function onStart()
     end
  
 end
- 

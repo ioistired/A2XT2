@@ -20,20 +20,13 @@ end
 function dc.onStart()
 		if(not isOverworld and SaveData.deaths[Level.filename()] == nil) then
 			SaveData.deaths[Level.filename()] = 0;
-			--[[if (settings.Settings:get(Level.filename() .. "-deaths") == nil) then
-					settings.Settings:set(Level.filename() .. "-deaths", 0)
-			end]]
 		end
-		--[[if (settings.Settings:get("totalDeaths") == nil) then
-				settings.Settings:set("totalDeaths", 0)
-		end]]
 		
-		GLOBAL_DEMOS = SaveData.deaths._TOTAL;--settings.Settings:get("totalDeaths");
-        --settings.Settings:save()
+		GLOBAL_DEMOS = SaveData.deaths._TOTAL;
 end
 
 function dc.GetDemos(level)
-	return SaveData.deaths[level..".lvl"] or 0;--tonumber(settings.Settings:get(level .. ".lvl-deaths")) or 0;
+	return SaveData.deaths[level..".lvl"] or 0;
 end
 
 function dc.onExitLevel()
@@ -41,9 +34,6 @@ function dc.onExitLevel()
 			if player:mem(0x13C, FIELD_BOOL) then
 					SaveData.deaths[Level.filename()] = SaveData.deaths[Level.filename()]+1;
 					SaveData.deaths._TOTAL = SaveData.deaths._TOTAL + 1;
-					--settings.Settings:set(Level.filename() .. "-deaths", settings.Settings:get(Level.filename() .. "-deaths") + 1)
-					--settings.Settings:set("totalDeaths", settings.Settings:get("totalDeaths") + 1)
-					--settings.Settings:save()
 			end
 		end
 end
