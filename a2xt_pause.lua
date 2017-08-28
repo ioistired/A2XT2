@@ -219,7 +219,7 @@ local function drawPause(priority)
 			end
 			
 			local xOffset = ps:getSpriteOffsetX(tx1, ty1);
-			local yOffset = ps:getSpriteOffsetY(tx1, ty1) + player:mem(0x10E,FIELD_WORD);
+			local yOffset = ps:getSpriteOffsetY(tx1, ty1)--+ player:mem(0x10E,FIELD_WORD);
 			
 			tx1 = tx1*0.1;
 			ty1 = ty1*0.1;

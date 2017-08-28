@@ -397,6 +397,7 @@ message.presetSequences.stable = function(args)
 	message.waitMessageEnd()
 	scene.displayRaocoinHud(false);
 	scene.endScene()
+	message.endMessage();
 end
 
 message.presetSequences.steve = function(args)
@@ -463,6 +464,7 @@ message.presetSequences.steve = function(args)
 			npc.dontMove = true;
 	end
 	scene.endScene()
+	message.endMessage();
 end
 
 message.presetSequences.shopItem = function(args)
@@ -517,6 +519,7 @@ message.presetSequences.shopItem = function(args)
 	end
 	
 	scene.endScene()
+	message.endMessage();
 end
 
 

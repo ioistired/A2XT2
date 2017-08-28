@@ -337,11 +337,9 @@ local function cor_talkToNPC (args)
 			eventu.waitFrames(0, true)
 		end
 		
-		if(Misc.isPausedByLua()) then
-			Misc.unpause();
-		end
+		a2xt_message.endMessage();
+		
 		a2xt_scene.endScene()
-		a2xt_pause.Unblock();
 	end
 	talkNPC = npc;
 end
@@ -419,6 +417,13 @@ end
 --***************************
 --** API Member Functions  **
 --***************************
+
+function a2xt_message.endMessage()
+	if(Misc.isPausedByLua()) then
+		Misc.unpause();
+	end
+	a2xt_pause.Unblock();
+end
 
 function a2xt_message.showMessageBox (args)
 	if  type(args) ~= "table"  then

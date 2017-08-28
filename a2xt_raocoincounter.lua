@@ -84,6 +84,7 @@ end
 
 function rc.set(val)
 	raocoinCount = val;
+	rc:save();
 end
 
 function rc.check(val)
@@ -93,6 +94,7 @@ end
 function rc.buy(val)
 	if(rc.check(val)) then
 		raocoinCount = raocoinCount-val;
+		rc:save();
 		return true;
 	end
 	return false;
@@ -100,6 +102,7 @@ end
 
 function rc.add(val)
 	raocoinCount = raocoinCount + val;
+	rc:save();
 end
 
 function rc.onStart()
