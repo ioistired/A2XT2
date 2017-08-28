@@ -1,11 +1,19 @@
 local npcconfig = API.load("npcconfig");
 local raocoins = API.load("a2xt_raocoincounter");
 local settings = API.load("a2xt_settings");
+local textblox = API.load("textblox");
+local imagic = API.load("imagic");
 local vectr;
 local map3d;
 local leveldata;
-local textblox;
-local imagic = API.load("imagic");
+
+_G.A2XT_FONT_MAIN = textblox.Font (textblox.FONTTYPE_SPRITE, {ini = "graphics/fonts/font_main.ini", image = Graphics.loadImage(Misc.resolveFile("graphics/fonts/font_main.png"))})	
+
+_G.CHAR_RC = "<color white>\127<color default>"
+
+textblox.presetProps[textblox.PRESET_SYSTEM].font = A2XT_FONT_MAIN
+textblox.presetProps[textblox.PRESET_BUBBLE].font = A2XT_FONT_MAIN
+textblox.presetProps[textblox.PRESET_SIGN].font = A2XT_FONT_MAIN
 
 local icons_chars;
 local icons_filters;
@@ -28,7 +36,6 @@ if(isOverworld) then
 	vectr = API.load("vectr");
 	map3d = API.load("map3d");
 	leveldata = API.load("a2xt_leveldata");
-	textblox = API.load("textblox");
 	
 	icons_chars = {};
 	icons_filters = {};

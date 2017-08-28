@@ -194,7 +194,7 @@ a2xt_shops.dialogue = {
 --** API Member Functions  **
 --***************************
 local function addPrice (str, amount)
-	local newStr = string.gsub(str, "%[price%]", tostring(amount).."rc")
+	local newStr = string.gsub(str, "%[price%]", tostring(amount)..CHAR_RC)
 	return newStr;
 end
 local function addItem (str, item)
@@ -211,7 +211,7 @@ function a2xt_shops.getItemPromptList (ids, names, prices)
 	local options = {}
 	for  i=1,#ids  do
 		local id = ids[i]
-		options[i] = names[id].." ("..tostring(prices[id]).."rc)"
+		options[i] = names[id].." ("..tostring(prices[id])..CHAR_RC..")"
 	end
 	return options
 end
