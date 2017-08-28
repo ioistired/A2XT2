@@ -2,6 +2,7 @@
 --|INCLUDES|
 --**********
  --API.load("pSwitchTicking")
+Text.logWarnings = false;
 
 local settings = API.load("a2xt_settings");
 local raocoins = API.load("a2xt_raocoincounter");

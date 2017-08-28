@@ -11,7 +11,7 @@ local defs = API.load("expandedDefines")
 
 local rng = API.load("rng")
 
---local a2xt_npcs = API.load("a2xt_npcs")
+local a2xt_pause = API.load("a2xt_pause")
 local a2xt_scene = API.load("a2xt_scene")
 local a2xt_message = {}
 
@@ -285,24 +285,31 @@ local talkNPC = nil;
 local function cor_talkToNPC (args)
 	-- PNPC wrap the npc
 	local npc = args.npc;
-	if  npc ~= nil  then  npc = pnpc.wrap(npc);  end;
+	if  npc ~= nil  then  
+		npc = pnpc.wrap(npc);
 
-	-- Zoom the camera in and position the player
-	eventu.run (cor_talkZoomIn, args)
-	eventu.run (cor_positionPlayer, args)
-	eventu.waitSignal("playerPositioned")
+		-- Zoom the camera in and position the player
+		eventu.run (cor_talkZoomIn, args)
+		eventu.run (cor_positionPlayer, args)
+		eventu.waitSignal("playerPositioned")
+	end
 	
 	if(not isOverworld and not isTownLevel()) then
 		Misc.pause();
 	end
 
-	-- Start the cleanup routine
-	eventu.run(cor_cleanupAfterNPC)
+	if  npc ~= nil  then  
+		-- Start the cleanup routine
+		eventu.run(cor_cleanupAfterNPC)
+	end
 	
 	a2xt_message.promptChosen = false;
 
 	-- Check for indexed cutscenes or message strings
-	local extMessage = a2xt_message.presetSequences[npc.data.event]
+	local extMessage;
+	if  npc ~= nil  then  
+		extMessage = a2xt_message.presetSequences[npc.data.event]
+	end
 	if  type(extMessage) == "function"  then
 
 		local t = string.trim(args.text);
@@ -319,7 +326,12 @@ local function cor_talkToNPC (args)
 		end
 
 		-- Start the message box
-		local bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text=messageText}
+		local bubble;
+		if  npc ~= nil  then  
+			bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text=messageText}
+		else
+			bubble = a2xt_message.showMessageBox{x=400, y=300, text=messageText, screenSpace = true}
+		end
 		
 		while (not bubble.deleteMe) do
 			eventu.waitFrames(0, true)
@@ -329,6 +341,7 @@ local function cor_talkToNPC (args)
 			Misc.unpause();
 		end
 		a2xt_scene.endScene()
+		a2xt_pause.Unblock();
 	end
 	talkNPC = npc;
 end
@@ -387,12 +400,14 @@ local function cor_manageMessage(bubbleTarget, bubble)
 		end
 		--]]
 		--windowDebug(tostring(bubbleTarget.x).."/n"..tostring(bubble.x))
-
-		--bubble.x = bubbleTarget.x
-		--bubble.y = bubbleTarget.y
+		
+		if(bubbleTarget.screenSpace) then
+			bubbleTarget.x = bubbleTarget.initialArgs.x + cam.cam.x
+			bubbleTarget.y = bubbleTarget.initialArgs.y + cam.cam.y
+		end
 
 		--Text.dialog("doneyo")
-		eventu.waitFrames(0)
+		eventu.waitFrames(0, true)
 	end
 	-- Close the bubble now that the conditions have been met
 	if  (not bubble.deleteMe)  then
@@ -420,7 +435,9 @@ function a2xt_message.showMessageBox (args)
 	                     offY      = args.offY       or  0,
 	                     closeWith = args.closeWith,
 						 keepOnscreen = args.keepOnscreen or false,
-						 hasTail = args.hasTail
+						 hasTail = args.hasTail,
+						 screenSpace = args.screenSpace or false,
+						 initialArgs = args
 	                    }
 
 	if(messageCtrl.hasTail == nil) then messageCtrl.hasTail = true; end
@@ -431,6 +448,8 @@ function a2xt_message.showMessageBox (args)
 		if  args.target.id ~= nil  then
 			presetToUse = textblox.npcPresets[args.target.id]  or  presetToUse
 		end
+	else
+		presetToUse = a2xt_message.type.sign
 	end
 	if  args.type ~= nil  then
 		presetToUse = a2xt_message.type[args.type]  or  presetToUse
@@ -444,10 +463,15 @@ function a2xt_message.showMessageBox (args)
 	end
 
 	props.trackTarget = messageCtrl
-	props.bind        = textblox.BIND_SCENE
 	props.pauseGame   = false
 	props.z           = 2
 	props.instant     = args.instant
+	
+	if(args.screenSpace) then
+		props.bind = textblox.BIND_SCREEN
+	else
+		props.bind = textblox.BIND_SCENE
+	end
 
 	if  args.closeWith ~= nil  then
 		props.inputClose = false
@@ -470,6 +494,7 @@ function a2xt_message.showMessageBox (args)
 	text = string.gsub(text, "(%[price%s*)(%d*)(%])", function (a,b,c)
 		return b.."rc"
 	end)
+
 
 	-- Create a textblox block and set up some management/reference stuff
 	local bubble = textblox.Block (messageCtrl.x,messageCtrl.y, text, props)
@@ -835,7 +860,8 @@ function a2xt_message.onMessageBox(eventObj, message)
 	end
 	
 	if  not a2xt_scene.inCutscene  then
-		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=message}}
+		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=message}, noletterbox=(npc==nil)}
+		a2xt_pause.Block();
 	end
 	eventObj.cancelled = true
 	
