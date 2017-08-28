@@ -20,11 +20,9 @@ local a2xt_shops = {}
 
 local stable_mount_to_npc = {95, 98, 99, 100, 148, 149, 150, 228}
 local stable_npc_to_mount = {}
-
 for k,v in ipairs(stable_mount_to_npc) do
 	stable_npc_to_mount[v] = k;
 end
-
 
 local function spawnSmoke(x,y)
 	local a = Animation.spawn(10,x,y,player.section);
@@ -36,6 +34,38 @@ local function changePlayerState()
 	player:mem(0x140,FIELD_WORD,150);
 	spawnSmoke(player.x+player.width*0.5, player.y+player.height*0.5)
 	Audio.playSFX(34)
+end
+
+local function getText(variants, index)
+	if(type(variants) == "table") then
+		return variants[index or 1];
+	else
+		return variants;
+	end
+end
+
+local function buygenerator(npc)
+	local n = NPC.spawn(npc.id, npc.x, npc.y, npc:mem(0x146, FIELD_WORD));
+	n.dontMove = true;
+	
+	n = NPC.spawn(npc.id, npc.x, npc.y, npc:mem(0x146, FIELD_WORD));
+	n:mem(0x64, FIELD_BOOL, true);	--is a generator
+	n:mem(0x68, FIELD_WORD, 0);		--generator delay setting
+	n:mem(0x6A, FIELD_WORD, 16800);	--generator fire rate
+	n:mem(0x70, FIELD_WORD, 1)		--generate upwards
+	n:mem(0x72, FIELD_WORD, 1);		--warp generator
+	n.dontMove = true;
+	
+	npc:kill();
+	
+	if(SaveData.powerupshop == nil) then
+		SaveData.powerupshop = {};
+	end
+	if(SaveData.powerupshop.generators == nil) then
+		SaveData.powerupshop.generators = {};
+	end
+	
+	SaveData.powerupshop.generators[tostring(npc.id)] = true;
 end
 
 
@@ -145,6 +175,7 @@ a2xt_shops.dialogue = {
                                                "That's a [item].  It'll cost ya [price].  Deal?",
                                                "That [item] is on our all-you-can-eat offer.  It'll be [price].  Okay?",
                                             },
+									buy =  "Enjoy your food!",
 									nodeal = "Fine then. Anything else?",
                                     notenough = "Hey, what are ya trying to pull? You're gonna need more cash than that.",
                                    },
@@ -526,8 +557,9 @@ end
 
 message.presetSequences.shopItem = function(args)
 	local npc = args.npc;
+	local shopkeep = npc.data.shopkeep;
 	
-	local x,y = npc.data.shopkeep.x+npc.data.shopkeep.width*0.5, npc.data.shopkeep.y;
+	local x,y = shopkeep.x+shopkeep.width*0.5, shopkeep.y;
 	--[[
 	local cam = cman.playerCam[1];
 	local wid,hei = 128,96;
@@ -535,12 +567,12 @@ message.presetSequences.shopItem = function(args)
 	y = math.max(math.min(y, cam.top+cam.zoomedHeight-hei),cam.top+hei);]]
 	
 	local bubble;
-	local dialog = a2xt_shops.dialogue[npc.data.shopkeep.type];
-	if(npc.data.shopkeep.type ~= "stable" or player.character == CHARACTER_MARIO  or  player.character == CHARACTER_LUIGI)  then
+	local dialog = a2xt_shops.dialogue[shopkeep.type];
+	if(shopkeep.type ~= "stable" or player.character == CHARACTER_MARIO  or  player.character == CHARACTER_LUIGI)  then
 		if(player:mem(0x108, FIELD_WORD) > 0) then
-			bubble = message.showMessageBox {target = npc.data.shopkeep, text=dialog.alreadyriding[player:mem(0x108, FIELD_WORD)], keepOnscreen = true}
+			bubble = message.showMessageBox {target = shopkeep, text=dialog.alreadyriding[player:mem(0x108, FIELD_WORD)], keepOnscreen = true}
 		else
-			local confirmVal = npc.data.shopkeep.type == "powerup" and npc.data.generator;
+			local confirmVal = shopkeep.type == "powerup" and npc.data.generator;
 			if(confirmVal) then
 				confirmVal = 2;
 			else
@@ -550,36 +582,39 @@ message.presetSequences.shopItem = function(args)
 			
 			scene.displayRaocoinHud(true);
 			
-			bubble = message.showMessageBox {target = npc.data.shopkeep, text=confirmMessage, closeWith="prompt", keepOnscreen = true}
+			bubble = message.showMessageBox {target = shopkeep, text=confirmMessage, closeWith="prompt", keepOnscreen = true}
 			message.waitMessageDone ()
 			message.showPrompt ()
 			message.waitPrompt ()
 			
 			if(message.promptChoice == 1)  then
 				if(raocoins.buy(npc.data.price)) then
-					bubble = message.showMessageBox {target = npc.data.shopkeep, text=dialog.buy[1], keepOnscreen = true}
+					bubble = message.showMessageBox {target = shopkeep, text=getText(dialog.buy), keepOnscreen = true}
 					message.waitMessageEnd ()
-					if(npc.data.shopkeep.type == "stable") then
+					if(shopkeep.type == "stable") then
 						player:mem(0x108,FIELD_WORD,3);
 						player:mem(0x10A,FIELD_WORD,stable_npc_to_mount[npc.id])
 						changePlayerState();
+					elseif(shopkeep.type == "powerup") then
+						if(npc.data.generator) then
+							spawnSmoke(npc.x+npc.width*0.5,npc.y+npc.height*0.5)
+							buygenerator(npc);
+						else
+							NPC.spawn(npc.id, player.x, player.y, player.section);
+						end
 					end
 				else
-					--raocoins.currency:set(100);
-					bubble = message.showMessageBox {target = npc.data.shopkeep, text=dialog.notenough, keepOnscreen = true}
+					raocoins.set(100); --debug to give me free raocoins
+					bubble = message.showMessageBox {target = shopkeep, text=dialog.notenough, keepOnscreen = true}
 				end
 			else
-				local text = dialog.nodeal;
-				if(type(text) == "table") then
-					text = text[1];
-				end
-				bubble = message.showMessageBox {target = npc.data.shopkeep, text=text, keepOnscreen = true}
+				bubble = message.showMessageBox {target = shopkeep, text=getText(dialog.nodeal), keepOnscreen = true}
 			end
 			message.waitMessageEnd ()
 			scene.displayRaocoinHud(false);
 		end
 	else
-		bubble = message.showMessageBox {target = npc.data.shopkeep, type="bubble", text=dialog.notallowed[player.character], keepOnscreen = true}
+		bubble = message.showMessageBox {target = shopkeep, type="bubble", text=dialog.notallowed[player.character], keepOnscreen = true}
 	end
 	while (bubble and not bubble.deleteMe) do
 		eventu.waitFrames(0)
@@ -628,7 +663,11 @@ function a2xt_shops.onStart()
 				elseif(v.data.event == "powerup") then
 					w.dontMove = true;
 					if(w.data.generator) then
-						w.data.price = w.data.price * 3;
+						if(SaveData.powerupshop and SaveData.powerupshop.generators and SaveData.powerupshop.generators[tostring(w.id)]) then
+							buygenerator(w);
+						else
+							w.data.price = w.data.price * 3;
+						end
 					end
 				end
 				table.insert(shopItems, w);

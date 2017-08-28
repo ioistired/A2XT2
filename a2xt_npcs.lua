@@ -260,7 +260,7 @@ function a2xt_message.onMessage(npc, text)
 end
 
 function a2xt_message.onMessageEnd(npc)
-	if(npc) then
+	if(npc and npc.isValid) then
 		local id = npc.id;
 		if(pengData[id]) then
 			pengs.onMessageEnd(npc, id);
