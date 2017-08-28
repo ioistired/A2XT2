@@ -446,10 +446,7 @@ function a2xt_message.showMessageBox (args)
 	                    }
 
 	if(messageCtrl.hasTail == nil) then 
-		messageCtrl.hasTail = false
-		if  args.type == "bubble"  then
-			messageCtrl.hasTail = true
-		end
+		messageCtrl.hasTail = true
 	end
 
 	if  args.target ~= nil  then
@@ -464,7 +461,6 @@ function a2xt_message.showMessageBox (args)
 	if  args.type ~= nil  then
 		presetToUse = a2xt_message.type[args.type]  or  presetToUse
 	end
-
 
 	-- Copy properties from preset + any additional ones specified in the arguments
 	local props = {}
@@ -508,6 +504,8 @@ function a2xt_message.showMessageBox (args)
 
 	-- Create a textblox block and set up some management/reference stuff
 	local bubble = textblox.Block (messageCtrl.x,messageCtrl.y, text, props)
+	
+	messageCtrl.hasTail = bubble.hasTail;
 	
 	bubble.closeSound = "sound/text-next.ogg"
 	bubble.finishSound = ""
