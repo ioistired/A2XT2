@@ -11,6 +11,7 @@ local defs = API.load("expandedDefines")
 
 local rng = API.load("rng")
 
+local a2xt_hud = API.load("a2xt_hud")
 local a2xt_pause = API.load("a2xt_pause")
 local a2xt_scene = API.load("a2xt_scene")
 local a2xt_message = {}
@@ -57,7 +58,6 @@ local lastNameWidth = -8
 local nameBarName = ""
 local nameBarFade = 0
 
-local uiBoxImg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/levelBorder.png"))
 local thoughtBubbleImg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/thoughtBubble.png"))
 local thoughtBubbleBallImg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/thoughtBubbleBall.png"))
 
@@ -167,9 +167,7 @@ local function invLerp (minVal, maxVal, amountVal)
 	return  (amountVal-minVal) / (maxVal - minVal)
 end
 local function uiBox (args)
-	args.image = args.image or uiBoxImg
-	
-	return imagic.Create{primitive=imagic.TYPE_BOX, x=args.x,y=args.y, width=args.width, height=args.height, align=imagic.ALIGN_CENTRE, bordertexture=args.image, borderwidth = 32};
+	return a2xt_hud.window (args)
 end
 
 
