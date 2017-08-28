@@ -1,6 +1,7 @@
 local textblox = API.load("textblox")
 local imagic = API.load("imagic")
 local pm = API.load("playerManager")
+local leveldata = API.load("a2xt_leveldata")
 
 local pause = {}
 
@@ -32,7 +33,6 @@ local confirm_alpha = 0;
 local quitting = false;
 
 local function confirmBox(func)
-	unregisterEvent(pm, "onInputUpdate", "onInputUpdate");
 	confirm = func;
 	Audio.playSFX(30);
 end
@@ -40,6 +40,7 @@ end
 local function unpause()
 	unpausing = true;
 	Audio.playSFX(30);
+	--registerEvent(pm, "onInputUpdate", "onInputUpdate", false);
 end
 
 local function option_save()
@@ -219,7 +220,9 @@ local function drawPause(priority)
 			end
 			
 			local xOffset = ps:getSpriteOffsetX(tx1, ty1);
-			local yOffset = ps:getSpriteOffsetY(tx1, ty1)--+ player:mem(0x10E,FIELD_WORD);
+			local yOffset = ps:getSpriteOffsetY(tx1, ty1);--+ player:mem(0x10E,FIELD_WORD);
+			player.height = ps.hitboxHeight
+			player.width = ps.hitboxWidth
 			
 			tx1 = tx1*0.1;
 			ty1 = ty1*0.1;
@@ -269,11 +272,18 @@ local function drawPause(priority)
 	end
 end
 
+local charList = {CHARACTER_DEMO, CHARACTER_IRIS, CHARACTER_RAOCOW, CHARACTER_KOOD, CHARACTER_SHEATH}
+local currentChar = 1;
+
 function pause.onInitAPI()
 	registerEvent(pause, "onInputUpdate", "onInputUpdate", true);
 	registerEvent(pause, "onExitLevel", "onExitLevel", false);
 	registerEvent(pause, "onDraw", "onDraw", false);
 	registerEvent(pause, "onPause", "onPause", false);
+	
+	if(isOverworld) then
+		currentChar = table.ifind(charList, player.character)
+	end
 end
 
 function pause.onPause(evt)
@@ -289,6 +299,7 @@ function pause.Unblock()
 end
 
 function pause.onInputUpdate()
+	unregisterEvent(pm, "onInputUpdate", "onInputUpdate");
 	local prepareMusic = false;
     local musiccheatcode = Misc.cheatBuffer()
     local musiccheat = string.find(musiccheatcode, "music", 1)
@@ -315,9 +326,28 @@ function pause.onInputUpdate()
 		elseif(player.keys.up == KEY_PRESSED and confirm == nil) then
 			pause_option = (pause_option-1)%(#options);
 			Audio.playSFX(26)
-		elseif((player.keys.left == KEY_PRESSED or player.keys.right == KEY_PRESSED) and confirm ~= nil) then
-			confirm_option = 1-confirm_option;
-			Audio.playSFX(26)
+		elseif((player.keys.left == KEY_PRESSED or player.keys.right == KEY_PRESSED)) then
+			if(confirm ~= nil) then
+				confirm_option = 1-confirm_option;
+				Audio.playSFX(26)
+			elseif(isOverworld) then
+				if(player.keys.left == KEY_PRESSED and not player.keys.right) then
+					currentChar = currentChar-1;
+					if(currentChar < 1) then
+						currentChar = 5;
+					end
+					leveldata.setCharacter(charList[currentChar]);
+					Audio.playSFX(26)
+				elseif(player.keys.right == KEY_PRESSED and not player.keys.right) then
+					currentChar = currentChar+1;
+					if(currentChar > 5) then
+						currentChar = 1;
+					end
+					leveldata.setCharacter(charList[currentChar]);
+					Audio.playSFX(26)
+				end
+			end
+			
 		elseif(player.keys.jump == KEY_PRESSED) then
 			if(confirm == nil) then
 				options[pause_option+1].action();
@@ -328,7 +358,6 @@ function pause.onInputUpdate()
 				Audio.playSFX(30);
 				confirm = nil;
 				confirm_option = 0;
-				registerEvent(pm, "onInputUpdate", "onInputUpdate");
 			end
 		end
 	end
