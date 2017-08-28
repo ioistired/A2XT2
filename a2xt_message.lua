@@ -15,6 +15,8 @@ local a2xt_pause = API.load("a2xt_pause")
 local a2xt_scene = API.load("a2xt_scene")
 local a2xt_message = {}
 
+local messageInvincibile = 0;
+
 
 function a2xt_message.onInitAPI()
 	registerEvent (a2xt_message, "onStart", "onStart", false)
@@ -297,6 +299,7 @@ local function cor_talkToNPC (args)
 	if(not isOverworld and not isTownLevel()) then
 		Misc.pause();
 	end
+	messageInvincibile = 32;
 
 	if  npc ~= nil  then  
 		-- Start the cleanup routine
@@ -688,6 +691,12 @@ function a2xt_message.onTick()
 		Misc.unpause();
 		talkNPC = nil;
 	end
+	
+	if(messageInvincibile > 0) then
+		messageInvincibile = messageInvincibile - 1;
+		player:mem(0x140, FIELD_WORD, 2);
+		player:mem(0x142, FIELD_WORD, 0);
+	end
 end
 
 function a2xt_message.onDraw()
@@ -870,6 +879,7 @@ function a2xt_message.onMessageBox(eventObj, message)
 	if  not a2xt_scene.inCutscene  then
 		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=message}, noletterbox=(npc==nil)}
 		a2xt_pause.Block();
+		messageInvincibile = 999999;
 	end
 	eventObj.cancelled = true
 	
