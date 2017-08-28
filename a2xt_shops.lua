@@ -57,6 +57,20 @@ a2xt_shops.settings = {
 											[228] = {buy = 6, sell = 3},
 											[148] = {buy = 6, sell = 3}
 											}
+									},
+									
+							powerup = { 
+									prices = {
+											[9] = {buy = 2}, 
+											[14] = {buy = 4},  
+											[34] = {buy = 5},  
+											[90] = {buy = 4},  
+											[169] = {buy = 10}, 
+											[170] = {buy = 10},  
+											[188] = {buy = 12}, --3*[90]
+											[264] = {buy = 5},
+											[287] = {buy = 4}
+											}
 									}
                       }
 
@@ -119,14 +133,20 @@ a2xt_shops.dialogue = {
                                    },
 
                        powerup   = {
-                                    options = {""},
-                                    items = {"Red Radish","Spinach Leaf"},
-                                    welcome = "",
-                                    about = "",
-                                    peruse = "",
-                                    buy = "",
-                                    notenough = "",
-                                    goodbye = "" 
+                                    options = {
+                                               {"What is this place?", "Later."}
+											  },
+                                    items = {[9] = "Red Radish", [14] = "Hot Cactus", [34] = "Spinach Leaf", [90] = "Green Radish", [169] = "Mystical Onion", [170] = "Extreme Gourd", [188] = "Lord of the Forest", [264] = "Icy Pine", [287] = "Lucky Dip"},
+                                    welcome = "Buy somethin' will ya?",
+                                    about = "This is a grocery store. We sell food. Try some, why don't ya?<page>Some of our stock is a special, all-you-can eat offer. Buy it once, and you can get a free refill any time you like. It's a steal!",
+                                    goodbye = "Make sure you come back later, ya hear?",
+									confirm =	
+											{
+                                               "That's a [item].  It'll cost ya [price].  Deal?",
+                                               "That [item] is on our all-you-can-eat offer.  It'll be [price].  Okay?",
+                                            },
+									nodeal = "Fine then. Anything else?",
+                                    notenough = "Hey, what are ya trying to pull? You're gonna need more cash than that.",
                                    },
 
                        costume   = {
@@ -400,6 +420,37 @@ message.presetSequences.stable = function(args)
 	message.endMessage();
 end
 
+message.presetSequences.powerup = function(args)
+	local talker = args.npc
+
+	local dialog   = a2xt_shops.dialogue.powerup
+	local settings = a2xt_shops.settings.powerup
+	
+	local variant = 1;
+
+	-- Begin with the prompt
+	message.promptChosen = false
+	message.showMessageBox {target=talker, type="bubble", text=dialog.welcome, closeWith="prompt"}
+	message.waitMessageDone ()
+	message.showPrompt {options=dialog.options[variant]}
+	message.waitPrompt ()
+
+	local choice = message.promptChoice
+	
+	-- About
+	if  choice == 1  then
+		message.showMessageBox {target=talker, type="bubble", text=dialog.about}
+
+	-- Bye
+	elseif  choice == 2  then
+		message.showMessageBox {target=talker, type="bubble", text=dialog.goodbye}
+	end
+
+	message.waitMessageEnd()
+	scene.endScene()
+	message.endMessage();
+end
+
 message.presetSequences.steve = function(args)
 	local npc = args.npc
 	local price = 10;
@@ -483,7 +534,13 @@ message.presetSequences.shopItem = function(args)
 		if(player:mem(0x108, FIELD_WORD) > 0) then
 			bubble = message.showMessageBox {target = npc.data.shopkeep, text=dialog.alreadyriding[player:mem(0x108, FIELD_WORD)], keepOnscreen = true}
 		else
-			local confirmMessage = a2xt_shops.parse(dialog.confirm[1], dialog.items[npc.id], npc.data.price)
+			local confirmVal = npc.data.shopkeep.type == "powerup" and npc.data.generator;
+			if(confirmVal) then
+				confirmVal = 2;
+			else
+				confirmVal = 1;
+			end
+			local confirmMessage = a2xt_shops.parse(dialog.confirm[confirmVal], dialog.items[npc.id], npc.data.price)
 			
 			scene.displayRaocoinHud(true);
 			
@@ -502,11 +559,15 @@ message.presetSequences.shopItem = function(args)
 						changePlayerState();
 					end
 				else
-					raocoins.currency:set(100);
+					--raocoins.currency:set(100);
 					bubble = message.showMessageBox {target = npc.data.shopkeep, text=dialog.notenough, keepOnscreen = true}
 				end
 			else
-				bubble = message.showMessageBox {target = npc.data.shopkeep, text=dialog.nodeal[1], keepOnscreen = true}
+				local text = dialog.nodeal;
+				if(type(text) == "table") then
+					text = text[1];
+				end
+				bubble = message.showMessageBox {target = npc.data.shopkeep, text=text, keepOnscreen = true}
 			end
 			message.waitMessageEnd ()
 			scene.displayRaocoinHud(false);
@@ -544,7 +605,12 @@ function a2xt_shops.onStart()
 		v = pnpc.getExistingWrapper(v);
 		if(v and v.data.event and a2xt_shops.settings[v.data.event]) then
 			for _,w in ipairs(NPC.get(a2xt_shops.settings[v.data.event].ids, v:mem(0x146, FIELD_WORD))) do
+				local isagenerator = w:mem(0x64,FIELD_BOOL);
+				w:mem(0x64,FIELD_BOOL,false);
 				w = pnpc.wrap(w);
+				if(isagenerator) then
+					w.data.generator = true;
+				end
 				w.data.event = "shopItem";
 				w.data.talkIcon = 4;
 				w.data.price = a2xt_shops.settings[v.data.event].prices[w.id].buy;
@@ -553,6 +619,11 @@ function a2xt_shops.onStart()
 				if(v.data.event == "stable") then
 					w.animationTimer = rng.randomInt(0,90);
 					w.data.iconOffset = 32;
+				elseif(v.data.event == "powerup") then
+					w.dontMove = true;
+					if(w.data.generator) then
+						w.data.price = w.data.price * 3;
+					end
 				end
 				table.insert(shopItems, w);
 			end

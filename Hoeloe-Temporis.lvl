@@ -170534,7 +170534,7 @@
 1
 107
 #FALSE#
-"{name=Shopkeeper Zeb,scene=text_shop,icon=0}"
+"{event='powerup', name='Zeb'}"
 #TRUE#
 #TRUE#
 #FALSE#
