@@ -440,7 +440,12 @@ function a2xt_message.showMessageBox (args)
 						 initialArgs = args
 	                    }
 
-	if(messageCtrl.hasTail == nil) then messageCtrl.hasTail = true; end
+	if(messageCtrl.hasTail == nil) then 
+		messageCtrl.hasTail = false
+		if  args.type == "bubble"  then
+			messageCtrl.hasTail = true
+		end
+	end
 
 	if  args.target ~= nil  then
 		messageCtrl.x = args.target.x
