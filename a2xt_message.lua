@@ -694,6 +694,9 @@ function a2xt_message.onTick()
 		messageInvincibile = messageInvincibile - 1;
 		player:mem(0x140, FIELD_WORD, 2);
 		player:mem(0x142, FIELD_WORD, 0);
+		if(messageInvincibile == 0) then
+			player:mem(0x140, FIELD_WORD, 0);
+		end
 	end
 end
 

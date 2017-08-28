@@ -198,7 +198,13 @@ local function addPrice (str, amount)
 	return newStr;
 end
 local function addItem (str, item)
-	local newStr = string.gsub(str, "%[item%]", item)
+	local newStr = str;
+	if(item:lower():match("^[aeiou]")) then
+		newStr = string.gsub(newStr, "(a)(%s%[item%])", "an%2")
+	end
+		
+		newStr = string.gsub(newStr, "%[item%]", item)
+
 	return newStr;
 end
 function a2xt_shops.getItemPromptList (ids, names, prices)
@@ -212,7 +218,7 @@ end
 
 --TODO: Needs cleaning up because I can't be bothered to learn how gsub works right now
 function a2xt_shops.parse(str, item, price)
-	local newStr = string.gsub(string.gsub(str, "%[item%]", item), "%[price%]", tostring(price).."rc")
+	local newStr = addPrice(addItem(str, item), price);
 	return newStr;
 end
 
