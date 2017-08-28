@@ -755,20 +755,6 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 	end
 
 
-	-- Hide icons when they shouldn't be visible (work out deletion later)
-	for  k,v in pairs (NPC.get())  do
-		if  v.friendly  and  v.msg ~= nil  and  not v.isHidden  and  not v:mem(0x64, FIELD_BOOL)  then
-			
-			v = pnpc.wrap(v)
-			if  v.data.a2xt_message ~= nil  then
-				local data = v.data.a2xt_message
-
-				data.iconSpr.alpha = 0
-			end
-		end
-	end	
-
-
 	-- Main icon update loop
 	if  not a2xt_scene.inCutscene  then
 		for  k,v in pairs (NPC.getIntersecting(cam.x-48, cam.y-64, cam.x+cam.width+64, cam.y+cam.height+64))  do
