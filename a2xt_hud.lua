@@ -5,12 +5,12 @@ local vectr;
 local map3d;
 local leveldata;
 local textblox;
-local imagic;
+local imagic = API.load("imagic");
 
 local icons_chars;
 local icons_filters;
 local levelbg;
-local img_levelbg;
+local img_levelbg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/levelBorder.png"));
 local lvlalpha;
 local lvlfile;
 
@@ -29,9 +29,6 @@ if(isOverworld) then
 	map3d = API.load("map3d");
 	leveldata = API.load("a2xt_leveldata");
 	textblox = API.load("textblox");
-	imagic = API.load("imagic");
-	
-	img_levelbg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/levelBorder.png"));
 	
 	icons_chars = {};
 	icons_filters = {};
@@ -113,6 +110,13 @@ end
 function hud.drawRC(x,y,priority)
 	printHUDObj(HUD_IMG.raocoins, raocoins.get(), x, y,priority);
 end
+
+function hud.window (args)
+	args.image = args.image or img_levelbg
+	
+	return imagic.Create{primitive=imagic.TYPE_BOX, x=args.x,y=args.y, width=args.width, height=args.height, align=imagic.ALIGN_CENTRE, bordertexture=args.image, borderwidth = 32};
+end
+
 
 local function getOWLevelObj()
 	if(world.levelObj and math.abs(world.levelObj.y-world.playerY) < 8) then
