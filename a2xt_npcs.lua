@@ -291,6 +291,62 @@ function pengs:onTickNPC()
 end
 
 
+-- ***********************
+-- ** DEMO KREW         **
+-- ***********************
+local demokrew = {}
+local demokrewData = 
+{
+	[980] = {collected = false, msg = {}},
+	[981] = {collected = false, msg = {}},
+	[982] = {collected = false, msg = {}},
+	[983] = {collected = false, msg = {}},
+	[994] = {collected = false, msg = {}}
+}
+
+demokrew[1] = table.join(
+				 {id = 980,
+				  width = 32, 
+				  height = 64},
+				  defaults);
+
+local krewInfo = {
+                 chars     = {[980]=CHARACTER_MARIO, [981]=CHARACTER_LUIGI, [982]=CHARACTER_PEACH, [983]=CHARACTER_TOAD, [984]=CHARACTER_LINK},
+                 names     = {[980]="Demo", [981]="Iris", [982]="Kood", [983]="raocow", [984]="Sheath"},
+                 gfxwidth  = {[980]=34, [981]=34, [982]=32, [983]=40, [984]=32},
+                 gfxheight = {[980]=52, [981]=60, [982]=52, [983]=56, [984]=64}
+                }
+
+
+for i = 980,984 do
+	local s = table.clone(demokrew[1]);
+	s.id = i;
+	s.gfxwidth = krewInfo.gfxwidth[i];
+	s.gfxheight = krewInfo.gfxheight[i];
+	table.insert(demokrew, s);
+end
+
+for _,v in ipairs(demokrew) do
+	npcManager.setNpcSettings(v);
+	npcManager.registerEvent(v.id, demokrew, "onTickNPC");
+end	
+
+
+function demokrew:onTickNPC()
+	self.friendly = true;
+	self.dontMove = true;
+
+	self.data.name = krewInfo.names[self.id];
+
+	self:mem(0x40, FIELD_BOOL, false)
+	if  self.layerObj ~= nil  then
+		self:mem(0x40, FIELD_BOOL, self.layerObj.isHidden)
+	end
+	if  player.character == krewInfo.chars[self.id]  then
+		self:mem(0x40, FIELD_BOOL, true)
+	end
+end
+
 
 -- ***********************
 -- ** PAL STUFF         **
