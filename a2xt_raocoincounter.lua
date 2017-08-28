@@ -1,12 +1,13 @@
 local pnpc = API.load("pnpc");
 local multipoints = API.load("multipoints");
 local settings = API.load("a2xt_settings");
-local raocoins = API.load("raocoin2");
+local colliders = API.load("colliders");
 
 local rc = {};
 
-rc.currency = raocoins.registerCurrency(274, false, 480, 66);
+--rc.currency = raocoins.registerCurrency(274, false, 480, 66);
 rc.local_counter = 0;
+local raocoinCount = 0;
 
 local localraocoin = Graphics.loadImage(Misc.resolveFile("raocoin.png"));
 local raocoin_taken = Graphics.loadImage(Misc.resolveFile("raocoin_taken.png"));
@@ -28,31 +29,32 @@ function rc.onInitAPI()
 	end
 end
 
-function rc.currency:onCollect(increment, npc)
-	rc.local_counter = rc.local_counter + increment;	
-	table.insert(raocoin_empty, {x=npc.x, y=npc.y});
-	local n = pnpc.wrap(npc);
-	n.data.collected = true;
+function rc.save()
+	SaveData.raocoins = raocoinCount;
 end
 
 function multipoints:onCollected(id)
-	 rc.currency:save();
+	rc.save();
 	  
-	  GameData.raocoins.currentLevel = tostring(mem(0x00B250B0, FIELD_STRING));--settings.TextSettings:set("CurrentLevel", tostring(mem(0x00B250B0, FIELD_STRING)));
+	GameData.raocoins.currentLevel = tostring(mem(0x00B250B0, FIELD_STRING));
 
-	  for k,v in ipairs(raocoinnpcs) do
+	for k,v in ipairs(raocoinnpcs) do
 		if(not v.isValid and v.data.collected == true) then
-			--settings.Settings:set("Raocoin"..k, 1);
 			GameData.raocoins["coin"..k] = true;
 		end
-	  end
-	--settings.Settings:save()
-	--settings.TextSettings:save();
+	end
 end
 
 function rc.onNPCKill(event, npc, reason)
 	if(midpointLoaded and npc.id == 192) then
 		multipoints.onCollected(npc,0);
+	elseif(npc.id == 274 and reason == 9 and (colliders.collide(player,npc) or colliders.speedCollide(player,npc))) then
+			raocoinCount = raocoinCount + 1;
+			
+			rc.local_counter = rc.local_counter + 1;	
+			table.insert(raocoin_empty, {x=npc.x, y=npc.y});
+			npc = pnpc.wrap(npc);
+			npc.data.collected = true;
 	end
 end
 
@@ -63,7 +65,7 @@ end
 function rc.onTick()
     if(mem(0x00B2C59E,FIELD_WORD) ~= 0 and not levelFinished) then --level is ending
       levelFinished = true;
-      rc.currency:save();
+	  rc.save();
    end
 end
 
@@ -77,44 +79,36 @@ local function extractFilename(path)
 end
 
 function rc.get()
-	return rc.currency:get();
+	return raocoinCount;
 end
 
 function rc.set(val)
-	rc.currency:set(val);
+	raocoinCount = val;
 end
 
 function rc.check(val)
-	return rc.currency:get() >= val;
+	return raocoinCount >= val;
 end
 	
 function rc.buy(val)
 	if(rc.check(val)) then
-		rc.currency:set(rc.currency:get()-val);
+		raocoinCount = raocoinCount-val;
 		return true;
 	end
 	return false;
 end
 
 function rc.add(val)
-	rc.currency:set(rc.currency:get()+val);
+	raocoinCount = raocoinCount + val;
 end
 
 function rc.onStart()
+	raocoinCount = SaveData.raocoins or 0;
 	if(not isOverworld) then
 		--Remove previously collected raocoins
 		
 		--New level, so reset raocoin collection
-		if(GameData.raocoins.currentLevel == nil or extractFilename(GameData.raocoins.currentLevel) ~= Level.filename():lower() or tostring(mem(0x00B250B0, FIELD_STRING)) ~= GameData.raocoins.currentLevel) then --settings.TextSettings:get("CurrentLevel")) then
-			--[[settings.Settings:set("Raocoin1", 0)
-			settings.Settings:set("Raocoin2", 0)
-			settings.Settings:set("Raocoin3", 0)
-			settings.Settings:set("Raocoin4", 0)
-			settings.Settings:set("Raocoin5", 0)
-			settings.Settings:save();
-			settings.TextSettings:set("CurrentLevel", "none")
-			settings.TextSettings:save();
-			]]
+		if(GameData.raocoins.currentLevel == nil or extractFilename(GameData.raocoins.currentLevel) ~= Level.filename():lower() or tostring(mem(0x00B250B0, FIELD_STRING)) ~= GameData.raocoins.currentLevel) then
 			
 			GameData.raocoins.currentLevel = nil;
 			for i = 1,5 do
@@ -125,7 +119,6 @@ function rc.onStart()
 		--Populate raocoin list and remove them if necessary
 		for k,v in ipairs(NPC.get(274,-1)) do
 			raocoinnpcs[k] = pnpc.wrap(v);
-			--if(settings.Settings:get("Raocoin"..k) == 1) then
 			if(GameData.raocoins["coin"..k]) then
 				v:mem(0x3C,FIELD_STRING,""); --Remove from layer (allows hidden raocoins to not be displayed) - work around for kill() not working on hidden NPCs
 				rc.local_counter = rc.local_counter + 1;
@@ -138,7 +131,6 @@ function rc.onStart()
 			for k,v in ipairs(NPC.get({283,91,263,96},-1)) do
 				if v:mem(0xF0,FIELD_DFLOAT) == 274 then
 					table.insert(raocoinnpcs, pnpc.wrap(v));
-					--if(settings.Settings:get("Raocoin"..#raocoinnpcs) == 1) then	
 					if(GameData.raocoins["coin"..#raocoinnpcs]) then
 						rc.local_counter = rc.local_counter + 1;
 						

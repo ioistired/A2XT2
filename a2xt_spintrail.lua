@@ -9,7 +9,7 @@ local spinjump_colours = {0x1166FF,0x11FF66,0x11FF66,0x1166FF,0x1166FF};
 function trail.onInitAPI()
 	registerEvent(trail, "onStart", "onStart", false);
 	registerEvent(trail, "onTick", "onTick", false);
-	registerEvent(trail, "onCameraUpdate", "onCameraUpdate", false);
+	registerEvent(trail, "onCameraDraw", "onCameraDraw", false);
 end
 
 function onStart()
@@ -31,8 +31,8 @@ function trail.onTick()
 	end
 end
 
-function trail.onCameraUpdate()
-	
+function trail.onCameraDraw()
+	if(lastPlayerPos.x == nil) then return end;
 	if(math.abs(player.x-lastPlayerPos.x) > 200 or math.abs(player.y-lastPlayerPos.y) > 200) then	
 		spinjump_trail:Break();
 	end

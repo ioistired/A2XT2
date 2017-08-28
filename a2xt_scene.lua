@@ -105,7 +105,7 @@ local function cor_lerpProperty(args)
 		args.obj[args.property] = lerp(val1, val2, percent)
 
 		timePassed = timePassed + eventu.deltaTime
-		eventu.waitFrames(0)
+		eventu.waitFrames(0,true)
 	end
 	args.obj[args.property] = val2
 end
@@ -122,7 +122,7 @@ local function cor_lerpColor(args)
 		args.obj.color = fade_RGBA(col1, col2, percent)
 
 		timePassed = timePassed + eventu.deltaTime
-		eventu.waitFrames(0)
+		eventu.waitFrames(0,true)
 	end
 	args.obj.color = col2
 end
@@ -130,7 +130,7 @@ local function cor_skipMessage()
 	-- Fade in
 	skipProps.text = skipProps.startText
 	eventu.run(cor_lerpProperty, {obj=skipProps, time=1, property="alpha", val1=0, val2=1})
-	eventu.waitSeconds(2)
+	eventu.waitSeconds(2,true)
 
 	-- Fade out
 	eventu.run(cor_lerpProperty, {obj=skipProps, time=1, property="alpha", val1=1, val2=0})
@@ -140,11 +140,11 @@ local function cor_letterbox()
 	-- Fade in
 	Graphics.activateHud(false)
 	eventu.run(cor_lerpColor, {obj=letterboxCurrent, time=0.5, col2=letterboxColor})
-	eventu.waitSeconds(0.5)
+	eventu.waitSeconds(0.5,true)
 
 	-- Wait until the cutscene has ended
 	while (a2xt_scene.inCutscene)  do
-		eventu.waitFrames(0)
+		eventu.waitFrames(0,true)
 	end
 
 	-- Fade out
@@ -154,11 +154,11 @@ end
 local function cor_skipping()
 	skipProps.alpha = 1
 	skipProps.text = "Skipping scene... 3."
-	eventu.waitSeconds(1)
+	eventu.waitSeconds(1,true)
 	skipProps.text = "Skipping scene... 2."
-	eventu.waitSeconds(1)
+	eventu.waitSeconds(1,true)
 	skipProps.text = "Skipping scene... 1."
-	eventu.waitSeconds(1)
+	eventu.waitSeconds(1,true)
 
 	skipProps.text = ""
 	eventu.abort(currentScene)
@@ -193,14 +193,16 @@ function a2xt_scene.startScene(args)
 				-- ...or wait it out.
 				else
 					while (a2xt_scene.inCutscene) do
-						eventu.waitFrames(0)
+						eventu.waitFrames(0,true)
 					end
 				end
 			end
 
-			-- Restart the letterbox effect if necessary
-			if  letterboxRoutine ~= nil  then  eventu.abort(letterboxRoutine);  end;
-			_,letterboxRoutine = eventu.run(cor_letterbox)
+			if(not args.noletterbox) then
+				-- Restart the letterbox effect if necessary
+				if  letterboxRoutine ~= nil  then  eventu.abort(letterboxRoutine);  end;
+				_,letterboxRoutine = eventu.run(cor_letterbox)
+			end
 
 			-- Set up skippable stuff
 			if  args.skip ~= nil  then
@@ -214,7 +216,7 @@ function a2xt_scene.startScene(args)
 				_, currentScene = eventu.run(args.scene)
 			end
 
-			eventu.waitFrames(0)
+			eventu.waitFrames(0,true)
 		end
 	)
 end
@@ -270,7 +272,7 @@ function a2xt_scene.onDraw()
 end
 
 function a2xt_scene.onInputUpdate()
-	if  a2xt_scene.inCutscene  then
+	if  a2xt_scene.inCutscene and not isGamePaused() then
 		-- Override inputs
 		for  k,v in pairs{"up","down","left","right","jump","run","altJump","altRun","dropItem","pause"}  do
 			a2xt_scene.prevInputs[v] = a2xt_scene.currInputs[v]

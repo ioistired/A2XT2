@@ -9,9 +9,15 @@ local musicTimer = 0;
 
 pause.Music = { BlankGraphic = false, Title = nil, Artist = nil, Album = nil }
 
+pause.Blocked = false;
+
 local game_paused = false;
 local unpausing = false;
 local pause_blend = 0;
+
+function _G.isGamePaused()
+	return game_paused;
+end
 
 local shader_blur;
 local buffer = Graphics.CaptureBuffer(800,600);
@@ -274,6 +280,14 @@ function pause.onPause(evt)
 	evt.cancelled = true;
 end
 
+function pause.Block()
+	pause.Blocked = true;
+end
+
+function pause.Unblock()
+	pause.Blocked = false;
+end
+
 function pause.onInputUpdate()
 	local prepareMusic = false;
     local musiccheatcode = Misc.cheatBuffer()
@@ -287,7 +301,7 @@ function pause.onInputUpdate()
    if(player.keys.pause and not presspause) then
 		if(game_paused) then
 			unpause();
-		else
+		elseif (not mem(0x00B250E2, FIELD_BOOL) and not Misc.isPausedByLua() and not pause.Blocked) then
 			game_paused = true;
 			unpausing = false;
 			buffer:captureAt(pause_priority);

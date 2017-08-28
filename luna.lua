@@ -2,6 +2,7 @@
 --|INCLUDES|
 --**********
  --API.load("pSwitchTicking")
+Text.logWarnings = false;
 
 local settings = API.load("a2xt_settings");
 local raocoins = API.load("a2xt_raocoincounter");
@@ -15,17 +16,6 @@ local npcs = API.load("a2xt_npcs");
 local scene = API.load("a2xt_scene");
 local messages = API.load("a2xt_message");
 local shops = API.load("a2xt_shops");
-
-function onInputUpdate()
-        --*****************************
-        --|START + SELECT BUTTON COMBO|
-        --*****************************
-        if (player.dropItemKeyPressing and player.pauseKeyPressing) then
-                player.dropItemKeyPressing = false
-                player.pauseKeyPressing = false
-				Level.exit();
-        end
-end
 
 local function LoadHitboxes()
 
@@ -59,4 +49,3 @@ function onStart()
     end
  
 end
- 

@@ -111,7 +111,7 @@ function hud.drawFood(x, y, priority)
 end
 
 function hud.drawRC(x,y,priority)
-	printHUDObj(HUD_IMG.raocoins, raocoins.currency:get(), x, y,priority);
+	printHUDObj(HUD_IMG.raocoins, raocoins.get(), x, y,priority);
 end
 
 local function getOWLevelObj()

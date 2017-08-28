@@ -7,15 +7,17 @@ local imagic = API.load("imagic")
 local pnpc = API.load("pnpc")
 local npcconfig = API.load("npcconfig")
 local colliders = API.load("colliders")
+local defs = API.load("expandedDefines")
 
 local rng = API.load("rng")
 
---local a2xt_npcs = API.load("a2xt_npcs")
+local a2xt_pause = API.load("a2xt_pause")
 local a2xt_scene = API.load("a2xt_scene")
 local a2xt_message = {}
 
 
 function a2xt_message.onInitAPI()
+	registerEvent (a2xt_message, "onStart", "onStart", false)
 	registerEvent (a2xt_message, "onTick", "onTick", false)
 	registerEvent (a2xt_message, "onCameraUpdate", "onCameraUpdate", false)
 	registerEvent (a2xt_message, "onDraw", "onDraw", false)
@@ -63,6 +65,7 @@ local playerSideX,playerSideY = 0,0
 local blipSound = Audio.SfxOpen(Misc.resolveFile("sound/grab.ogg"))
 local confirmSound = Audio.SfxOpen(Misc.resolveFile("sound/message.ogg"))
 
+local blockablenpclist = {};
 
 -- Prompt stuff
 a2xt_message.promptChoiceStr = ""
@@ -175,10 +178,10 @@ end
 local function cor_talkZoomIn (args)
 	-- Zoom the camera in
 	while (cman.playerCam[1] == nil)  do
-		eventu.waitFrames(0)
+		eventu.waitFrames(0, true)
 	end
 	local cam = cman.playerCam[1]
-	cam:Transition {time=0.75, targets={player, {x=args.npc.x+args.npc.width*0.5, y = args.npc.y+args.npc.height*0.5}}, zoom=1.4, easeBoth=cman.EASE.QUAD}
+	cam:Transition {time=0.75, targets={player, {x=args.npc.x+args.npc.width*0.5, y = args.npc.y+args.npc.height*0.5}}, zoom=1.4, easeBoth=cman.EASE.QUAD, runWhilePaused = true}
 end
 local function cor_talkZoomOut()
 	while (cman.playerCam[1] == nil)  do
@@ -193,11 +196,17 @@ end
 local function checkForSpace(player, npc, range, direction, dbg)
 	local px,py = npc.x+npc.width*0.5, player.y;
 	local blockList = nil;
+	local npcList = nil;
 	if(direction == 1) then
-		blockList = colliders.getColliding{a = colliders.Box(npc.x+npc.width*0.5, player.y, range + player.width, player.height), b = colliders.BLOCK_SOLID, btype=colliders.BLOCK};
+		local castbox = colliders.Box(npc.x+npc.width*0.5, player.y, range + player.width, player.height);
+		blockList = colliders.getColliding{a = castbox, b = defs.BLOCK_SOLID, btype=colliders.BLOCK};
+		npcList = colliders.getColliding{a = castbox, b = blockablenpclist, btype=colliders.NPC};
 	else
-		blockList = colliders.getColliding{a = colliders.Box(npc.x+npc.width*0.5 - range, player.y, player.x + player.width, player.height), b = colliders.BLOCK_SOLID, btype=colliders.BLOCK};
+		local castbox = colliders.Box(npc.x+npc.width*0.5 - range - player.width, player.y, range + player.width, player.height)
+		blockList = colliders.getColliding{a = castbox, b = defs.BLOCK_SOLID, btype=colliders.BLOCK};
+		npcList = colliders.getColliding{a = castbox, b = blockablenpclist, btype=colliders.NPC};
 	end
+	blockList = table.append(blockList, npcList);
 	if(#blockList > 0) then
 		for i = 1,3 do
 			py = py + player.height * 0.25;
@@ -217,10 +226,11 @@ local function cor_positionPlayer (args)
 	-- Move player into position
 	local d = 0
 	local settings = npcManager.getNpcSettings(npc.id);
-	local range = (settings.talkrange or 48);
+	local range = (settings.talkrange or 32);
 	
-	local l,r = checkForSpace(player, npc, range, -1), checkForSpace(player, npc, range, 1)
-	local timeout = lunatime.toTicks(3);
+	local l = checkForSpace(player, npc, range, -1)
+	local r = checkForSpace(player, npc, range, 1)
+	local timeout = lunatime.toTicks(0.5);
 	if(l or r) then
 		while (math.abs(d) < range and timeout > 0)  do
 			local dx = (npc.x+npc.width*0.5) - (player.x+player.width*0.5);
@@ -275,20 +285,31 @@ local talkNPC = nil;
 local function cor_talkToNPC (args)
 	-- PNPC wrap the npc
 	local npc = args.npc;
-	if  npc ~= nil  then  npc = pnpc.wrap(npc);  end;
+	if  npc ~= nil  then  
+		npc = pnpc.wrap(npc);
 
-	-- Zoom the camera in and position the player
-	eventu.run (cor_talkZoomIn, args)
-	eventu.run (cor_positionPlayer, args)
-	eventu.waitSignal("playerPositioned")
+		-- Zoom the camera in and position the player
+		eventu.run (cor_talkZoomIn, args)
+		eventu.run (cor_positionPlayer, args)
+		eventu.waitSignal("playerPositioned")
+	end
+	
+	if(not isOverworld and not isTownLevel()) then
+		Misc.pause();
+	end
 
-	-- Start the cleanup routine
-	eventu.run(cor_cleanupAfterNPC)
+	if  npc ~= nil  then  
+		-- Start the cleanup routine
+		eventu.run(cor_cleanupAfterNPC)
+	end
 	
 	a2xt_message.promptChosen = false;
 
 	-- Check for indexed cutscenes or message strings
-	local extMessage = a2xt_message.presetSequences[npc.data.event]
+	local extMessage;
+	if  npc ~= nil  then  
+		extMessage = a2xt_message.presetSequences[npc.data.event]
+	end
 	if  type(extMessage) == "function"  then
 
 		local t = string.trim(args.text);
@@ -305,12 +326,22 @@ local function cor_talkToNPC (args)
 		end
 
 		-- Start the message box
-		local bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text=messageText}
+		local bubble;
+		if  npc ~= nil  then  
+			bubble = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text=messageText}
+		else
+			bubble = a2xt_message.showMessageBox{x=400, y=300, text=messageText, screenSpace = true}
+		end
 		
 		while (not bubble.deleteMe) do
-			eventu.waitFrames(0)
+			eventu.waitFrames(0, true)
+		end
+		
+		if(Misc.isPausedByLua()) then
+			Misc.unpause();
 		end
 		a2xt_scene.endScene()
+		a2xt_pause.Unblock();
 	end
 	talkNPC = npc;
 end
@@ -369,12 +400,14 @@ local function cor_manageMessage(bubbleTarget, bubble)
 		end
 		--]]
 		--windowDebug(tostring(bubbleTarget.x).."/n"..tostring(bubble.x))
-
-		--bubble.x = bubbleTarget.x
-		--bubble.y = bubbleTarget.y
+		
+		if(bubbleTarget.screenSpace) then
+			bubbleTarget.x = bubbleTarget.initialArgs.x + cam.cam.x
+			bubbleTarget.y = bubbleTarget.initialArgs.y + cam.cam.y
+		end
 
 		--Text.dialog("doneyo")
-		eventu.waitFrames(0)
+		eventu.waitFrames(0, true)
 	end
 	-- Close the bubble now that the conditions have been met
 	if  (not bubble.deleteMe)  then
@@ -402,7 +435,9 @@ function a2xt_message.showMessageBox (args)
 	                     offY      = args.offY       or  0,
 	                     closeWith = args.closeWith,
 						 keepOnscreen = args.keepOnscreen or false,
-						 hasTail = args.hasTail
+						 hasTail = args.hasTail,
+						 screenSpace = args.screenSpace or false,
+						 initialArgs = args
 	                    }
 
 	if(messageCtrl.hasTail == nil) then messageCtrl.hasTail = true; end
@@ -413,6 +448,8 @@ function a2xt_message.showMessageBox (args)
 		if  args.target.id ~= nil  then
 			presetToUse = textblox.npcPresets[args.target.id]  or  presetToUse
 		end
+	else
+		presetToUse = a2xt_message.type.sign
 	end
 	if  args.type ~= nil  then
 		presetToUse = a2xt_message.type[args.type]  or  presetToUse
@@ -426,10 +463,15 @@ function a2xt_message.showMessageBox (args)
 	end
 
 	props.trackTarget = messageCtrl
-	props.bind        = textblox.BIND_SCENE
 	props.pauseGame   = false
 	props.z           = 2
 	props.instant     = args.instant
+	
+	if(args.screenSpace) then
+		props.bind = textblox.BIND_SCREEN
+	else
+		props.bind = textblox.BIND_SCENE
+	end
 
 	if  args.closeWith ~= nil  then
 		props.inputClose = false
@@ -452,6 +494,7 @@ function a2xt_message.showMessageBox (args)
 	text = string.gsub(text, "(%[price%s*)(%d*)(%])", function (a,b,c)
 		return b.."rc"
 	end)
+
 
 	-- Create a textblox block and set up some management/reference stuff
 	local bubble = textblox.Block (messageCtrl.x,messageCtrl.y, text, props)
@@ -619,16 +662,22 @@ function a2xt_message.waitPrompt()
 end
 
 local nameBarObj = nil;
-local cache_levelFreeze = false;
 --***************************
 --** Events                **
 --***************************
+function a2xt_message.onStart()
+	blockablenpclist = table.iclone(defs.NPC_ALL);
+	for i = #blockablenpclist,1,-1 do
+		if(defs.NPC_POWERUP_MAP[blockablenpclist[i]] or defs.NPC_MOUNT_MAP[blockablenpclist[i]] or (NPC.config[blockablenpclist[i]].nohurt and not NPC.config[blockablenpclist[i]].playerblock)) then
+			table.remove(blockablenpclist, i);
+		end
+	end
+end
+
 function a2xt_message.onTick()
 	if(not a2xt_scene.inCutscene and talkNPC) then
 		a2xt_message.onMessageEnd(talkNPC);
-		if(not isOverworld and not isTownLevel()) then
-			Defines.levelFreeze = cache_levelFreeze;
-		end
+		Misc.unpause();
 		talkNPC = nil;
 	end
 end
@@ -811,15 +860,12 @@ function a2xt_message.onMessageBox(eventObj, message)
 	end
 	
 	if  not a2xt_scene.inCutscene  then
-		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=message}}
+		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=message}, noletterbox=(npc==nil)}
+		a2xt_pause.Block();
 	end
 	eventObj.cancelled = true
 	
 	a2xt_message.onMessage(npc, message);
-	if(not isOverworld and not isTownLevel()) then
-		cache_levelFreeze = Defines.levelFreeze;
-		Defines.levelFreeze = true;
-	end
 end
 --[[
 function a2xt_npcs.onMessage (eventObj, message, npc)
