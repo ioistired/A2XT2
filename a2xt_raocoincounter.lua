@@ -1,5 +1,5 @@
 local pnpc = API.load("pnpc");
-local multipoints = API.load("multipoints");
+local checkpoints = API.load("checkpoints");
 local settings = API.load("a2xt_settings");
 local colliders = API.load("colliders");
 
@@ -33,7 +33,7 @@ function rc.save()
 	SaveData.raocoins = raocoinCount;
 end
 
-function multipoints:onCollected(id)
+function checkpoints:onCollect(plr)
 	rc.save();
 	  
 	GameData.raocoins.currentLevel = tostring(mem(0x00B250B0, FIELD_STRING));
@@ -46,8 +46,8 @@ function multipoints:onCollected(id)
 end
 
 function rc.onNPCKill(event, npc, reason)
-	if(midpointLoaded and npc.id == 192) then
-		multipoints.onCollected(npc,0);
+	if(npc.id == 192) then
+		checkpoints.onCollect(npc,player);
 	elseif(npc.id == 274 and reason == 9 and (colliders.collide(player,npc) or colliders.speedCollide(player,npc))) then
 			raocoinCount = raocoinCount + 1;
 			
@@ -56,10 +56,6 @@ function rc.onNPCKill(event, npc, reason)
 			npc = pnpc.wrap(npc);
 			npc.data.collected = true;
 	end
-end
-
-function multipoints.onLevelStart()
-	midpointLoaded = true;
 end
 
 function rc.onTick()

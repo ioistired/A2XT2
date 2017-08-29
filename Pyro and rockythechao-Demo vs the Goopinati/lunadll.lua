@@ -5,10 +5,6 @@ wrapTable[2] = -160608;
 wrapTable[4] = -120608;
 wrapTable[5] = -100608;
 
-local multipoints = API.load("multipoints");
-multipoints.addLuaCheckpoint(-139424, -140224, 3);
-multipoints.addLuaCheckpoint(-97024+32, -100320, 5);
-
 cinematX = loadSharedAPI("cinematX")
 cinematX.config (true, false, false, true, false)
 cinematX.textbloxSubtitle = false
@@ -65,7 +61,7 @@ function characterChooseDialog(demoText,irisText,koodText,raocowText,sheathText)
 	end
 end
 
-function multipoints.onLevelStart()
+function onStart()
 	if initialRun == false then
 		initialRun = true
 		if player.section == 0 then

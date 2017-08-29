@@ -1,18 +1,17 @@
-local multipoints = API.load("multipoints");
+local cps = API.load("checkpoints");
 local eventu = API.load("eventu");
 local pnpc = API.load("pnpc");
 local rng = API.load("rng");
 
 
 local checkpoints = {};
-checkpoints[1] = multipoints.addLuaCheckpoint(-200064,-200384,0,-200064,-200384,function() triggerEvent("Luna 1") end);
-checkpoints[2] = multipoints.addLuaCheckpoint(-200064,-200384,0,-200064,-200384,function() triggerEvent("Luna 2") end);
-checkpoints[3] = multipoints.addLuaCheckpoint(-200064,-200384,0,-200064,-200384,function() triggerEvent("Luna 2") triggerEvent("Luna 3") end);
-checkpoints[4] = multipoints.addLuaCheckpoint(20608,19712,11);
-checkpoints[5] = multipoints.addLuaCheckpoint(-79872,-80224,6,-79872,-80224,function() triggerEvent("Luna 4") end);
-checkpoints[6] = multipoints.addLuaCheckpoint(-79872,-80224,6,-79872,-80224,function() triggerEvent("Luna 5") end);
-checkpoints[7] = multipoints.addLuaCheckpoint(-79872,-80224,6,-79872,-80224,function() triggerEvent("Luna 6") triggerEvent("Luna 5") end);
-checkpoints[8] = multipoints.addLuaCheckpoint(140160,139808,17);
+checkpoints[1] = cps.create{x = -200064, y = -200384, section = 0, actions = function() triggerEvent("Luna 1") end};
+checkpoints[2] = cps.create{x = -200064, y = -200384, section = 0, actions = function() triggerEvent("Luna 2") end};
+checkpoints[3] = cps.create{x = -200064, y = -200384, section = 0, actions = function() triggerEvent("Luna 2") triggerEvent("Luna 3") end};
+checkpoints[4] = cps.create{x = -79872, y = -80224, section = 6, actions = function() triggerEvent("Luna 2") triggerEvent("Luna 3") triggerEvent("Luna 4") end};
+checkpoints[5] = cps.create{x = -79872, y = -80224, section = 6, actions = function() triggerEvent("Luna 2") triggerEvent("Luna 3") triggerEvent("Luna 5") end};
+checkpoints[6] = cps.create{x = -79872, y = -80224, section = 6, actions = function() triggerEvent("Luna 2") triggerEvent("Luna 3") triggerEvent("Luna 5") triggerEvent("Luna 6") end};
+checkpoints[7] = cps.create{x = -79872, y = -80224, section = 6, actions = function() triggerEvent("Luna 2") triggerEvent("Luna 3") triggerEvent("Luna 5") triggerEvent("Luna 7") end};
 
 local fakeLeekTimer = 0;
 
@@ -26,49 +25,32 @@ local heresySaw3;
 local fraudPlatform1 = Layer(29);
 local fraudPlatform1Accel = true;
 
-for k,v in ipairs(checkpoints) do
-	if(k ~= 4) then
-		v.visible = false;
-		v.silent = true;
-		v.power = 0;
-	end
-end
-
 function onLoadSection3()
-	checkpoints[1].collect();
+	checkpoints[1]:collect();
 end
 
 function onLoadSection4()
-	checkpoints[2].collect();
+	checkpoints[2]:collect();
 end
 
 function onLoadSection5()
-	checkpoints[3].collect();
+	checkpoints[3]:collect();
 end
 
 function onLoadSection7()
-	checkpoints[5].collect();
+	checkpoints[4]:collect();
 end
 
 function onLoadSection8()
-	checkpoints[6].collect();
+	checkpoints[5]:collect();
 end
 
 function onLoadSection15()
-	checkpoints[7].collect();
+	checkpoints[6]:collect();
 end
 
 function onLoadSection17()
-	checkpoints[8].collect();
-end
-
-function multipoints.onLevelStart()
-	--Remove this if and when lives don't give game overs
-	NPC.spawn(187,player.x,player.y,player.section)
-	if(player.character == CHARACTER_PEACH or player.character == CHARACTER_LINK) then
-		player.character = CHARACTER_MARIO;
-	end
-	
+	checkpoints[7]:collect();
 end
 
 local function resumeTimer(t)

@@ -3,3 +3,6 @@ LunaData_*.txt
 LunaSavedVars*.txt
 
 progress.json
+*.tmp
+save*-ext.json
+LuaData_*.txt

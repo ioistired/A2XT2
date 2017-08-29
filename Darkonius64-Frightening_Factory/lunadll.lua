@@ -1,17 +1,15 @@
-local multipoints = loadSharedAPI("multipoints") 
+local checkpoints = API.load("checkpoints") 
 
-checkpoint1 = multipoints.addLuaCheckpoint(-995868, -100960, 5);
-checkpoint2 = multipoints.addLuaCheckpoint(-995868, -100960, 5,nil,nil,cutscene);
-checkpoint2.visible = false
+local checkpoint2 = checkpoints.create{x=-99568, y=-100964,section = 5};
 
 function onEvent(eventname)
 	if(eventname == "wake up!") then 
-		checkpoint2.collect()
+		checkpoint2:collect()
 	end
 end
 
 function onLoadSection4()
-	if (checkpoint2.collected == true) then
+	if (checkpoint2.collected) then
 		triggerEvent("start")
 	end
 end

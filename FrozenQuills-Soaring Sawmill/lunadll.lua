@@ -1,22 +1,14 @@
 
-local colliders = loadSharedAPI("colliders")
+local colliders = API.load("colliders")
 local hit = false;
 local angle = 0;
 local positions = {};
 local dTheta = 0.03;
-local multipoints = loadSharedAPI("multipoints")
-local particles = loadSharedAPI("particles")
-multipoints.addLuaCheckpoint(-39424+32, -40128, 8)
-multipoints.addLuaCheckpoint(-139744, -140384, 3)
+local particles = API.load("particles")
 
 local fog = particles.Emitter(0, 0, Misc.resolveFile("particles/p_fog.ini"), 1)
 fog:AttachToCamera(Camera.get()[1]);
 fog:Scale(1.2)
-
- 
-function onLoad()
-
-end
 
 function setNpcSpeed(npcid, speed)
    local p = mem(0x00b25c18, FIELD_DWORD) -- Get the pointer to the NPC speed array

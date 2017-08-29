@@ -10,12 +10,6 @@ local hasSwitchBlueActivated = false
 local hasSwitchGreenActivated = false
 local hasSwitchRedActivated = false
 
-multipoints = API.load("multipoints");
- 
-multipoints.addLuaCheckpoint(-99936, -100094, 5);
-multipoints.addLuaCheckpoint(-59680, -60097, 7);
-multipoints.addLuaCheckpoint(-79554, -80159, 6);
-
 function onLoop()
 	Text.print("Yellow:"..tostring(isSwitchYellowActive),0,0)
 	Text.print("Blue:"..tostring(isSwitchBlueActive),0,20)

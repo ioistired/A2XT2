@@ -1,12 +1,4 @@
 
-multipoints = API.load("multipoints");
-
---2'nd station, At gas pipe
-multipoints.addLuaCheckpoint(-164288, -200128, 0);
---3'nd station, At gas pipe
-multipoints.addLuaCheckpoint(-134656, -200096, 0);
---4'th station, At boss
-multipoints.addLuaCheckpoint(-112480, -200192, 0);
 
 function onEvent(eventName)
 	-- Train start sound
