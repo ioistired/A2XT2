@@ -769,7 +769,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 					
 
 					--A2XT quick-parse
-					if(v.data.name == nil) then
+					if(v.data.name == nil and isTownLevel()) then
 						local nm,msg = v.msg.str:match("^([^{}]+):%s*(.+)$");
 						if(nm ~= nil and msg ~= nil) then
 							v.data.name = nm;
