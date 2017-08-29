@@ -1,4 +1,4 @@
-local multipoints = loadAPI("multipoints");
+local multipoints = API.load("multipoints");
 
 --Section 10 MidPoint
 multipoints.addLuaCheckpoint(-19809, -20064, 9);

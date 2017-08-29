@@ -15,6 +15,8 @@ textblox.presetProps[textblox.PRESET_SYSTEM].font = A2XT_FONT_MAIN
 textblox.presetProps[textblox.PRESET_BUBBLE].font = A2XT_FONT_MAIN
 textblox.presetProps[textblox.PRESET_SIGN].font = A2XT_FONT_MAIN
 
+local img_minus = Graphics.loadImage(Misc.resolveFile("graphics/hardcoded/hardcoded-50-minus.png"));
+
 local icons_chars;
 local icons_filters;
 local levelbg;
@@ -109,7 +111,7 @@ end
 function hud.drawFood(x, y, priority)
 	Graphics.drawImageWP(HUD_IMG.food, x, y, priority);
 	if(GLOBAL_LIVES < 0) then
-		Text.printWP("-", x, y+19,priority)
+		Graphics.drawImageWP(img_minus, x, y+19,priority);
 	end
 	Text.printWP(GLOBAL_LIVES, 1, x, y+19,priority)
 end

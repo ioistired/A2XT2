@@ -1,5 +1,5 @@
 
-multipoints = loadAPI("multipoints");
+multipoints = API.load("multipoints");
 
 --2'nd station, At gas pipe
 multipoints.addLuaCheckpoint(-164288, -200128, 0);

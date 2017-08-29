@@ -10,7 +10,7 @@ local hasSwitchBlueActivated = false
 local hasSwitchGreenActivated = false
 local hasSwitchRedActivated = false
 
-multipoints = loadAPI("multipoints");
+multipoints = API.load("multipoints");
  
 multipoints.addLuaCheckpoint(-99936, -100094, 5);
 multipoints.addLuaCheckpoint(-59680, -60097, 7);

@@ -1,4 +1,4 @@
-multipoints = loadAPI("multipoints");
+multipoints = API.load("multipoints");
 
 --Section 5 Checkpoint Bottom of Vertical Shaft
 multipoints.addLuaCheckpoint(-119935, -120063, 4);

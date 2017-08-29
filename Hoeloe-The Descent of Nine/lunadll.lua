@@ -1,7 +1,7 @@
-local multipoints = loadSharedAPI("multipoints");
-local eventu = loadAPI("eventu");
-local pnpc = loadSharedAPI("pnpc");
-local rng = loadSharedAPI("rng");
+local multipoints = API.load("multipoints");
+local eventu = API.load("eventu");
+local pnpc = API.load("pnpc");
+local rng = API.load("rng");
 
 
 local checkpoints = {};

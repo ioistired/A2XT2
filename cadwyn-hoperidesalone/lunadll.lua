@@ -1,6 +1,6 @@
-local eventu = loadAPI("eventu");
-local multipoints = loadSharedAPI("multipoints") 
-local rng = loadAPI("rng");
+local eventu = API.load("eventu");
+local multipoints = API.load("multipoints") 
+local rng = API.load("rng");
 
 multipoints.addLuaCheckpoint(-140000, -140160, 3);
 multipoints.addLuaCheckpoint(-39968, -40320, 8);

@@ -1,5 +1,5 @@
 -- Multipoints --
-multipoints = loadAPI("multipoints");
+multipoints = API.load("multipoints");
 multipoints.addLuaCheckpoint(-159840, -160128, 2);
 multipoints.addLuaCheckpoint(-157504, -160128, 2);
 -- End Multipoints --

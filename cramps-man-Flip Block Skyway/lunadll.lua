@@ -1,4 +1,4 @@
-multipoints = loadAPI("multipoints");
+multipoints = API.load("multipoints");
 multipoints.addLuaCheckpoint(-195456, -200448, 0);
 multipoints.addLuaCheckpoint(-119680, -120256, 4);
 multipoints.addLuaCheckpoint(-99712, -100320, 5);
