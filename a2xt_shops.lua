@@ -24,6 +24,28 @@ for k,v in ipairs(stable_mount_to_npc) do
 	stable_npc_to_mount[v] = k;
 end
 
+local powerup_shop_section = -1;
+local img_powerup_generator = Graphics.loadImage(Misc.resolveFile("graphics/HUD/shop-generator.png"))
+local powerup_shop_generator_markers = {};
+
+local powerup_shop_lucky_chances = 
+									{
+										[9] = 5,
+										[14] = 3,
+										[34] = 3,
+										[169] = 1,
+										[170] = 1,
+										[264] = 3
+									}
+
+local powerup_shop_lucky_total_prob = 0;
+local powerup_shop_lucky_ids = {};
+
+for k,v in pairs(powerup_shop_lucky_chances) do
+	table.insert(powerup_shop_lucky_ids, k);
+	powerup_shop_lucky_total_prob = powerup_shop_lucky_total_prob + v;
+end
+
 local function spawnSmoke(x,y)
 	local a = Animation.spawn(10,x,y,player.section);
 	a.x = a.x-a.width*0.5;
@@ -94,10 +116,10 @@ a2xt_shops.settings = {
 											[9] = {buy = 2}, 
 											[14] = {buy = 4},  
 											[34] = {buy = 5},  
-											[90] = {buy = 4},  
+											[90] = {buy = 3},  
 											[169] = {buy = 10}, 
 											[170] = {buy = 10},  
-											[188] = {buy = 12}, --3*[90]
+											[188] = {buy = 9}, --3*[90]
 											[264] = {buy = 5},
 											[287] = {buy = 4}
 											}
@@ -166,14 +188,14 @@ a2xt_shops.dialogue = {
                                     options = {
                                                {"What is this place?", "Later."}
 											  },
-                                    items = {[9] = "Red Radish", [14] = "Hot Cactus", [34] = "Spinach Leaf", [90] = "Green Radish", [169] = "Mystical Onion", [170] = "Extreme Gourd", [188] = "Lord of the Forest", [264] = "Icy Pine", [287] = "Lucky Dip"},
+                                    items = {[9] = "Red Radish", [14] = "Hot Cactus", [34] = "Spinach Leaf", [90] = "Green Radish", [169] = "Mystical Onion", [170] = "Extreme Gourd", [188] = "Lord of the Forest", [264] = "Icy Pine", [287] = "Lucky Dip Deal"},
                                     welcome = "Buy somethin' will ya?",
-                                    about = "This is a grocery store. We sell food. Try some, why don't ya?<page>Some of our stock is a special, all-you-can eat offer. Buy it once, and you can get a free refill any time you like. It's a steal!",
+                                    about = "This is a grocery store. We sell food. Try some, why don't ya?<page>Some of our stock is a special, all-you-can-eat offer. Buy it once, and you can get a free refill any time you like. It's a steal!",
                                     goodbye = "Make sure you come back later, ya hear?",
 									confirm =	
 											{
                                                "That's a [item].  It'll cost ya [price].  Deal?",
-                                               "That [item] is on our all-you-can-eat offer.  It'll be [price].  Okay?",
+                                               "That [item] is part of our all-you-can-eat offer.  It'll be [price].  Okay?",
                                             },
 									buy =  "Enjoy your food!",
 									nodeal = "Fine then. Anything else?",
@@ -572,13 +594,20 @@ message.presetSequences.shopItem = function(args)
 		if(player:mem(0x108, FIELD_WORD) > 0) then
 			bubble = message.showMessageBox {target = shopkeep, text=dialog.alreadyriding[player:mem(0x108, FIELD_WORD)], keepOnscreen = true}
 		else
-			local confirmVal = shopkeep.type == "powerup" and npc.data.generator;
+			local ispowerupshop = shopkeep.type == "powerup";
+			local confirmVal = ispowerupshop and npc.data.generator;
 			if(confirmVal) then
 				confirmVal = 2;
 			else
 				confirmVal = 1;
 			end
-			local confirmMessage = a2xt_shops.parse(dialog.confirm[confirmVal], dialog.items[npc.id], npc.data.price)
+			
+			local itemid = npc.id;
+			if(ispowerupshop and npc.data.random) then
+				itemid = 287;
+			end
+			
+			local confirmMessage = a2xt_shops.parse(dialog.confirm[confirmVal], dialog.items[itemid], npc.data.price)
 			
 			scene.displayRaocoinHud(true);
 			
@@ -600,7 +629,19 @@ message.presetSequences.shopItem = function(args)
 							spawnSmoke(npc.x+npc.width*0.5,npc.y+npc.height*0.5)
 							buygenerator(npc);
 						else
-							NPC.spawn(npc.id, player.x, player.y, player.section);
+							local id = npc.id;
+							if(npc.data.random) then
+								local val = rng.randomInt(0,powerup_shop_lucky_total_prob);
+								for k,v in pairs(powerup_shop_lucky_chances) do
+									if(val <= 0) then
+										id = k;
+										break;
+									else
+										val = val - v;
+									end
+								end
+							end
+							NPC.spawn(id, player.x, player.y, player.section);
 						end
 					end
 				else
@@ -639,6 +680,8 @@ local shopItems = {};
 function a2xt_shops.onInitAPI()
 	registerEvent(a2xt_shops, "onStart");
 	registerEvent(a2xt_shops, "onTick");
+	registerEvent(a2xt_shops, "onTickEnd");
+	registerEvent(a2xt_shops, "onDraw");
 end
 
 function a2xt_shops.onStart()
@@ -661,8 +704,19 @@ function a2xt_shops.onStart()
 					w.animationTimer = rng.randomInt(0,90);
 					w.data.iconOffset = 32;
 				elseif(v.data.event == "powerup") then
+					powerup_shop_section = v:mem(0x146, FIELD_WORD);
 					w.dontMove = true;
+					w.data.height = w.height;
+					w.height = 64;
+					if(w.id == 287) then
+						w.data.random = true;
+						w.data.ticker = 0;
+						w.data.visibleid = 9;
+						w.id = 9;
+						w.friendly = true;
+					end
 					if(w.data.generator) then
+						table.insert(powerup_shop_generator_markers, {x = w.x, y = w.y});
 						if(SaveData.powerupshop and SaveData.powerupshop.generators and SaveData.powerupshop.generators[tostring(w.id)]) then
 							buygenerator(w);
 						else
@@ -686,4 +740,61 @@ function a2xt_shops.onTick()
 		end
 	end
 end
+
+function a2xt_shops.onTickEnd()
+	if(player.section == powerup_shop_section and SaveData.powerupshop and SaveData.powerupshop.generators) then
+		local py = player.y + player.height;
+		 for k,_ in pairs(SaveData.powerupshop.generators) do
+			for _,v in ipairs(NPC.get(tonumber(k),powerup_shop_section)) do
+				if(pnpc.getExistingWrapper(v) == nil and not v:mem(0x64,FIELD_BOOL)) then
+					v.x = v:mem(0xA8, FIELD_DFLOAT);
+					v.y = v:mem(0xB0, FIELD_DFLOAT);
+					v.speedX = 0;
+					v.speedY = 0;
+					if(v:mem(0x138, FIELD_WORD) > 0) then --freshly spawned
+						spawnSmoke(v.x+v.width*0.5, v.y + v.height*0.5);
+					end
+					v.friendly = py > (v.y + v.height + 16);
+				end
+			end
+		 end
+	end
+end
+
+local function pickNewRandom(current,list)
+	local t = {};
+	for _,v in ipairs(list) do
+		if(v ~= current) then
+			table.insert(t, v);
+		end
+	end
+	return rng.irandomEntry(t);
+end
+
+function a2xt_shops.onDraw()
+	for _,v in ipairs(shopItems) do
+		if(v.isValid and player.section == v:mem(0x146, FIELD_WORD)) then
+			if(v.data.shopkeep.type == "powerup") then
+				v.animationFrame = -1;
+				v.height = 64;
+				local id = v.id;
+				if(v.data.random) then
+					if(v.data.ticker == 0) then
+						v.data.visibleid = pickNewRandom(v.data.visibleid, powerup_shop_lucky_ids);
+						v.data.ticker = 8;
+					else
+						v.data.ticker = v.data.ticker - 1;
+					end
+					id = v.data.visibleid or 9;
+				end
+				Graphics.drawImageToSceneWP(Graphics.sprites.npc[id].img, v.x, v.y, 0, 0, v.width, v.data.height, -45);
+			end
+		end
+	end
+	
+	for _,v in ipairs(powerup_shop_generator_markers) do
+		Graphics.drawImageToSceneWP(img_powerup_generator, v.x, v.y+32, -45);
+	end
+end
+
 return a2xt_shops
