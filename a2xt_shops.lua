@@ -712,7 +712,7 @@ function a2xt_shops.onStart()
 						w.data.random = true;
 						w.data.ticker = 0;
 						w.data.visibleid = 9;
-						w.id = 9;
+						w.id = 273;
 						w.friendly = true;
 					end
 					if(w.data.generator) then
@@ -746,7 +746,7 @@ function a2xt_shops.onTickEnd()
 		local py = player.y + player.height;
 		 for k,_ in pairs(SaveData.powerupshop.generators) do
 			for _,v in ipairs(NPC.get(tonumber(k),powerup_shop_section)) do
-				if(pnpc.getExistingWrapper(v) == nil and not v:mem(0x64,FIELD_BOOL)) then
+				if(not v:mem(0x64,FIELD_BOOL)) then
 					v.x = v:mem(0xA8, FIELD_DFLOAT);
 					v.y = v:mem(0xB0, FIELD_DFLOAT);
 					v.speedX = 0;
