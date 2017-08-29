@@ -633,11 +633,10 @@ message.presetSequences.shopItem = function(args)
 							if(npc.data.random) then
 								local val = rng.randomInt(0,powerup_shop_lucky_total_prob);
 								for k,v in pairs(powerup_shop_lucky_chances) do
+									val = val - v;
 									if(val <= 0) then
 										id = k;
 										break;
-									else
-										val = val - v;
 									end
 								end
 							end
@@ -712,7 +711,6 @@ function a2xt_shops.onStart()
 						w.data.random = true;
 						w.data.ticker = 0;
 						w.data.visibleid = 9;
-						w.id = 273;
 						w.friendly = true;
 					end
 					if(w.data.generator) then
@@ -737,6 +735,9 @@ function a2xt_shops.onTick()
 			v.speedY = 0;
 			v.x = v.data.spawnPos.x;
 			v.y = v.data.spawnPos.y;
+			if(v.data.random) then
+				v.id = 273;
+			end
 		end
 	end
 end
@@ -746,7 +747,8 @@ function a2xt_shops.onTickEnd()
 		local py = player.y + player.height;
 		 for k,_ in pairs(SaveData.powerupshop.generators) do
 			for _,v in ipairs(NPC.get(tonumber(k),powerup_shop_section)) do
-				if(not v:mem(0x64,FIELD_BOOL)) then
+				local w = pnpc.getExistingWrapper(v);
+				if((w == nil or w.data.shopkeep == nil) and not v:mem(0x64,FIELD_BOOL)) then
 					v.x = v:mem(0xA8, FIELD_DFLOAT);
 					v.y = v:mem(0xB0, FIELD_DFLOAT);
 					v.speedX = 0;
