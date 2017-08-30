@@ -2,6 +2,54 @@ local cps = API.load("checkpoints");
 local eventu = API.load("eventu");
 local pnpc = API.load("pnpc");
 local rng = API.load("rng");
+local textblox = API.load("textblox");
+
+local font = textblox.Font (textblox.FONTTYPE_SPRITE, {ini = "font.ini", image = Graphics.loadImage("font.png")})
+local pr_sign =    {
+			scaleMode = textblox.SCALE_AUTO, 
+			startSound = "sound\\message.ogg",
+			closeSound = "sound\\zelda-fairy.ogg",  --zelda-dash, zelda-stab, zelda-fairy
+			width = 250,
+			height = 150,
+			bind = textblox.BIND_SCREEN,
+			font = font,
+			instant = true,
+			autoTime = false, 
+			pauseGame = true, 
+			inputClose = true,
+			inputProgress = true,
+			stayOnscreen = true,
+			showNextIcon = false,
+			
+			textScale=0.5;
+			textOffY=16;
+			
+			boxAnchorX = textblox.HALIGN_MID, 
+			boxAnchorY = textblox.VALIGN_MID, 
+			textAnchorX = textblox.HALIGN_TOP, 
+			textAnchorY = textblox.VALIGN_TOP,
+			boxColor = 0x264269FF,
+			boxTex = textblox.IMGREF_BUBBLE_FILL,
+			textColor = 0x000000FF,
+			borderTable =  
+							{	thick = 16, 
+								col = 0xFFFFFFFF,
+								ulImg   = Graphics.loadImage("text_ul.png"),
+		                        uImg    = Graphics.loadImage("text_uc.png"),
+		                        urImg   = Graphics.loadImage("text_ur.png"),
+		                        rImg    = Graphics.loadImage("text_cr.png"),
+		                        drImg   = Graphics.loadImage("text_br.png"),
+		                        dImg    = Graphics.loadImage("text_bc.png"),
+		                        dlImg   = Graphics.loadImage("text_bl.png"),
+		                        lImg    = Graphics.loadImage("text_cl.png")
+							
+							},
+			xMargin = 8,
+			yMargin = 8
+					   }
+					   
+textblox.npcPresets[151] = 99;
+ textblox.presetProps[99] = pr_sign;
 
 
 local checkpoints = {};
