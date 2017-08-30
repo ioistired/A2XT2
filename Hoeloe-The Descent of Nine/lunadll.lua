@@ -11,6 +11,7 @@ local pr_sign =    {
 			closeSound = "sound\\zelda-fairy.ogg",  --zelda-dash, zelda-stab, zelda-fairy
 			width = 250,
 			height = 150,
+			autosizeRatio = 1/10,
 			bind = textblox.BIND_SCREEN,
 			font = font,
 			instant = true,
@@ -23,13 +24,14 @@ local pr_sign =    {
 			
 			textScale=0.5;
 			textOffY=8;
+			speed=0;
 			
 			boxAnchorX = textblox.HALIGN_MID, 
 			boxAnchorY = textblox.VALIGN_MID, 
 			textAnchorX = textblox.HALIGN_TOP, 
 			textAnchorY = textblox.VALIGN_TOP,
-			boxColor = 0x264269FF,
-			boxTex = textblox.IMGREF_BUBBLE_FILL,
+			boxColor = 0xFFFFFFFF,--0x264269FF,
+			boxTex = Graphics.loadImage("text_fill.png"),
 			textColor = 0x000000FF,
 			borderTable =  
 							{	thick = 16, 
@@ -45,7 +47,7 @@ local pr_sign =    {
 							
 							},
 			xMargin = 8,
-			yMargin = 8
+			yMargin = 16
 					   }
 					   
 textblox.npcPresets[151] = 99;
