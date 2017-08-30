@@ -22,7 +22,7 @@ local pr_sign =    {
 			showNextIcon = false,
 			
 			textScale=0.5;
-			textOffY=16;
+			textOffY=8;
 			
 			boxAnchorX = textblox.HALIGN_MID, 
 			boxAnchorY = textblox.VALIGN_MID, 
