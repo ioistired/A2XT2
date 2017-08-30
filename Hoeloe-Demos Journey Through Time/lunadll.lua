@@ -11,6 +11,8 @@ local spikes2speed = 0;
 
 local spikehurts = { a = true, b = true, c = true };
 
+local textblox = API.load("textblox");
+textblox.npcPresets[198] = textblox.PRESET_SIGN
 
 
 function onLoop()
