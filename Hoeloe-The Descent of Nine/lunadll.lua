@@ -25,6 +25,8 @@ local pr_sign =    {
 			textScale=0.5;
 			textOffY=8;
 			speed=0;
+			finishDelay = 4,
+			endMarkDelay = 4,
 			
 			boxAnchorX = textblox.HALIGN_MID, 
 			boxAnchorY = textblox.VALIGN_MID, 
