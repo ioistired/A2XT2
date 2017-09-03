@@ -118,7 +118,7 @@ local function cor_giveReward (args)
 end
 
 
-function rewards:give(args)
+function rewards.give(args)
 	scene.startScene{scene=cor_giveReward, sceneArgs=args}
 end
 
