@@ -727,6 +727,20 @@ function a2xt_message.onDraw()
 			nameBarObj:Draw{priority=0.01, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
 		end
 end
+
+local function quickparse_perchar(a)
+	local t = a:sub(2,-2):split("/");
+	return t[player.character] or t[1];
+end
+
+local function quickparse(msg)
+	if(isTownLevel()) then
+		return (msg:gsub("(%b[])", quickparse_perchar))
+	else
+		return msg;
+	end
+end
+
 function a2xt_message.onCameraUpdate(eventobj, camindex)
 	if(camindex > 1) then return end;
 	
@@ -864,7 +878,7 @@ function a2xt_message.onMessageBox(eventObj, message)
 	end
 	
 	if  not a2xt_scene.inCutscene  then
-		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=message}, noletterbox=(npc==nil)}
+		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=quickparse(message)}, noletterbox=(npc==nil)}
 		a2xt_pause.Block();
 		messageInvincibile = 999999;
 	end
