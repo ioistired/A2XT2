@@ -1,10 +1,3 @@
-local multipoints = loadAPI("multipoints");
-
---Section 10 MidPoint
-multipoints.addLuaCheckpoint(-19809, -20064, 9);
---Section 0 Start
-multipoints.addLuaCheckpoint(-199296, -200063, 0);
-
 function onLoad()
 --Filter out Hammer
 	if (player.isValid) then

@@ -34,6 +34,8 @@ local skipHoldRoutine  = nil
 local skipIntroRoutine = nil
 local letterboxRoutine = nil
 
+local lockJump = false;
+
 -- Drawing
 local letterboxTop     = imagic.Box{x=0,y=0,  width=800,height=80,  color=0x00000000, scene=false}
 local letterboxBottom  = imagic.Box{x=0,y=520,width=800,height=80,  color=0x00000000, scene=false}
@@ -240,9 +242,12 @@ end
 --** Events                **
 --***************************
 function a2xt_scene.onTick()
+	local wasInCutscene = a2xt_scene.inCutscene;
 	a2xt_scene.inCutscene = false
 	if  (currentScene ~= nil)  then
 		a2xt_scene.inCutscene = true
+	elseif(wasInCutscene) then
+		lockJump = true;
 	end
 end
 
@@ -272,6 +277,14 @@ function a2xt_scene.onDraw()
 end
 
 function a2xt_scene.onInputUpdate()
+	if(lockJump) then
+		if(player.jumpKeyPressing) then
+			player.jumpKeyPressing = false;
+		else
+			lockJump = false;
+		end
+	end
+
 	if  a2xt_scene.inCutscene and not isGamePaused() then
 		-- Override inputs
 		for  k,v in pairs{"up","down","left","right","jump","run","altJump","altRun","dropItem","pause"}  do
@@ -279,6 +292,7 @@ function a2xt_scene.onInputUpdate()
 			a2xt_scene.currInputs[v] = player[v.."KeyPressing"]
 			player[v.."KeyPressing"] = false
 		end
+		player.runKeyPressing = true;
 
 		-- Skipping management
 		local wasHoldingTan = a2xt_scene.prevInputs.altRun

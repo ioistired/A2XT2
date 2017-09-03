@@ -16,7 +16,7 @@
    end
  ]]--
 
-local colliders = loadAPI("colliders");
+local colliders = API.load("colliders");
 local hit = false;
 local angle = 0;
 local positions = {};

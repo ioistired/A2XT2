@@ -694,6 +694,9 @@ function a2xt_message.onTick()
 		messageInvincibile = messageInvincibile - 1;
 		player:mem(0x140, FIELD_WORD, 2);
 		player:mem(0x142, FIELD_WORD, 0);
+		if(messageInvincibile == 0) then
+			player:mem(0x140, FIELD_WORD, 0);
+		end
 	end
 end
 
@@ -766,7 +769,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 					
 
 					--A2XT quick-parse
-					if(v.data.name == nil) then
+					if(v.data.name == nil and isTownLevel()) then
 						local nm,msg = v.msg.str:match("^([^{}]+):%s*(.+)$");
 						if(nm ~= nil and msg ~= nil) then
 							v.data.name = nm;

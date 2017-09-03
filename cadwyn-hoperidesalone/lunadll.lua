@@ -1,9 +1,5 @@
-local eventu = loadAPI("eventu");
-local multipoints = loadSharedAPI("multipoints") 
-local rng = loadAPI("rng");
-
-multipoints.addLuaCheckpoint(-140000, -140160, 3);
-multipoints.addLuaCheckpoint(-39968, -40320, 8);
+local eventu = API.load("eventu");
+local rng = API.load("rng");
 
 function onStart()
 	if (player.isValid) then

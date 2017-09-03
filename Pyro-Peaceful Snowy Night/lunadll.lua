@@ -1,12 +1,8 @@
-local rng = loadSharedAPI("rng")
-local multipoints = loadSharedAPI("multipoints")
-local particles = loadSharedAPI("particles");
+local rng = API.load("rng")
+local particles = API.load("particles");
 
 local snow = particles.Emitter(0, 0, Misc.resolveFile("particles/p_snow.ini"), 1)
 snow:AttachToCamera(Camera.get()[1]);
-
-multipoints.addLuaCheckpoint(-139360, -140288, 3);
-multipoints.addLuaCheckpoint(-59808, -60160, 7);
 
 function returnBgoCollision()
 	for _, b in pairs(BGO.getIntersecting(player.x + 12, player.y + 12, player.x + player.width - 12, player.y + player.height - 12)) do

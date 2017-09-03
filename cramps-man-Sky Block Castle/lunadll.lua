@@ -1,8 +1,3 @@
-multipoints = loadAPI("multipoints");
-multipoints.addLuaCheckpoint(-139616, -140128, 3);
-multipoints.addLuaCheckpoint(-79616, -80320, 6);
-multipoints.addLuaCheckpoint(20224, 19008, 11);
-
 local blueActive = false
 
 local lastJumpMomentum = 0

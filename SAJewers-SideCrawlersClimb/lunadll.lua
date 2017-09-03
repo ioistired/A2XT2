@@ -1,12 +1,3 @@
-multipoints = loadSharedAPI("multipoints");
-
-multipoints.addLuaCheckpoint(-179744, -179680, 1);
-multipoints.addLuaCheckpoint(-159488, -160128, 2);
-multipoints.addLuaCheckpoint(-139648, -140096, 3);
-multipoints.addLuaCheckpoint(-119488, -120128, 4);
-multipoints.addLuaCheckpoint(-99648, -100096, 5);
-multipoints.addLuaCheckpoint(-79488, -80128, 6);
-
 function onLoopSection3()
 	for  k,v in pairs(NPC.get(48, 3))  do
 		--v.speedX = 0;
