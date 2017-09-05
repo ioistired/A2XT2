@@ -17,6 +17,8 @@ local scene = API.load("a2xt_scene");
 local messages = API.load("a2xt_message");
 local shops = API.load("a2xt_shops");
 
+API.load("a2xt_cheats")
+
 local function LoadHitboxes()
 
 	--******************************
