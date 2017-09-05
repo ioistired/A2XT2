@@ -253,8 +253,8 @@
 #FALSE#
 #FALSE#
 ""
--139720
--140274
+-174564
+-179826
 24
 54
 0
@@ -170476,7 +170476,7 @@
 ""
 ""
 ""
--175008
+-174848
 -179648
 -1
 156
@@ -170511,7 +170511,7 @@
 -1
 107
 #FALSE#
-"Bes: You may be wondering what you semi-liquid acquaintance is doing sitting on that throne there.<page>He is under the impression that he is the King of Time.<page>We thought this would be the most effective way to pacify him, or at least the way that would cause the least collateral damage.<page>To be perfectly honest, he's just so overjoyed to be in power that he hasn't actually tried to use it.<page>So far all he's done is lock himself in demanding 'tribute'.<page>Well, it's all for the best. Just humour him, it'll make things much easier."
+"Bes: You may be wondering what you semi-liquid [brother/brother/acquaintance/acquaintance/acquaintance] is doing sitting on that throne there.<page>He is under the impression that he is the King of Time.<page>We thought this would be the most effective way to pacify him, or at least the way that would cause the least collateral damage.<page>To be perfectly honest, he's just so overjoyed to be in power that he hasn't actually tried to use it.<page>So far all he's done is lock himself in demanding 'tribute'.<page>Well, it's all for the best. Just humour him, it'll make things much easier."
 #TRUE#
 #TRUE#
 #FALSE#
@@ -170526,7 +170526,7 @@
 -1
 65
 #FALSE#
-"{name=Garish,icon=1,scene=text_garish}"
+"Garish:Well now, look who it is!<page>These fine people have finally realised my extreme prowess and elevated me to my rightful place as the King of Time!<page>With all of time as my dominion, I will conquer the world!<page>...<page>......<page>...Wait, if I rule time, does that mean I <wave>already</wave> rule the world?!?<page>I need to think about this...<page>Oh, you're still here?<page>Take this card or whatever."
 #TRUE#
 #TRUE#
 #FALSE#
@@ -170979,7 +170979,22 @@
 -1
 198
 #FALSE#
-"Dot: Sorry, but the Leek Sanctuary is off-limits.<page>It's a sacred place for us Chronotons, and we can't allow others inside.<page>I'm sorry but as long as we're here, no-one is allowed inside."
+"Dot: Sorry, but the Leek Sanctuary is off-limits.<page>Our leek pedestals channel time through them, and we can't let anyone mess with them.<page>I'm sorry but as long as we're here, no-one is allowed inside."
+#TRUE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-174976
+-179680
+1
+107
+#FALSE#
+"{name='Kat', event='buyStoneIdol'}"
 #TRUE#
 #FALSE#
 #FALSE#

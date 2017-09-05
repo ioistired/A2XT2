@@ -1,5 +1,11 @@
 local lunajson = API.load("ext/lunajson")
 
+for i = 0,9 do
+	if(SaveData["world"..i] == nil) then
+		SaveData["world"..i] = {town = {}};
+	end
+end
+
 local leveldata = {};
 local LEVEL = 0;
 local TOWN = 1;

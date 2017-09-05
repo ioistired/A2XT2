@@ -1,3 +1,5 @@
+local raocoins = API.load("a2xt_raocoincounter")
+
 local cheats = {}
 
 Cheats.deregister("dressmeup");
@@ -27,6 +29,7 @@ Cheats.addAlias("donthurtme", "strategyyo")
 Cheats.addAlias("1player", "raomode")
 Cheats.addAlias("2player", "pprmode")
 Cheats.addAlias("speeddemon", "chipmunktime")
-Cheats.addAlias("sonicstooslow", "gottagofast")
+
+Cheats.register("heresmycreditcard", {onActivate = function() raocoins.set(100) return true end, activateSFX = 59})
 
 return cheats;
