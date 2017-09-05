@@ -23,8 +23,12 @@ local readonly         = {inCutscene=1, isSkipping=1}
 
 a2xt_scene.inCutscene  = false
 
+a2xt_scene.quake       = 0
+
 a2xt_scene.currInputs  = {}
 a2xt_scene.prevInputs  = {}
+
+local tintFadeRoutine  = nil
 
 local currentScene     = nil
 local skipRoutine      = nil
@@ -231,6 +235,18 @@ function a2xt_scene.setSkippable(routine)
 	_,skipIntroRoutine = eventu.run(cor_skipMessage)
 end
 
+
+-- setTint args:
+--    time:       amount of time it takes to fade (0 for instant, defaults to 0)
+--    color:      the color to change to
+function a2xt_scene.setTint(params)
+	local args = {time=params.time  or  0, obj=tintBox, col2=params.color}
+	if  tintFadeRoutine ~= nil  then
+		eventu.abort(tintFadeRoutine)
+	end
+	_, tintFadeRoutine = eventu.run(cor_lerpColor, args)
+end
+
 function a2xt_scene.displayFoodHud(show)
 	hud_food = show;
 end
@@ -248,6 +264,12 @@ function a2xt_scene.onTick()
 		a2xt_scene.inCutscene = true
 	elseif(wasInCutscene) then
 		lockJump = true;
+	end
+
+	if  a2xt_scene.quake ~= nil  then
+		if  a2xt_scene.quake > 0  then
+			Defines.earthquake = a2xt_scene.quake
+		end
 	end
 end
 
