@@ -15,6 +15,8 @@ local cameraman = API.load("cameraman");
 local a2xt_message = API.load("a2xt_message");
 local a2xt_scene = API.load("a2xt_scene")
 local a2xt_raocoins = API.load("a2xt_raocoincounter");
+local a2xt_rewards = API.load("a2xt_rewards");
+local npcmanager = API.load("npcmanager")
 
 local textblox = API.load("textblox");
 
@@ -22,6 +24,8 @@ textblox.npcPresets[151] = textblox.PRESET_BUBBLE
 
 sanctuary.world = 1;
 sanctuary.sections[4] = true
+
+npcmanager.setNpcSettings{id = 65, talkrange = 64};
 
 local shop = {}
 
@@ -40,9 +44,9 @@ local waterfallOverlay = Graphics.loadImage("waterfallOverlay.png");
 local idolIDs = {154,155,156,157};
 local idolsReady = 
 {
-	[154] = SaveData.world3.town.fireIdol;
+	[154] = SaveData.world3.town.fireIdolReady;
 	[155] = true;
-	[156] = SaveData.world3.town.stoneIdol;
+	[156] = SaveData.world3.town.stoneIdolReady;
 	[157] = true;
 };
 
@@ -123,48 +127,124 @@ local grabtorches = {};
 --cinematx.defineQuest ("dickson", "An Explorer's Mission", "Help Prof. Dr. D. Dickson Esq. to discover the history of Temporis.")
 
 do --funky dialogue
-a2xt_message.presetSequences.buyStoneIdol = function(args)
-	local talker = args.npc
-	
-	if(idolsReady[156]) then
-		a2xt_message.showMessageBox {target=talker, type="bubble", text="Hey again. Sorry, I'm all outta curios this time.<page>Hope you got some good use outta that rock though!"}
-		a2xt_message.waitMessageEnd()
-	else
-		local price = 20;
-		a2xt_message.promptChosen = false
-		a2xt_message.showMessageBox {target=talker, type="bubble", text="Hey. Want to buy something cool? Only asking for "..price..CHAR_RC..".", closeWith="prompt"}
-		a2xt_message.waitMessageDone()
+	a2xt_message.presetSequences.buyStoneIdol = function(args)
+		local talker = args.npc
 		
-		a2xt_scene.displayRaocoinHud(true);
+		if(idolsReady[156]) then
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="Hey again. Sorry, I'm all outta curios this time.<page>Hope you got some good use outta that rock though!"}
+			a2xt_message.waitMessageEnd()
+		else
+			local price = 20;
+			a2xt_message.promptChosen = false
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="Hey. Want to buy something cool? Only asking for "..price..CHAR_RC..".", closeWith="prompt"}
+			a2xt_message.waitMessageDone()
+			
+			a2xt_scene.displayRaocoinHud(true);
+			
+			a2xt_message.showPrompt()
+			a2xt_message.waitPrompt()
+			
+			if a2xt_message.promptChoice == 1 then
+				if(a2xt_raocoins.buy(price)) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Pleasure doing business with ya!"}
+					idolsReady[156] = true
+					SaveData.world3.town.stoneIdolReady = true;
+				else
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Hey now... I've gotta make a living here..."}
+				end
+			elseif  a2xt_message.promptChoice == 2  then
+				a2xt_message.showMessageBox {target=talker, type="bubble", text="Aw. Shame. I know you would have liked it too..."}
+			end	
+			
+			a2xt_message.waitMessageEnd()
+			
+			a2xt_scene.displayRaocoinHud(false);
 		
-		a2xt_message.showPrompt()
-		a2xt_message.waitPrompt()
+		end
 		
-		if a2xt_message.promptChoice == 1 then
-			if(a2xt_raocoins.buy(price)) then
-				a2xt_message.showMessageBox {target=talker, type="bubble", text="Pleasure doing business with ya!"}
-				idolsReady[156] = true
-				SaveData.world3.town.stoneIdol = true;
-			else
-				a2xt_message.showMessageBox {target=talker, type="bubble", text="Hey now... I've gotta make a living here..."}
-			end
-		elseif  a2xt_message.promptChoice == 2  then
-			a2xt_message.showMessageBox {target=talker, type="bubble", text="Aw. Shame. I know you would have liked it too..."}
-		end	
-		
-		a2xt_message.waitMessageEnd()
-		
-		a2xt_scene.displayRaocoinHud(false);
-	
+		a2xt_scene.endScene()
+		a2xt_message.endMessage();
 	end
 	
-	a2xt_scene.endScene()
-	a2xt_message.endMessage();
-end
+	a2xt_message.presetSequences.garish = function(args)
+		local talker = args.npc;
+		
+		if(SaveData.world3.town.garishComplete) then
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="Hmm...\0"}
+			a2xt_message.waitMessageEnd();
+			
+			a2xt_scene.endScene()
+			a2xt_message.endMessage();
+			
+		else
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="Well now, look who it is!<page>These fine people have finally realised my extreme prowess and elevated me to my rightful place as the King of Time!<page>With all of time as my dominion, I will conquer the world!"}
+			a2xt_message.waitMessageEnd();
+			
+			local tempTargets = cameraman.playerCam[1].targets
+			cameraman.playerCam[1]:Queue {time=0.5, targets={talker}, easeBoth=cameraman.EASE.QUAD, zoom=2}
+			
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="...\0"}
+			a2xt_message.waitMessageEnd();
+			
+			cameraman.playerCam[1]:Queue {time=0.5, targets={talker}, easeBoth=cameraman.EASE.QUAD, zoom=3}
+			
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="......\0"}
+			a2xt_message.waitMessageEnd();
+			
+			cameraman.playerCam[1]:Queue {time=0.5, targets=tempTargets, easeBoth=cameraman.EASE.QUAD, zoom=1.5}
+			
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="...Wait, if I rule time, does that mean I <tremble>ALREADY</tremble> rule the world?!?<page>I need to think about this...<page>Oh, you're still here?<page>Take this card or whatever."}
+			a2xt_message.waitMessageEnd();
+			
+			cameraman.playerCam[1]:Queue {time=0.25, targets=tempTargets, easeBoth=cameraman.EASE.QUAD, zoom=1}
+			
+			eventu.waitSeconds(0.5)
+			
+			
+			a2xt_scene.endScene()
+			a2xt_message.endMessage();
+			
+			eventu.waitFrames(0)
+			
+			a2xt_rewards.giveCard("butts")
+			
+			SaveData.world3.town.garishComplete = true;
+			talker.data.talkIcon = 1;
+			talker.data.a2xt_message.iconSpr.state = 1;
+		end
+	end
+	
+	a2xt_message.presetSequences.bes = function(args)
+		local talker = args.npc;
+		
+		local val = "acquaintance";
+		if(player.character == CHARACTER_DEMO or player.character == CHARACTER_IRIS) then
+			val = "brother";
+		end
+		
+		if(SaveData.world3.town.garishComplete) then
+			if(#NPC.get(65) >= 1) then
+				a2xt_message.showMessageBox {target=talker, type="bubble", text="Oh dear, he seems to be thinking about something.<page>We may have to come up with a new plan..."}
+			else
+				a2xt_message.showMessageBox {target=talker, type="bubble", text="We've had to move your "..val.." over to P.O.R.T. to keep an eye on him.<page>He should be out of harm's way there."}
+			end
+		else
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="You may be wondering what you semi-liquid "..val.." is doing sitting on that throne there.<page>He is under the impression that he is the King of Time.<page>We thought this would be the most effective way to pacify him, or at least the way that would cause the least collateral damage.<page>To be perfectly honest, he's just so overjoyed to be in power that he hasn't actually tried to use it.<page>So far all he's done is lock himself in demanding 'tribute'.<page>Well, it's all for the best. Just humour him, it'll make things much easier."}
+		end
+		
+		a2xt_message.waitMessageEnd();
+			
+		a2xt_scene.endScene()
+		a2xt_message.endMessage();
+	end
 end
 
 function onStart()
-	
+	if(SaveData.world3.town.garishComplete) then
+		for _,v in ipairs(NPC.get(65)) do
+			v:kill(9)
+		end
+	end
 	
 	for _,v in ipairs(BGO.get(10)) do
 		if(v.x > Section(1).boundary.left and v.x < Section(1).boundary.right) then
