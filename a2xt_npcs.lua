@@ -535,7 +535,7 @@ ANIM.WALK = function(npcRef)
 				data.anim.frame = data.animFrame+1
 			end
 
-			Graphics.draw {type=RTYPE_TEXT, x=x1, y=y1, text="WALK"}
+			--Graphics.draw {type=RTYPE_TEXT, x=x1, y=y1, text="WALK"}
 			eventu.waitFrames(math.max(3, 2*(4-math.abs(npcRef.speedX))))
 		end
 	end
@@ -775,7 +775,7 @@ MOVE.FOLLOW = function(npcRef)
 		end
 
 		if  npcRef.speedX == 0  then
-			Graphics.draw {type=RTYPE_TEXT, isSceneCoordinates=true, x=npcRef.x, y=npcRef.y-32, text="STOPPED"}
+			--Graphics.draw {type=RTYPE_TEXT, isSceneCoordinates=true, x=npcRef.x, y=npcRef.y-32, text="STOPPED"}
 		end
 
 		eventu.waitFrames(0)

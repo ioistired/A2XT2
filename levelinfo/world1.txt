@@ -31,6 +31,11 @@ LEVEL:Tacoradical-Let's go Backwards
 	Type=LEVEL
 	Exit=ROULETTE
 	Raocoins=true
+LEVEL:rockythechao-town1
+	Name=Goopa Village
+	Author=rockythechao
+	Type=TOWN
+	Peng=999
 LEVEL:Pyro and rockythechao-Demo vs the Goopinati
 	Name=Demo vs. the Goopinati
 	Author=Pyro & rockythechao

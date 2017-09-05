@@ -8,6 +8,7 @@ local pnpc = API.load("pnpc")
 local npcconfig = API.load("npcconfig")
 local colliders = API.load("colliders")
 local defs = API.load("expandedDefines")
+local console = API.load("console")
 
 local rng = API.load("rng")
 
@@ -77,6 +78,11 @@ a2xt_message.promptChosen = false
 -- "Wait for"-related variables
 local mostRecentMessage = nil
 
+-- Dialogue logging
+local textLogLimit = 50
+if  SaveData.textLog == nil  then
+	SaveData.textLog = {}
+end
 
 -- This one's probably already somewhere in textblox but whatever
 a2xt_message.type = {bubble=textblox.PRESET_BUBBLE, system=textblox.PRESET_SYSTEM, sign=textblox.PRESET_SIGN}
@@ -146,6 +152,14 @@ end
 --***************************
 --** Utility Functions     **
 --***************************
+local function logText (text, name)
+	if  #SaveData.textLog > textLogLimit  then
+		table.remove(SaveData.textLog, 1)
+	end
+	table.insert(SaveData.textLog, {text=text,name=name})
+end
+
+
 local function addItem (str, item)
 	local newStr = string.gsub(str, "%[item%]", item)
 	return newStr;
@@ -355,6 +369,9 @@ end
 
 local function cor_manageMessage(bubbleTarget, bubble)
 
+	-- Log the pages
+	local pagesLogged = 0
+
 	local condType = bubbleTarget.closeWith  or  "default"
 	local conditionMet = false
 
@@ -405,6 +422,12 @@ local function cor_manageMessage(bubbleTarget, bubble)
 			bubbleTarget.y = bubbleTarget.initialArgs.y + cam.cam.y
 		end
 
+		-- Log each page as it happens
+		if  pagesLogged < bubble.latestPage  then
+			pagesLogged = bubble.latestPage
+			logText (bubble.pages[pagesLogged], bubbleTarget.name)
+		end
+
 		--Text.dialog("doneyo")
 		eventu.waitFrames(0, true)
 	end
@@ -419,6 +442,45 @@ end
 --** API Member Functions  **
 --***************************
 
+function a2xt_message.dumpTextLog ()
+	if  SaveData.textLog ~= nil  then
+
+		local currentName = SaveData.textLog[1].name
+		local textLogFile = io.open ("dialogueDump.txt", "w")
+		textLogFile:write(currentName..":")
+
+		for  _,v in ipairs(SaveData.textLog)  do
+			-- Write the current name
+			if  v.name ~= currentName  then
+				local nameStr = v.name  or  ""
+				textLogFile:write("\n\n"..nameStr..":")
+				currentName = v.name
+			end
+			textLogFile:write("\n"..v.text)
+		end
+	end
+end
+
+function a2xt_message.textLogToConsole ()
+	if  SaveData.textLog ~= nil  then
+
+		local currentName = SaveData.textLog[1].name
+		console.print(currentName..":")
+
+		for  _,v in ipairs(SaveData.textLog)  do
+			-- Write the current name
+			if  v.name ~= currentName  then
+				local nameStr = v.name  or  ""
+				console.print(" ")
+				console.print(nameStr..":")
+				currentName = v.name
+			end
+			console.print(v.text)
+		end
+	end
+end
+
+
 function a2xt_message.endMessage()
 	if(Misc.isPausedByLua()) then
 		Misc.unpause();
@@ -431,30 +493,45 @@ function a2xt_message.showMessageBox (args)
 		args = {text=args}
 	end
 
+
 	-- Get the preset to use + indirect target management to account for offsets from camera manipulation
 	local presetToUse = textblox.npcPresets.all
 	local messageCtrl = {
+	                     name      = nameBarName,
 	                     obj       = args.target,
 	                     x         = args.x          or  300,
 	                     y         = args.y          or  400,
 	                     offX      = args.offX       or  0,
 	                     offY      = args.offY       or  0,
 	                     closeWith = args.closeWith,
-						 keepOnscreen = args.keepOnscreen or false,
-						 hasTail = args.hasTail,
-						 screenSpace = args.screenSpace or false,
-						 initialArgs = args
+	                     keepOnscreen = args.keepOnscreen or false,
+	                     hasTail = args.hasTail,
+	                     screenSpace = args.screenSpace or false,
+	                     initialArgs = args,
 	                    }
 
 	if(messageCtrl.hasTail == nil) then 
 		messageCtrl.hasTail = true
 	end
 
+	-- Determine preset and logged name based on target
 	if  args.target ~= nil  then
 		messageCtrl.x = args.target.x
 		messageCtrl.y = args.target.y
-		if  args.target.id ~= nil  then
+
+		-- If the target is an NPC, determine the preset based on the target's NPC ID
+		if  args.target.__type == "NPC"  then
 			presetToUse = textblox.npcPresets[args.target.id]  or  presetToUse
+
+			-- If the target is an NPC, also try and get the NPC's name for the text logger
+			local ptarget = pnpc.wrap(args.target)
+			if  ptarget.data.name ~= nil  then
+				messageCtrl.name = ptarget.data.name
+			end
+
+		-- If the target is a player, get the player character
+		elseif  args.target.__type == "Player"  then
+			messageCtrl.name = CHARACTER_NAME[args.target.character]
 		end
 	else
 		presetToUse = a2xt_message.type.sign
@@ -579,6 +656,10 @@ function a2xt_message.showPrompt(args)
 					Audio.SfxPlayObj(confirmSound,0)
 					a2xt_message.promptChosen = true
 					cman.playerCam[1]:Transition {time=0.75, xOffset=0, easeBoth=cman.EASE.QUAD}
+
+					-- Log the player's choice
+					logText (a2xt_message.promptChoiceStr, CHARACTER_NAME[player.character])
+
 					--eventu.signal ("_promptEnded")
 				end
 
@@ -671,6 +752,8 @@ function a2xt_message.waitPrompt()
 end
 
 local nameBarObj = nil;
+
+
 --***************************
 --** Events                **
 --***************************
