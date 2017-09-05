@@ -9,6 +9,8 @@ local pause = API.load("a2xt_pause");
 local democounter = API.load("a2xt_democounter");
 local hud = API.load("a2xt_hud");
 
+API.load("a2xt_cheats")
+
 local vert_default = Misc.resolveFile("map3d/standard.vert");
 local frag_blur = Misc.resolveFile("shaders/blur_pixel.frag");
 local shader_blur;
