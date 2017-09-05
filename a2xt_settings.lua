@@ -6,6 +6,13 @@ _G["CHARACTER_KOOD"] = CHARACTER_PEACH;
 _G["CHARACTER_RAOCOW"] = CHARACTER_TOAD;
 _G["CHARACTER_SHEATH"] = CHARACTER_LINK;
 
+_G["CHARACTER_NAME"] = {
+                        [CHARACTER_MARIO] = "Demo",
+                        [CHARACTER_LUIGI] = "Iris",
+                        [CHARACTER_PEACH] = "Kood",
+                        [CHARACTER_TOAD]  = "Raocow",
+                        [CHARACTER_LINK]  = "Sheath"
+                       }
 
 local textblox = loadSharedAPI("textblox")
 local encrypt =  API.load("encrypt");

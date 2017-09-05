@@ -122,6 +122,19 @@ function rewards.give(args)
 	scene.startScene{scene=cor_giveReward, sceneArgs=args}
 end
 
+function rewards.giveRaocoins(num)
+	scene.startScene{scene=cor_giveReward, sceneArgs={quantity=num}}
+end
+function rewards.giveCostume(id)
+	scene.startScene{scene=cor_giveReward, sceneArgs={quantity=id}}
+end
+function rewards.giveCostume(id)
+	scene.startScene{scene=cor_giveReward, sceneArgs={}}
+end
+
+
+
+
 function rewards:onDraw()
 	sunburstBox.y = currBox.y
 	sunburstBox.x = currBox.x

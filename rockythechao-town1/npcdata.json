@@ -1,0 +1,113 @@
+{
+	"goopaout1": {
+		"cinematX": {
+			"key": "goopaout1",
+			"name": "Goopella",
+			"icon": 0,
+			"scene": "cutscene_Welcome"
+		}
+	},
+
+	"goopaout2": {
+		"cinematX": {
+			"key": "goopaout2",
+			"name": "Goopario",
+			"icon": 1,
+			"scene": "cutscene_Lore"
+		}
+	},
+
+	"goopasib1": {
+		"cinematX": {
+			"key": "goopasib1",
+			"name": "Goopa Sis Violet",
+			"icon": 1,
+			"scene": "cutscene_TestQuest"
+		}
+	},
+
+	"goopasib2": {
+		"cinematX": {
+			"key": "goopasib2",
+			"name": "Goopa Bro Lavender",
+			"icon": 1,
+			"scene": "cutscene_TestQuest3"
+		}
+	},
+
+	"goopasib3": {
+		"cinematX": {
+			"key": "goopasib3",
+			"name": "Goopa Bro Plum",
+			"icon": 1,
+			"scene": "cutscene_TestQuest2"
+		}
+	},
+
+	"goopasib4": {
+		"cinematX": {
+			"key": "goopasib4",
+			"name": "Goopa Bro Indigo",
+			"icon": 1,
+			"scene": "cutscene_GoopaSiblingOther"
+		}
+	},
+
+	"goopasib5": {
+		"cinematX": {
+			"key": "goopasib5",
+			"name": "Goopa Sis Amethyst",
+			"icon": 1,
+			"scene": "cutscene_GoopaSiblingOther"
+		}
+	},
+
+	"catllama1": {
+		"cinematX": {
+			"key": "catllama1",
+			"name": "",
+			"icon": 0,
+			"routine": "cor_catllama1"
+		},
+		"npcGfx": {
+			"depth": 0
+		}
+	},
+
+	"feed": {
+		"cinematX": {
+			"key": "feed",
+			"name": "Feed",
+			"icon": 0,
+			"scene": "cutscene_Stephen"
+		}
+	},
+
+	"goopahouse1": {
+		"cinematX": {
+			"key": "goopahouse1",
+			"name": "Goops",
+			"icon": 0,
+			"scene": "cutscene_BaseGuard"
+		}
+	},
+
+	"goopastadium1": {
+		"cinematX": {
+			"key": "goopastadium1",
+			"name": "Goop Dogg",
+			"icon": 0,
+			"scene": "cutscene_SportsballInvite"
+		}
+	},
+	
+	"sign_a":{
+		"cinematX": {
+			"key": "sign_a",
+			"name": "Sign",
+			"icon": 2,
+			"verb": "read",
+			"routine": "coroutine_Sign1"
+		}
+	}
+}
