@@ -379,7 +379,7 @@ pal.settings = npcManager.setNpcSettings(palSettings);
 local REACTIONS = {
                    FOLLOW = {},
                    ANGER  = {5,95,98,99,100,148,149,150,228, 987,988,989,990,991,992,993,994,995,999},
-                   SCARE  = {},
+                   SCARE  = {986},
                    DIG    = {91}
                   }
 local REACTPRIORITY = {
