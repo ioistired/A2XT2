@@ -373,6 +373,7 @@ palSettings.frames = 22;
 palSettings.framespeed = 12;
 
 registerEvent(pal, "onStart");
+registerEvent(pal, "onNPCKill");
 npcManager.registerEvent(palSettings.id, pal, "onTickNPC");
 pal.settings = npcManager.setNpcSettings(palSettings);
 
@@ -434,6 +435,12 @@ function pal.onStart()
 			table.insert(buriedNPCs, v);
 			v.isHidden = true;
 		end
+	end
+end
+
+function pal.onNPCKill(event, npc, reason)
+	if(npc.id == palSettings.id) then
+		event.cancelled = true;
 	end
 end
 
