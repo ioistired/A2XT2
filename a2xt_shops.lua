@@ -190,7 +190,8 @@ a2xt_shops.dialogue = {
 											  },
                                     items = {[9] = "Red Radish", [14] = "Hot Cactus", [34] = "Spinach Leaf", [90] = "Green Radish", [169] = "Mystical Onion", [170] = "Extreme Gourd", [188] = "Lord of the Forest", [264] = "Icy Pine", [287] = "Lucky Dip Deal"},
                                     welcome = "Buy somethin' will ya?",
-                                    about = "This is a grocery store. We sell food. Try some, why don't ya?<page>Some of our stock is a special, all-you-can-eat offer. Buy it once, and you can get a free refill any time you like. It's a steal!",
+                                    about = {"This is a grocery store. We sell food. Try some, why don't ya?",
+											"This is a grocery store. We sell food. Try some, why don't ya?<page>Some of our stock is a special, all-you-can-eat offer. Buy it once, and you can get a free refill any time you like. It's a steal!"},
                                     goodbye = "Make sure you come back later, ya hear?",
 									confirm =	
 											{
@@ -498,7 +499,11 @@ message.presetSequences.powerup = function(args)
 	
 	-- About
 	if  choice == 1  then
-		message.showMessageBox {target=talker, type="bubble", text=dialog.about}
+		local index = 1;
+		if(talker.data.hasGenerator) then
+			index = 2;
+		end
+		message.showMessageBox {target=talker, type="bubble", text=dialog.about[index]}
 
 	-- Bye
 	elseif  choice == 2  then
@@ -693,6 +698,7 @@ function a2xt_shops.onStart()
 				w = pnpc.wrap(w);
 				if(isagenerator) then
 					w.data.generator = true;
+					v.data.hasGenerator = true;
 				end
 				w.data.event = "shopItem";
 				w.data.talkIcon = 4;
