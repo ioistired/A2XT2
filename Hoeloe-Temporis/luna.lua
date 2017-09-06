@@ -246,6 +246,13 @@ function onStart()
 		end
 	end
 	
+	for _,v in ipairs(NPC.get()) do
+		v = pnpc.getExistingWrapper(v);
+		if(v and v.data.saveDeath and SaveData.world3.town[v.data.saveDeath]) then
+			v:kill(9);
+		end
+	end
+	
 	for _,v in ipairs(BGO.get(10)) do
 		if(v.x > Section(1).boundary.left and v.x < Section(1).boundary.right) then
 			waterwheel.x = v.x + 512;
@@ -318,6 +325,14 @@ local function checkIdolPlaced(npc)
 	end
 	return false;
 end
+
+function onNPCKill(event, npc, reason)
+	npc = pnpc.getExistingWrapper(npc);
+	if(npc and npc.data.saveDeath) then
+		SaveData.world3.town[npc.data.saveDeath] = true;
+	end
+end
+
 
 local wheelTime = 0;
 	

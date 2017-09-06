@@ -372,12 +372,13 @@ palSettings.grabside = 1;
 palSettings.frames = 22;
 palSettings.framespeed = 12;
 
+registerEvent(pal, "onStart");
 npcManager.registerEvent(palSettings.id, pal, "onTickNPC");
 pal.settings = npcManager.setNpcSettings(palSettings);
 
 local REACTIONS = {
                    FOLLOW = {},
-                   ANGER  = {5,98,99,100,148,149,150,228, 987,988,989,990,991,992,993,994,995,999},
+                   ANGER  = {5,95,98,99,100,148,149,150,228, 987,988,989,990,991,992,993,994,995,999},
                    SCARE  = {},
                    DIG    = {91}
                   }
@@ -421,6 +422,18 @@ for k1,v1 in pairs(REACTIONS) do
 	for _,v2 in pairs(v1) do
 		table.insert(REACTIDS, v2)
 		REACTTYPES[v2] = k1
+	end
+end
+
+local buriedNPCs = {};
+
+function pal.onStart()
+	for _,v in ipairs(NPC.get()) do
+		v = pnpc.getExistingWrapper(v);
+		if(v and v.data.buried == true) then
+			table.insert(buriedNPCs, v);
+			v.isHidden = true;
+		end
 	end
 end
 
@@ -479,7 +492,7 @@ local function objDistance (objA,objB)
 			y2 = y2+objB.height*0.5
 		end
 
-		local dist = math.sqrt(math.pow(x2-x1,2) + math.pow(y2-y1,2))
+		local dist = math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
 		return dist
 	else
 		return math.huge
@@ -779,9 +792,12 @@ MOVE.FOLLOW = function(npcRef)
 			local rType = "PLAYER"
 			local dirToTarget = objDirection(npcRef, data.follow.target)
 			npcRef.direction = objDirection(npcRef, data.follow.target)
-
+			
 			if  data.follow.type == "npc"  then
-				rType = REACTTYPES[data.follow.target.id]
+				 rType = REACTTYPES[data.follow.target.id];
+				if(data.follow.target.data.buried == true) then
+					rType = "DIG"
+				end
 
 				if  rType == "DIG"    then  stopDist = 24;   end;
 				if  rType == "SCARE"  then  stopDist = 256;  end;
@@ -789,7 +805,7 @@ MOVE.FOLLOW = function(npcRef)
 			end
 
 			-- When at the right distance, behave according to the reaction type
-			if  data.follow.distance > stopDist-8  and  data.follow.distance < stopDist+8  then
+			if  data.follow.distance > stopDist-8  and  data.follow.distance < stopDist+8  and  math.abs(data.follow.target.y+(data.follow.target.height or 0)*0.5 - (npcRef.y + npcRef.height*0.5)) < stopDist+8  then
 
 				if  rType == "DIG"    then  data.startDigging = true;                            end;
 				if  rType == "SCARE"  then  currentAnim = ANIM.SCARE;  data.bark.active = true;  end;
@@ -857,6 +873,9 @@ MOVE.FOLLOW = function(npcRef)
 	setPalMoveState(npcRef, MOVE.ROAM)
 end
 
+local NPC_COIN = {10,138,258,88,33,103,252,251,253}
+local NPC_COIN_MAP = table.map(NPC_COIN);
+
 MOVE.DIG = function(npcRef)
 	local data = npcRef.data.pal
 
@@ -871,10 +890,28 @@ MOVE.DIG = function(npcRef)
 
 	-- Pluck the NPC
 	local npcToSpawn = data.follow.target.ai1
-	data.follow.target:kill()
-	local newNpc = NPC.spawn (npcToSpawn, data.follow.target.x+data.follow.target.width*0.5, data.follow.target.y-17, player.section, true, true)
-	newNpc.speedY = -8
-	newNpc.speedX = rng.random(-2,2)
+	local newNpc;
+	if(npcToSpawn > 0) then --is a container
+		data.follow.target:kill()
+		newNpc = NPC.spawn (npcToSpawn, data.follow.target.x+data.follow.target.width*0.5, data.follow.target.y-17, player.section, true, true)
+	else
+		data.follow.target.isHidden = false;
+		data.follow.target.data.buried = nil;
+		newNpc = data.follow.target;
+		data.follow.target = nil;
+	end
+	if(newNpc.id == 979) then --chest
+		newNpc.speedY = -3
+	else
+		newNpc.speedY = -8
+		newNpc.speedX = rng.random(-2,2)
+	end
+	
+	if(NPC_COIN_MAP[newNpc.id]) then
+		newNpc.ai1 = 1;
+	end
+	
+	Audio.playSFX(9);
 
 	-- reset the follow data
 	data.follow.distance = math.huge
@@ -1030,14 +1067,20 @@ function pal:onTickNPC()
 		data.startDigging = false
 		setPalMoveState (self, MOVE.DIG)
 	end
+	
+	for i=#buriedNPCs,1,-1 do
+		if(not buriedNPCs[i].isValid or buriedNPCs[i].data.buried ~= true) then
+			table.remove(buriedNPCs,i);
+		end
+	end
 
 	-- Manage follow targeting
-	local allTargets = table.join ({player}, NPC.get(REACTIDS, player.section))
+	local allTargets = table.append ({player}, buriedNPCs, NPC.get(REACTIDS, player.section))
 	local closestDist = data.follow.maxdist
 	local closestTarget = nil
 	local closestType = nil
 	local closestReact = "NONE"
-	for  _,v in pairs(allTargets)  do
+	for  _,v in ipairs(allTargets)  do
 
 		-- Determine validity based on object type
 		local isValid = false
@@ -1085,7 +1128,12 @@ function pal:onTickNPC()
 
 	-- If there is not a valid target to follow, stick to the current one for two seconds
 	if  closestTarget == nil  then
-		data.follow.timer = (data.follow.timer + 1) % lunatime.toTicks(2)
+	
+		if(data.follow.react == "DIG" and data.move.state == MOVE.HELD) then
+			data.follow.timer = (data.follow.timer + 1) % lunatime.toTicks(0.5)
+		else
+			data.follow.timer = (data.follow.timer + 1) % lunatime.toTicks(2)
+		end
 
 		-- If those two seconds are up, stop following
 		if  data.follow.timer == 0  then
@@ -1106,6 +1154,7 @@ function pal:onTickNPC()
 	end
 
 
+			Text.print(data.follow.react,0,0)
 	-- Manage barking
 	if  data.bark.active  then
 		data.bark.timer = data.bark.timer + 1
@@ -1126,7 +1175,7 @@ function pal:onTickNPC()
 					selectedList = REACTBARKS2[data.follow.react]
 				end
 			end
-
+			
 			local selectedSound = rng.randomEntry(selectedList)
 			audio.PlaySound{sound = Misc.resolveFile("sound/voice/pal/v-pal-"..selectedSound..".ogg"), volume = rng.random(0.4,0.5)}
 			-- sound effect
