@@ -1128,7 +1128,7 @@ function pal:onTickNPC()
 			end
 
 			local selectedSound = rng.randomEntry(selectedList)
-			audio.PlaySound{sound = Misc.resolveFile("sound/voice/pal/v-pal-"..selectedSound..".ogg"), volume = rng.random(0.8,1)}
+			audio.PlaySound{sound = Misc.resolveFile("sound/voice/pal/v-pal-"..selectedSound..".ogg"), volume = rng.random(0.4,0.5)}
 			-- sound effect
 		end
 	else

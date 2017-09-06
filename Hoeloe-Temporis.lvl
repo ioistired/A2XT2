@@ -253,8 +253,8 @@
 #FALSE#
 #FALSE#
 ""
--175560
--181354
+-191140
+-201038
 24
 54
 0
@@ -170511,7 +170511,7 @@
 -1
 107
 #FALSE#
-"Bes: You may be wondering what you semi-liquid [brother/brother/acquaintance/acquaintance/acquaintance] is doing sitting on that throne there.<page>He is under the impression that he is the King of Time.<page>We thought this would be the most effective way to pacify him, or at least the way that would cause the least collateral damage.<page>To be perfectly honest, he's just so overjoyed to be in power that he hasn't actually tried to use it.<page>So far all he's done is lock himself in demanding 'tribute'.<page>Well, it's all for the best. Just humour him, it'll make things much easier."
+"{name='Bes', event='bes'}"
 #TRUE#
 #TRUE#
 #FALSE#
@@ -171004,6 +171004,36 @@
 ""
 ""
 ""
+-195520
+-200768
+1
+985
+#FALSE#
+""
+#FALSE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-190656
+-200832
+1
+979
+#FALSE#
+"{buried=true}"
+#FALSE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
 "next"
 -196208
 -200768
@@ -171326,7 +171356,7 @@
 "Default"
 #FALSE#
 #FALSE#
-#FALSE#
+#TRUE#
 #FALSE#
 -39712
 -40224
