@@ -302,8 +302,9 @@ end
 local function checkIdolPlaced(npc)
 	local c = idolColliders[npc.id];
 	if(c == nil) then return false; end
-	if(colliders.collide(npc,c)) then
+	if(colliders.collide(npc,c) or SaveData.world3.town["idol"..npc.id]) then
 		idolsDone[npc.id] = true;
+		SaveData.world3.town["idol"..npc.id] = true;
 		npc:kill(9);
 		Animation.spawn(10,c.x,c.y);
 		playSFX(37);
