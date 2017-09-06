@@ -1145,7 +1145,7 @@ function pal:onTickNPC()
 		end
 	-- If there is a valid target to follow... well, follow it!
 	else
-		Graphics.draw {type=RTYPE_TEXT, x=closestTarget.x, y=closestTarget.y, text="TARGET", isSceneCoordinates=true}
+		Graphics.draw {type=RTYPE_TEXT, x=closestTarget.x, y=closestTarget.y, text="T", isSceneCoordinates=true}
 		data.follow.distance = objDistance(self, {x=closestTarget.x, y=self.y, width=closestTarget.width, height=self.height})
 		data.follow.target   = closestTarget
 		data.follow.type     = closestType
@@ -1154,7 +1154,6 @@ function pal:onTickNPC()
 	end
 
 
-			Text.print(data.follow.react,0,0)
 	-- Manage barking
 	if  data.bark.active  then
 		data.bark.timer = data.bark.timer + 1
