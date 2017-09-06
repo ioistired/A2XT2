@@ -246,10 +246,13 @@ local function cor_positionPlayer (args)
 	local r = checkForSpace(player, npc, range, 1)
 	local timeout = lunatime.toTicks(0.5);
 	if(l or r) then
-		while (math.abs(d) < range and timeout > 0)  do
+		--old radial distance
+		--[[while (math.abs(d) < range and timeout > 0)  do
 			local dx = (npc.x+npc.width*0.5) - (player.x+player.width*0.5);
 			local dy = (npc.y+npc.height*0.5) - (player.y+player.height*0.5);
-			d = math.sqrt(dx*dx + dy*dy)
+			d = math.sqrt(dx*dx + dy*dy)]]
+		while (math.abs(d) < range and timeout > 0)  do
+			d = (npc.x+npc.width*0.5) - (player.x+player.width*0.5);
 			
 			if(not settings.noturn) then
 				if  l and (player.x + player.width*0.5 < npc.x + npc.width*0.5 or not r) then

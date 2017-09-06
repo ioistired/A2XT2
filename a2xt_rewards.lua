@@ -55,9 +55,11 @@ local function cor_giveReward (args)
 		local costumeInfo = costumes.info[args.quantity]
 		msg = msg.."the "..costumeInfo.name.." costume!"
 		costumes.unlock(args.quantity)
+		rewardType = "costume"
 	end
 	if  args.type == "card"  then
 		msg = msg.."the "..tostring(args.quantity).." card!"
+		rewardType = "card"
 		-- Add the card
 	end
 	currBox = rewardBox[rewardType]
@@ -72,7 +74,9 @@ local function cor_giveReward (args)
 	local yOffTemp = cam.yOffset
 	local targetTemp = cam.targets
 	local zoomTemp = cam.zoom
-	cam:Transition {time=0.5, targets={player}, yOffset=-50, zoom=1.5, easeBoth=cman.EASE.QUAD, runWhilePaused=true}
+	if(args.useTransitions) then
+		cam:Transition {time=0.5, targets={player}, yOffset=-50, zoom=1.5, easeBoth=cman.EASE.QUAD, runWhilePaused=true}
+	end
 
 	-- Raise sprite
 	local _, raiseSpr = eventu.run (function ()
@@ -112,7 +116,9 @@ local function cor_giveReward (args)
 	eventu.abort(showMsgLoop)
 	eventu.abort(raiseSpr)
 	currBox.y = -999
-	cam:Transition {time=0.5, targets=targetTemp, yOffset=yOffTemp, zoom=zoomTemp, easeBoth=cman.EASE.QUAD, runWhilePaused=true}
+	if(args.useTransitions) then
+		cam:Transition {time=0.5, targets=targetTemp, yOffset=yOffTemp, zoom=zoomTemp, easeBoth=cman.EASE.QUAD, runWhilePaused=true}
+	end
 
 	scene.endScene()
 end
@@ -123,13 +129,13 @@ function rewards.give(args)
 end
 
 function rewards.giveRaocoins(num)
-	scene.startScene{scene=cor_giveReward, sceneArgs={quantity=num}}
+	scene.startScene{scene=cor_giveReward, sceneArgs={type="raocoin", quantity=num, useTransitions = not scene.inCutscene}}
 end
 function rewards.giveCostume(id)
-	scene.startScene{scene=cor_giveReward, sceneArgs={quantity=id}}
+	scene.startScene{scene=cor_giveReward, sceneArgs={type="costume", quantity=id, useTransitions = not scene.inCutscene}}
 end
-function rewards.giveCostume(id)
-	scene.startScene{scene=cor_giveReward, sceneArgs={}}
+function rewards.giveCard(id)
+	scene.startScene{scene=cor_giveReward, sceneArgs={type="card", quantity=id, useTransitions = not scene.inCutscene}}
 end
 
 
