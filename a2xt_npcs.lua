@@ -1133,10 +1133,10 @@ function pal:onTickNPC()
 		end
 	end
 
-	-- If there is not a valid target to follow, stick to the current one for two seconds
+	-- If there is not a valid target to follow, stick to the current one for two seconds, or half a second if carried
 	if  closestTarget == nil  then
 	
-		if(data.follow.react == "DIG" and data.move.state == MOVE.HELD) then
+		if(data.move.state == MOVE.HELD) then
 			data.follow.timer = (data.follow.timer + 1) % lunatime.toTicks(0.5)
 		else
 			data.follow.timer = (data.follow.timer + 1) % lunatime.toTicks(2)
