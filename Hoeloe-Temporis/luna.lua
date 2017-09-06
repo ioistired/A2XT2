@@ -196,7 +196,6 @@ do --funky dialogue
 			a2xt_message.showMessageBox {target=talker, type="bubble", text="...Wait, if I rule time, does that mean I <tremble>ALREADY</tremble> rule the world?!?<page>I need to think about this...<page>Oh, you're still here?<page>Take this card or whatever."}
 			a2xt_message.waitMessageEnd();
 			
-			cameraman.playerCam[1]:Queue {time=0.25, targets=tempTargets, easeBoth=cameraman.EASE.QUAD, zoom=1}
 			
 			eventu.waitSeconds(0.5)
 			
@@ -207,6 +206,8 @@ do --funky dialogue
 			eventu.waitFrames(0)
 			
 			a2xt_rewards.giveCard("butts")
+			
+			cameraman.playerCam[1]:Queue {time=0.25, targets=tempTargets, easeBoth=cameraman.EASE.QUAD, zoom=1}
 			
 			SaveData.world3.town.garishComplete = true;
 			talker.data.talkIcon = 1;

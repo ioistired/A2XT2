@@ -2,6 +2,7 @@ local textblox = API.load("textblox")
 local imagic = API.load("imagic")
 local pm = API.load("playerManager")
 local leveldata = API.load("a2xt_leveldata")
+local audiomaster = API.load("audiomaster")
 
 local pause = {}
 
@@ -32,6 +33,8 @@ local confirm_alpha = 0;
 
 local quitting = false;
 
+local sfxvolume = 1;
+
 local function confirmBox(func)
 	confirm = func;
 	Audio.playSFX(30);
@@ -40,6 +43,7 @@ end
 local function unpause()
 	unpausing = true;
 	Audio.playSFX(30);
+	audiomaster.volume.MASTER = sfxvolume;
 	--registerEvent(pm, "onInputUpdate", "onInputUpdate", false);
 end
 
@@ -315,6 +319,8 @@ function pause.onInputUpdate()
 		elseif (not mem(0x00B250E2, FIELD_BOOL) and not Misc.isPausedByLua() and not pause.Blocked) then
 			game_paused = true;
 			unpausing = false;
+			sfxvolume = audiomaster.volume.MASTER;
+			audiomaster.volume.MASTER = 0;
 			buffer:captureAt(pause_priority);
 			Misc.pause();
 			Audio.playSFX(30);
