@@ -3,6 +3,8 @@ local npcconfig = API.load("npcconfig")
 local npcManager = API.load("npcManager")
 local pnpc = API.load("pnpc")
 local audio = API.load("audioMaster")
+
+local a2xt_audio = API.load("a2xt_audio")
 local a2xt_message = API.load("a2xt_message")
 
 local friendlies = {}
@@ -241,7 +243,7 @@ function pengs:onMessageEnd(id)
 		pengData[id].collected = true
 		SaveData.pengs[tostring(id)] = true;
 		--Misc.saveGame();
-		audio.PlaySound{sound = Misc.resolveFile("sound/noot.ogg"), volume = 1}
+		audio.PlaySound{sound = Misc.resolveFile("sound/noot.ogg"), volume = a2xt_audio.voice.volume}
 		local a = Animation.spawn(10,self.x+self.width*0.5,self.y+self.height*0.5);
 		a.x = a.x-a.width*0.5;
 		a.y = a.y-a.height*0.5;
@@ -365,6 +367,8 @@ local palSettings = table.join(
 				  gfxoffsetx = 0,
 				  gfxoffsety = 2,
 				  height = 32});
+palSettings.grabtop = 1;
+palSettings.grabside = 1;
 palSettings.frames = 22;
 palSettings.framespeed = 12;
 
@@ -385,6 +389,30 @@ local REACTPRIORITY = {
                        ANGER  = 4,
                        SCARE  = 5
                       }
+local REACTDIST = {
+                   NONE   = 0,
+                   PLAYER = 400,
+                   FOLLOW = 400,
+                   DIG    = 400,
+                   ANGER  = 600,
+                   SCARE  = 600
+                  }
+local REACTBARKS = {
+                    NONE   = {"bow","wow","woof"},
+                    PLAYER = {"bow","wow","woof","pant"},
+                    FOLLOW = {"bow","wow","woof","pant"},
+                    DIG    = {"sniff","pant"},
+                    ANGER  = {"growl"},
+                    SCARE  = {"whimper"}
+                   }
+local REACTBARKS2 = {
+                     NONE   = {"bark","bark2","woof"},
+                     PLAYER = {"bow","wow","woof","pant"},
+                     FOLLOW = {"bow","wow","woof","pant"},
+                     DIG    = {"woof","sniff","bow","wow"},
+                     ANGER  = {"snarl","bark","bark2"},
+                     SCARE  = {"whimper","yip"}
+                   }
 
 -- generate list of all ids to react to + lookup table in which k = npc id and v = type of reaction
 local REACTIDS = {}
@@ -532,7 +560,7 @@ ANIM.WALK = function(npcRef)
 		for i=0,2 do
 			data.anim.frame = 1 + 2*i
 			if  data.bark.mouthOpen  then
-				data.anim.frame = data.animFrame+1
+				data.anim.frame = data.anim.frame+1
 			end
 
 			--Graphics.draw {type=RTYPE_TEXT, x=x1, y=y1, text="WALK"}
@@ -552,7 +580,7 @@ ANIM.AIR = function(npcRef)
 		end
 
 		if  data.bark.mouthOpen  then
-			data.anim.frame = data.animFrame+1
+			data.anim.frame = data.anim.frame+1
 		end
 		eventu.waitFrames(0)
 	end
@@ -660,6 +688,18 @@ MOVE.ROAM = function(npcRef)
 	local sleepCounter = 0
 	local data = npcRef.data.pal
 
+	data.follow.distance = math.huge
+	data.follow.target   = nil
+	data.follow.type     = nil
+	data.follow.react    = "NONE"
+	data.follow.timer    = 0
+
+
+	npcRef:mem(0x136, FIELD_WORD, 0)
+	data.friction = 0
+	data.accel = 0
+	data.bark.active = false
+
 	while (sleepCounter < 5) do
 		-- Turn around randomly or if too far from home position
 		local changedDir = false
@@ -704,22 +744,35 @@ end
 MOVE.FOLLOW = function(npcRef)
 	local data = npcRef.data.pal
 
+	-- Leap with excitement
+	data.bark.active = false
 	npcRef.speedX = 0
+	while  (not data.move.grounded)  do
+		eventu.waitFrames(0)
+	end
+
+	setPalAnimState(npcRef, ANIM.AIR)
 	npcRef.speedY = -4
-	setPalAnimState(self, ANIM.AIR)
 	eventu.waitFrames(1)
 
+
+	-- Turn toward the target
 	if  data.follow.target.isValid  then
 		npcRef.direction = objDirection(npcRef, data.follow.target)
 	end
 	eventu.waitFrames(30)
 
+
+	-- Begin following the target
 	while (data.follow.target ~= nil) do
 
+		-- Standing is default animation
+		local currentAnim = ANIM.STAND
+
 		-- Determine the type of reaction and the distance to stop at
-		setPalAnimState(self, ANIM.STAND)
-		npcRef.speedX = 0
-		data.bark.active = false
+		if  data.move.grounded  then
+			npcRef.speedX = 0
+		end
 
 		if  data.follow.target.isValid  then
 			local stopDist = 64
@@ -738,16 +791,15 @@ MOVE.FOLLOW = function(npcRef)
 			-- When at the right distance, behave according to the reaction type
 			if  data.follow.distance > stopDist-8  and  data.follow.distance < stopDist+8  then
 
-				setPalAnimState (npcRef, ANIM.STAND);
-				if  rType == "DIG"    then  data.startDigging = true;                                        end;
-				if  rType == "SCARE"  then  setPalAnimState (npcRef, ANIM.SCARE);  data.bark.active = true;  end;
-				if  rType == "ANGER"  then  setPalAnimState (npcRef, ANIM.ANGER);  data.bark.active = true;  end;
+				if  rType == "DIG"    then  data.startDigging = true;                            end;
+				if  rType == "SCARE"  then  currentAnim = ANIM.SCARE;  data.bark.active = true;  end;
+				if  rType == "ANGER"  then  currentAnim = ANIM.ANGER;  data.bark.active = true;  end;
+
 
 			-- When closer than the stop distance, move based on reaction type
 			elseif  data.follow.distance < stopDist  then
 
 				if  rType == "SCARE"  or  rType == "ANGER"  then
-					setPalAnimState(npcRef, ANIM.WALK)
 					if  rType == "SCARE"  then
 						npcRef.animationFrame = npcRef.animationFrame + 22
 					end
@@ -765,22 +817,43 @@ MOVE.FOLLOW = function(npcRef)
 				if rType == "SCARE"  then
 
 				else
-					setPalAnimState(npcRef, ANIM.WALK)
 					npcRef.speedX = (0.5 + 3.5 * (data.follow.distance/256))
 					if  dirToTarget == DIR_LEFT  then
 						npcRef.speedX = -npcRef.speedX
 					end
 				end
 			end
+
+
+			-- Jump up to target if not scared
+			if  rType ~= "SCARE"  and  (data.follow.target.y + data.follow.target.height - 32) < npcRef.y-8  and  data.move.grounded  then
+
+				-- Jump based on a timer
+				data.follow.jumptimer = data.follow.jumptimer - 1
+
+				if  data.follow.jumptimer <= 0  then
+					npcRef.speedY = math.min(24,npcRef.y-data.follow.target.y)*-0.3*rng.random(0.8, 1.2)
+					data.follow.jumptimer = rng.random(10,30)
+				end
+			end
 		end
 
-		if  npcRef.speedX == 0  then
-			--Graphics.draw {type=RTYPE_TEXT, isSceneCoordinates=true, x=npcRef.x, y=npcRef.y-32, text="STOPPED"}
+		-- Handle animation
+		if  data.move.grounded  then
+			if  npcRef.speedX ~= 0  then
+				currentAnim = ANIM.WALK
+			end
+		else
+			currentAnim = ANIM.AIR
 		end
+		setPalAnimState(npcRef, currentAnim)
 
+		-- Yield
 		eventu.waitFrames(0)
 	end
 
+
+	-- When the target is no longer valid, begin roaming again
 	setPalMoveState(npcRef, MOVE.ROAM)
 end
 
@@ -790,11 +863,11 @@ MOVE.DIG = function(npcRef)
 	-- Stop moving and start sniffing
 	npcRef.speedX = 0
 	setPalAnimState (npcRef, ANIM.SNIFF)
-	eventu.waitFrames (pal.settings.framespeed*8)
+	eventu.waitFrames (pal.settings.framespeed*4)
 
 	-- Start digging
 	setPalAnimState (npcRef, ANIM.DIG)
-	eventu.waitFrames (pal.settings.framespeed*20)
+	eventu.waitFrames (pal.settings.framespeed*7)
 
 	-- Pluck the NPC
 	local npcToSpawn = data.follow.target.ai1
@@ -820,9 +893,65 @@ end
 
 
 MOVE.HELD = function(npcRef)
+	local data = npcRef.data.pal
+	npcRef.speedX = 0
+	npcRef.data.accel = 0
 	while (true) do
+
+		data.bark.active = false
+		if  data.follow.target ~= nil  then
+
+			-- Barking frequency based on proximity to target
+			if  data.follow.distance < 2560  then
+				data.bark.active = true
+				data.bark.freq = math.max(20, math.min(data.follow.distance*0.25, 240))
+			end
+
+			-- Different animations based on different target reactions
+			local currentAnim = ANIM.STAND
+			local dirToTarget = objDirection(npcRef, data.follow.target)
+
+			if  REACTPRIORITY[data.follow.react] > REACTPRIORITY.DIG  then
+				npcRef.direction = dirToTarget  or  player.direction
+				if  data.follow.react == "SCARE"  then
+					currentAnim = ANIM.WORRY
+					if  data.follow.distance < 64  then  currentAnim = ANIM.SCARE;  end;
+				end
+				if  data.follow.react == "ANGER"  then  currentAnim = ANIM.ANGER;  end;
+			end
+
+			setPalAnimState (npcRef, currentAnim)
+		end
+		eventu.waitFrames(0)
 	end
 end
+
+MOVE.AIR = function(npcRef)
+	setPalAnimState (npcRef, ANIM.AIR)
+	npcRef:mem(0x12C, FIELD_WORD, 0)
+
+	local data = npcRef.data.pal
+
+	data.bark.active = false
+	data.friction = 0
+	data.accel = 0
+	while (true) do
+
+		--[[
+		if  npcRef:mem(0x0A, FIELD_WORD) == 2  then
+			if  npcRef.speedY == 0  then
+				data.friction = 0.1
+			end
+
+			if  math.abs(npcRef.speedX) <= 0.5  then
+				setPalMoveState (npcRef, MOVE.ROAM)
+			end
+		end
+		]]
+		eventu.waitFrames(0)
+	end
+end
+
 
 MOVE.SCARERUN = function(npcRef)
 	setPalAnimState(npcRef, ANIM.WALK)
@@ -868,13 +997,14 @@ function pal:onTickNPC()
 	if self.data.pal == nil  then
 	    self.data.pal = {
 	                     move = {
-	                             state = nil,
-	                             cor   = nil
+	                             state    = nil,
+	                             grounded = true,
+	                             cor      = nil
 	                            },
 	                     anim = {
-	                             state = nil,
-	                             cor   = nil,
-	                             frame = 1
+	                             state    = nil,
+	                             cor      = nil,
+	                             frame    = 1
 	                            },
 	                     accel        = 0,
 	                     friction     = 0,
@@ -885,11 +1015,11 @@ function pal:onTickNPC()
 	                                     freq      = 20,
 	                                     timer     = 0,
 	                                    },
-	                     follow       = {target=nil, distance=math.huge, type=nil, react="NONE", timer=1},
+	                     follow       = {target=nil, distance=9999, maxdist=128, type=nil, react="NONE", timer=1, jumptimer=1},
 	                     homePos      = {x=self.x,y=self.y}
 	                    }
-		setPalMoveState(self, MOVE.ROAM)
-		setPalAnimState(self, ANIM.STAND)
+		setPalMoveState (self, MOVE.ROAM)
+		setPalAnimState (self, ANIM.STAND)
 	end
 
 	local data = self.data.pal
@@ -903,7 +1033,7 @@ function pal:onTickNPC()
 
 	-- Manage follow targeting
 	local allTargets = table.join ({player}, NPC.get(REACTIDS, player.section))
-	local closestDist = 128
+	local closestDist = data.follow.maxdist
 	local closestTarget = nil
 	local closestType = nil
 	local closestReact = "NONE"
@@ -914,17 +1044,24 @@ function pal:onTickNPC()
 		local targetType = nil
 		local reactType  = nil
 
-		if  v.ai1 ~= nil  then
+		if  v.__type == "NPC"  then
 			-- if it's an NPC, the NPC must not be hidden unless it's something to dig up
-			isValid = (not v:mem(0x40, FIELD_WORD)  or  REACTTYPES[v.id] == "DIG")
-			if  isValid  then  v = pnpc.wrap(v);  end;
-			targetType = "npc"
-			reactType = REACTTYPES[v.id]
+			v = pnpc.wrap(v)
+			isValid = (not v:mem(0x40, FIELD_BOOL)  or  v.data.buried == true)
+			if  isValid  then
+				targetType = "npc"
+				reactType = REACTTYPES[v.id]
+				if  v.data.buried == true  then
+					reactType = "DIG"
+				end
+			end
 		else
-			-- if it's the player, automatically valid
-			isValid = true
-			targetType = "player"
-			reactType = "PLAYER"
+			-- if it's the player, automatically valid unless being held
+			if data.move.state ~= MOVE.HELD  then
+				isValid = true
+				targetType = "player"
+				reactType = "PLAYER"
+			end
 		end
 
 		-- If the target is valid and there's a clear line of sight, 
@@ -932,7 +1069,12 @@ function pal:onTickNPC()
 		if  isValid  and  clearShot(self,v)  then
 			local isNew = false
 			local dist = objDistance (self,v)
-			if  dist < 256  and  (dist <= closestDist  or  REACTPRIORITY[reactType] > REACTPRIORITY[closestReact]  or  (REACTPRIORITY[reactType] > REACTPRIORITY[closestReact]  and  dist < closestDist))  then
+			local defDist = data.follow.maxdist or 128
+			local typeDist = REACTDIST[reacttype] or 128
+
+			if  dist <= math.max(defDist, typeDist)  and
+				((dist <= closestDist  and  REACTPRIORITY[reactType] == REACTPRIORITY[closestReact])  or
+				 (REACTPRIORITY[reactType] > REACTPRIORITY[closestReact]))                            then
 				closestDist = dist
 				closestTarget = v
 				closestType = targetType
@@ -955,6 +1097,7 @@ function pal:onTickNPC()
 		end
 	-- If there is a valid target to follow... well, follow it!
 	else
+		Graphics.draw {type=RTYPE_TEXT, x=closestTarget.x, y=closestTarget.y, text="TARGET", isSceneCoordinates=true}
 		data.follow.distance = objDistance(self, {x=closestTarget.x, y=self.y, width=closestTarget.width, height=self.height})
 		data.follow.target   = closestTarget
 		data.follow.type     = closestType
@@ -975,6 +1118,17 @@ function pal:onTickNPC()
 		if  data.bark.timer >= data.bark.freq  then
 			data.bark.timer = -10
 			data.bark.mouthOpen = true
+
+			local selectedList = REACTBARKS.NONE
+			if  data.follow.react ~= nil  then
+				selectedList = REACTBARKS[data.follow.react]
+				if  data.follow.distance < 64  then
+					selectedList = REACTBARKS2[data.follow.react]
+				end
+			end
+
+			local selectedSound = rng.randomEntry(selectedList)
+			audio.PlaySound{sound = Misc.resolveFile("sound/voice/pal/v-pal-"..selectedSound..".ogg"), volume = rng.random(0.8,1)}
 			-- sound effect
 		end
 	else
@@ -983,16 +1137,15 @@ function pal:onTickNPC()
 	end
 
 
-	-- Manage states
+	-- Natural state transitions
+	data.follow.maxdist = 256
+
 		-- SLEEPING
 		if      data.move.state == MOVE.SLEEP  then
 			-- wake up if the player runs, lands or picks up
 
 		-- ROAMING
 		elseif  data.move.state == MOVE.ROAM   then
-
-			-- Stop barking
-			data.bark.active = false
 
 			-- If a target is found, switch to follow mode
 			if  data.follow.target ~= nil  then
@@ -1003,12 +1156,37 @@ function pal:onTickNPC()
 		elseif  data.move.state == MOVE.FOLLOW   then
 			data.bark.freq = rng.randomInt (20,65)
 
-		-- FOLLOWING
-		elseif  data.move.state == MOVE.HELD   then
-			data.bark.active = true
+		-- LANDING
+		elseif  data.move.state == MOVE.AIR  then
+			if  data.move.grounded  then
+				self.speedX = self.speedX * 0.75
+				
+				if  math.abs(self.speedX) < 0.5  then
+					setPalMoveState(self, MOVE.ROAM)
+				end
+			end
 		end
 
+
+	-- Forced state transitions
+		-- THROWING
+		if  data.move.state == MOVE.HELD  then
+			if  self:mem(0x12E, FIELD_WORD) < 30  then
+				setPalMoveState(self, MOVE.AIR)
+			end
+
+		-- PICKING UP
+		elseif  self:mem(0x12C, FIELD_WORD) > 0  then  -- If being held by a player
+			setPalMoveState(self, MOVE.HELD)
+			data.follow.maxdist = 2560
+		end
+
+
+
+
 	-- Manage physics
+	data.move.grounded = (self:mem(0x0A, FIELD_WORD) == 2)
+
 	if  data.accel ~= 0  then
 		self.speedX = self.speedX + data.accel
 	end
@@ -1019,6 +1197,7 @@ function pal:onTickNPC()
 			self.speedX = self.speedX - (self.speedX/math.abs(self.speedX))*data.friction
 		end
 	end
+
 
 	-- Manage animation
 	self.animationFrame = data.anim.frame-1;
