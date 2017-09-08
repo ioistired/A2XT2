@@ -2,6 +2,7 @@ local textblox = API.load("textblox")
 local imagic = API.load("imagic")
 local pm = API.load("playerManager")
 local leveldata = API.load("a2xt_leveldata")
+local minigame = API.load("a2xt_minigame")
 local audiomaster = API.load("audiomaster")
 
 local pause = {}
@@ -72,6 +73,11 @@ local function option_exitgame()
 	confirmBox(gameexit);
 end
 
+local function option_exitminigame()
+	unpause();
+	minigame.exit();
+end
+
 local function option_restart()
 	quitting = true;
 	unpause();
@@ -84,12 +90,15 @@ local function option_restart()
 	mem(0x00B2C5B4, FIELD_WORD, -1);
 end
 
-local options = {
+local options;
+local queueMenuReset = false;
+
+local function forceResetMenu()
+	options = {
 				{name = "continue", action = unpause}
 				};
-
-do
-	if(isOverworld or isTownLevel()) then
+				
+	if((isOverworld or isTownLevel()) and not minigame.inGame) then
 		table.insert(options, {name = "save", action = option_save});
 	end
 
@@ -97,8 +106,10 @@ do
 		if(--[[unlocked hub]] true) then
 			table.insert(options, {name = "return to P.O.R.T.(S.)", action = function() end});
 		end
-	else
+	elseif(not minigame.inGame) then
 		table.insert(options, {name = "exit to map", action = option_exitlevel});
+	else
+		table.insert(options, {name = "end minigame", action = option_exitminigame});
 	end
 		
 	table.insert(options, {name = "quit game", action = option_exitgame});
@@ -107,6 +118,12 @@ do
 		table.insert(options,2,{name = "reload level", action = option_restart});
 	end
 end
+
+function pause.resetPauseMenu()
+	queueMenuReset = true;
+end
+
+forceResetMenu();
 
 local pauseBorder = Graphics.loadImage(Misc.resolveFile("graphics/HUD/levelBorder.png"));
 local pausebg = imagic.Create{primitive=imagic.TYPE_BOX, x=400,y=300, align=imagic.ALIGN_CENTRE, width = 400, height = (40*#options)+40, bordertexture=pauseBorder, borderwidth = 32};
@@ -304,6 +321,11 @@ end
 
 function pause.onInputUpdate()
 	unregisterEvent(pm, "onInputUpdate", "onInputUpdate");
+	
+	if(queueMenuReset and not game_paused) then
+		forceResetMenu();
+	end
+	
 	local prepareMusic = false;
     local musiccheatcode = Misc.cheatBuffer()
     local musiccheat = string.find(musiccheatcode, "music", 1)
