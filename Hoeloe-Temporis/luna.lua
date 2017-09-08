@@ -223,17 +223,23 @@ local function cor_arena(state)
 	
 	spawnArenaNPC(1, spawnPos[2], 1);
 	spawnArenaNPC(1, spawnPos[3], -1);
-	eventu.waitFrames(32);
+	eventu.waitFrames(48);
 	spawnArenaNPC(1, spawnPos[2], 1);
 	spawnArenaNPC(1, spawnPos[3], -1);
-	eventu.waitFrames(32);
+	eventu.waitFrames(48);
 	spawnArenaNPC(1, spawnPos[2], 1);
 	spawnArenaNPC(1, spawnPos[3], -1);
 	
 	waitUntilDead();
+	eventu.waitFrames(48);
 	
-	spawnArenaNPC(311, spawnPos[2], 1);
-	spawnArenaNPC(311, spawnPos[3], -1);
+	spawnArenaNPC(109, spawnPos[2], 1);
+	spawnArenaNPC(109, spawnPos[3], -1);
+	spawnArenaNPC(109, spawnPos[1], 1);
+	spawnArenaNPC(109, spawnPos[4], -1);
+	
+	waitUntilDead();
+	Text.dialog("buttman")
 	
 end
 
@@ -710,6 +716,16 @@ function onDraw()
 		
 			--"generator" hackery
 			if(arenaNPCs) then
+				local npcsInArena = NPC.get(NPC.HITTABLE,10);
+				if(#npcsInArena > #arenaNPCs) then
+					for _,v in ipairs(npcsInArena) do
+						v = pnpc.wrap(v);
+						if(not table.ifind(arenaNPCs, v)) then
+							v.data.t = 9999;
+							table.insert(arenaNPCs, v);
+						end
+					end
+				end
 				for i = #arenaNPCs,1,-1 do
 					local v = arenaNPCs[i];
 					if(v.isValid) then
