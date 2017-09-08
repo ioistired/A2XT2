@@ -67,6 +67,36 @@ message.presetSequences.sportsball = function(args)
 	scene.endScene()
 end
 
+message.presetSequences.chefQuest = function(args)
+	local talker = args.npc
+
+	message.promptChosen = false
+	message.showMessageBox {target=talker, text="Oh, woe is moi! Whatever shallot do!?", closeWith="prompt"}
+	message.waitMessageDone()
+
+	message.showPrompt{options={"What's wrong?","*Ignore him*"}}
+	message.waitPrompt()
+
+	if  message.promptChoice == 1  then
+		message.promptChosen = false
+		message.showMessageBox {target=talker, text="Zis upcoming banquet is mon debut in ze world of 'igh cuisine!<page>I've done everyzing I can in preparation so I can make a big impact:<page>I renovated zis restaraunt, I downloaded ze best recipes from ze food network...<page>I even taught myzelf zis cheesy French accent for auzenticity!<page>But I still knead ze ingredients for ze piece de resistance: mon fruit salad a la mode!<page>Wizout enough of Muffin Bluff's berries, ze dish will be incomplete and all mon effort will be for naught!<page>I would go get zem myzelf, but my body, it is not made for ze running and jumping.<page>If only I 'ad a fit, young "..message.perCharString("[mademoiselle/mademoiselle/damoiseau/damoiseau/mademoiselle]").." like vous to fetch zem for moi...", closeWith="prompt"}
+		message.waitMessageDone()
+
+		message.showPrompt{options={"How many?","Bummer. Well, good luck with that!"}}
+		message.waitPrompt()
+		
+		if  message.promptChoice == 1  then
+			message.showMessageBox {target=talker, text="Mon dieu, merci!  I need about ten of ze berries.<page>Be careful not to get 'urt while collecting zem, zey bruise quite easily and I need zem in top condition!"}
+			message.waitMessageEnd()
+		else
+			message.showMessageBox {target=talker, text="Adieu.  Please let me know if you find anyone who could 'elp moi!"}
+			message.waitMessageEnd()
+		end
+	end
+
+	scene.endScene()
+end
+
 message.presetSequences.revealBase = function(args)
 	Audio.SeizeStream(-1)
 	Audio.MusicPause()
@@ -211,6 +241,9 @@ function onEvent (eventName)
 	end
 	if eventName == "Dump Dialog"  then
 		message.textLogToConsole()
+	end
+	if eventName == "Reset Chests"  then
+		SaveData.chests = {}
 	end
 end
 

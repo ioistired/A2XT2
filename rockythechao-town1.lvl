@@ -2887,7 +2887,7 @@
 #FALSE#
 "Default"
 ""
-"Dump Dialog"
+"Reset Chests"
 ""
 -197824
 -200576
@@ -32326,7 +32326,7 @@
 1
 72
 #FALSE#
-"Chef Goormet:Oh, woe is moi! Whatever shallot I do!?"
+"{name='Chef Goormet', event='chefQuest'}"
 #TRUE#
 #TRUE#
 #FALSE#
@@ -32606,7 +32606,7 @@
 ""
 ""
 ""
--200192
+-200384
 -200576
 -1
 111
@@ -32801,12 +32801,12 @@
 ""
 ""
 ""
--200384
+-200320
 -200608
 -1
 979
 #FALSE#
-"{id=1,type='raocoin',quantity=5,buried=true}"
+"{type='raocoin',quantity=5,buried=true}"
 #FALSE#
 #FALSE#
 #FALSE#
@@ -34966,7 +34966,7 @@
 0
 0
 0
-"Dump Dialog"
+"Reset Chests"
 ""
 0
 0

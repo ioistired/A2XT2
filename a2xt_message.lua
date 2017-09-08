@@ -152,6 +152,20 @@ end
 --***************************
 --** Utility Functions     **
 --***************************
+local function quickparse_perchar(a)
+	local t = a:sub(2,-2):split("/");
+	return t[player.character] or t[1];
+end
+
+local function quickparse(msg)
+	if(isTownLevel()) then
+		return (msg:gsub("(%b[])", quickparse_perchar))
+	else
+		return msg;
+	end
+end
+
+
 local function logText (text, name)
 	if  #SaveData.textLog > textLogLimit  then
 		table.remove(SaveData.textLog, 1)
@@ -484,6 +498,14 @@ function a2xt_message.textLogToConsole ()
 end
 
 
+function a2xt_message.perCharString(args)
+	if  type(args) == "string"  then
+		return quickparse_perchar(args)
+	else
+		return ""
+	end
+end
+
 function a2xt_message.endMessage()
 	if(Misc.isPausedByLua()) then
 		Misc.unpause();
@@ -814,18 +836,6 @@ function a2xt_message.onDraw()
 		end
 end
 
-local function quickparse_perchar(a)
-	local t = a:sub(2,-2):split("/");
-	return t[player.character] or t[1];
-end
-
-local function quickparse(msg)
-	if(isTownLevel()) then
-		return (msg:gsub("(%b[])", quickparse_perchar))
-	else
-		return msg;
-	end
-end
 
 function a2xt_message.onCameraUpdate(eventobj, camindex)
 	if(camindex > 1) then return end;

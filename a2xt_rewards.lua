@@ -120,12 +120,21 @@ local function cor_giveReward (args)
 		cam:Transition {time=0.5, targets=targetTemp, yOffset=yOffTemp, zoom=zoomTemp, easeBoth=cman.EASE.QUAD, runWhilePaused=true}
 	end
 
-	scene.endScene()
+	local  endScene = args.endScene
+	if  endScene == true  or  endScene == nil  then
+		scene.endScene()
+	end
+
+	eventu.signal("giveOver")
 end
 
 
 function rewards.give(args)
 	scene.startScene{scene=cor_giveReward, sceneArgs=args}
+
+	if  args.wait == true  then
+		return eventu.waitSignal("giveOver")
+	end
 end
 
 function rewards.giveRaocoins(num)

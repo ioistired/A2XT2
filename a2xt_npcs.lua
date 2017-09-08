@@ -4,6 +4,8 @@ local npcManager = API.load("npcManager")
 local pnpc = API.load("pnpc")
 local audio = API.load("audioMaster")
 
+
+local a2xt_rewards = API.load("a2xt_rewards")
 local a2xt_audio = API.load("a2xt_audio")
 local a2xt_message = API.load("a2xt_message")
 
@@ -251,27 +253,6 @@ function pengs:onMessageEnd(id)
 	end
 end
 
-function a2xt_message.onMessage(npc, text)
-	if(npc ~= nil) then
-		if(npc.id == blackmarket.settings.id) then
-			blackmarket.onMessage(npc)
-		elseif(pengData[npc.id]) then
-			pengs.onMessage(npc,id);
-		end
-	end
-end
-
-function a2xt_message.onMessageEnd(npc)
-	if(npc and npc.isValid) then
-		local id = npc.id;
-		if(pengData[id]) then
-			pengs.onMessageEnd(npc, id);
-		elseif(id == blackmarket.settings.id) then
-			blackmarket.onMessageEnd(npc);
-		end
-	end
-end
-
 function pengs:onStartNPC()
 	if(pengData[self.id].collected) then --TODO: add check for hub
 		self:kill(9);
@@ -351,10 +332,103 @@ end
 
 
 -- ***********************
+-- ** TREASURE CHESTS   **
+-- ***********************
+local eventu = API.load("eventu");
+local a2xt_scene = API.load("a2xt_scene");
+
+local chestData = SaveData.chests
+if  chestData == nil  then
+	SaveData.chests = {}
+end
+
+local chest = {}
+local chestSettings = table.join(
+				 defaults,
+				 {id = 979,
+				  gfxheight = 64, 
+				  gfxwidth = 64, 
+				  width = 64,
+				  gfxoffsetx = 0,
+				  gfxoffsety = 0,
+				  height = 64});
+
+chestSettings.noyoshi = 1;
+chestSettings.grabtop = 0;
+chestSettings.grabside = 0;
+chestSettings.frames = 2;
+chestSettings.framespeed = 12;
+
+registerEvent(chest, "onStart");
+npcManager.registerEvent(chestSettings.id, chest, "onTickNPC");
+chest.settings = npcManager.setNpcSettings(chestSettings);
+
+
+a2xt_message.presetSequences.chest = function(args)
+	local chest = args.npc
+	local data = chest.data.chest
+	local openFlag = SaveData.chests[data.chestid]
+
+	if  openFlag ~= true  then
+		Audio.SeizeStream(-1)
+		Audio.MusicPause()
+
+		SaveData.chests[data.chestid] = true
+		playSFX(28)
+		eventu.waitSeconds (1)
+
+		a2xt_rewards.give(table.join (data, {useTransitions=false, endScene=false, wait=true}))
+		chest.data.event = nil
+	end
+
+	Audio.MusicResume()
+	a2xt_scene.endScene()
+end
+
+function chest:onTickNPC()
+	self.friendly = true
+	self.data.event = "chest"
+
+
+	-- Initialize data table
+	local data = self.data.chest
+
+	if data == nil  then
+	    self.data.chest = {
+	                     type = self.data.type  or  "raocoin",
+	                     quantity = self.data.quantity  or  self.data.item  or  5
+	                    }
+		data = self.data.chest
+
+		-- Base the id on the item type: 
+		-- raocoins use the level's filename plus spawn coordinates
+		if  data.type == "raocoin"  or  data.type == "raocoins"  then
+			data.chestid = Level.filename().."-"..tostring(self:mem(0xA8, FIELD_WORD)).."-"..tostring(self:mem(0xB0, FIELD_WORD))
+
+		-- other items just use the type and id number
+		else
+			data.chestid = data.type.."-"..tostring(data.quantity)
+		end
+	end
+
+
+	-- Manage frame
+	local openFlag = SaveData.chests[data.chestid]
+
+	self.direction = DIR_LEFT
+	self.animationFrame = 0;
+	if  openFlag == true  then
+		self.animationFrame = 1;
+	end
+	self.animationTimer = 2;
+end
+
+
+
+-- ***********************
 -- ** PAL STUFF         **
 -- ***********************
 local vectr = API.load("vectr");
-local eventu = API.load("eventu");
 local colliders = API.load("colliders");
 
 local pal = {}
@@ -1302,6 +1376,31 @@ function pal:onTickNPC()
 			self.animationFrame = self.animationFrame + 22
 		end
 		self.animationTimer = 2;
+	end
+end
+
+
+
+
+
+function a2xt_message.onMessage(npc, text)
+	if(npc ~= nil) then
+		if(npc.id == blackmarket.settings.id) then
+			blackmarket.onMessage(npc)
+		elseif(pengData[npc.id]) then
+			pengs.onMessage(npc,id);
+		end
+	end
+end
+
+function a2xt_message.onMessageEnd(npc)
+	if(npc and npc.isValid) then
+		local id = npc.id;
+		if(pengData[id]) then
+			pengs.onMessageEnd(npc, id);
+		elseif(id == blackmarket.settings.id) then
+			blackmarket.onMessageEnd(npc);
+		end
 	end
 end
 
