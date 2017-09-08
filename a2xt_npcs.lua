@@ -367,6 +367,8 @@ local palSettings = table.join(
 				  gfxoffsetx = 0,
 				  gfxoffsety = 2,
 				  height = 32});
+
+palSettings.noyoshi = 0;
 palSettings.grabtop = 1;
 palSettings.grabside = 1;
 palSettings.frames = 22;
@@ -405,7 +407,7 @@ local REACTBARKS = {
                     FOLLOW = {"bow","wow","woof","pant"},
                     DIG    = {"sniff","pant"},
                     ANGER  = {"growl"},
-                    SCARE  = {"whimper"}
+                    SCARE  = {"whimper","whine"}
                    }
 local REACTBARKS2 = {
                      NONE   = {"bark","bark2","woof"},
@@ -413,7 +415,7 @@ local REACTBARKS2 = {
                      FOLLOW = {"bow","wow","woof","pant"},
                      DIG    = {"woof","sniff","bow","wow"},
                      ANGER  = {"snarl","bark","bark2"},
-                     SCARE  = {"whimper","yip"}
+                     SCARE  = {"whimper","whine","yip"}
                    }
 
 -- generate list of all ids to react to + lookup table in which k = npc id and v = type of reaction
@@ -796,26 +798,26 @@ MOVE.FOLLOW = function(npcRef)
 
 		if  data.follow.target.isValid  then
 			local stopDist = 64
-			local rType = "PLAYER"
+			local rType = data.follow.react
 			local dirToTarget = objDirection(npcRef, data.follow.target)
 			npcRef.direction = objDirection(npcRef, data.follow.target)
 			
 			if  data.follow.type == "npc"  then
-				 rType = REACTTYPES[data.follow.target.id];
+				rType = REACTTYPES[data.follow.target.id];
 				if(data.follow.target.data.buried == true) then
 					rType = "DIG"
 				end
-
-				if  rType == "DIG"    then  stopDist = 24;   end;
-				if  rType == "SCARE"  then  stopDist = 256;  end;
-				if  rType == "ANGER"  then  stopDist = 128;  end;
 			end
+			if  rType == "DIG"    then  stopDist = 24;   end;
+			if  rType == "SCARE"  then  stopDist = 256;  end;
+			if  rType == "ANGER"  then  stopDist = 128;  end;
+
 
 			-- When at the right distance, behave according to the reaction type
 			if  data.follow.distance > stopDist-8  and  data.follow.distance < stopDist+8  and  math.abs(data.follow.target.y+(data.follow.target.height or 0)*0.5 - (npcRef.y + npcRef.height*0.5)) < stopDist+8  then
 
 				if  rType == "DIG"    then  data.startDigging = true;                            end;
-				if  rType == "SCARE"  then  currentAnim = ANIM.SCARE;  data.bark.active = true;  end;
+				if  rType == "SCARE"  then  currentAnim = ANIM.WORRY;  data.bark.active = true;  end;
 				if  rType == "ANGER"  then  currentAnim = ANIM.ANGER;  data.bark.active = true;  end;
 
 
@@ -898,26 +900,28 @@ MOVE.DIG = function(npcRef)
 	-- Pluck the NPC
 	local npcToSpawn = data.follow.target.ai1
 	local newNpc;
-	if(npcToSpawn > 0) then --is a container
-		data.follow.target:kill()
-		newNpc = NPC.spawn (npcToSpawn, data.follow.target.x+data.follow.target.width*0.5, data.follow.target.y-17, player.section, true, true)
-	else
-		data.follow.target.isHidden = false;
-		data.follow.target.data.buried = nil;
-		newNpc = data.follow.target;
-		data.follow.target = nil;
+	if  (npcToSpawn ~= nil)  then
+		if(npcToSpawn > 0) then --is a container
+			data.follow.target:kill()
+			newNpc = NPC.spawn (npcToSpawn, data.follow.target.x+data.follow.target.width*0.5, data.follow.target.y-17, player.section, true, true)
+		else
+			data.follow.target.isHidden = false;
+			data.follow.target.data.buried = nil;
+			newNpc = data.follow.target;
+			data.follow.target = nil;
+		end
+		if(newNpc.id == 979) then --chest
+			newNpc.speedY = -3
+		else
+			newNpc.speedY = -8
+			newNpc.speedX = rng.random(-2,2)
+		end
+		
+		if(NPC_COIN_MAP[newNpc.id]) then
+			newNpc.ai1 = 1;
+		end
 	end
-	if(newNpc.id == 979) then --chest
-		newNpc.speedY = -3
-	else
-		newNpc.speedY = -8
-		newNpc.speedX = rng.random(-2,2)
-	end
-	
-	if(NPC_COIN_MAP[newNpc.id]) then
-		newNpc.ai1 = 1;
-	end
-	
+
 	Audio.playSFX(9);
 
 	-- reset the follow data
@@ -1006,6 +1010,23 @@ MOVE.SCARERUN = function(npcRef)
 	end
 end
 
+local scaredOfCatllamas = false
+MOVE.SPITOUT = function(npcRef)
+	--eventu.waitFrames(4)
+	while (npcRef:mem(0x138, FIELD_WORD) == 5) do
+		player:mem(0xFE, FIELD_BOOL, not player:mem(0xFE, FIELD_BOOL))
+		eventu.waitFrames(1)
+	end
+	if  not scaredOfCatllamas  then
+		scaredOfCatllamas = true
+		for  k,v in pairs {95,98,99,100,148,149,150,228}  do
+			table.insert(REACTIONS.SCARE, v)
+			REACTTYPES[v] = "SCARE"
+		end
+	end
+	setPalMoveState (npcRef, MOVE.SCARERUN)
+end
+
 MOVE.SLEEP = function(npcRef)
 	local data = npcRef.data.pal
 
@@ -1069,197 +1090,219 @@ function pal:onTickNPC()
 	local data = self.data.pal
 
 
-	-- Stubborn following coroutine stopgap
-	if  data.startDigging  then
-		data.startDigging = false
-		setPalMoveState (self, MOVE.DIG)
-	end
-	
-	for i=#buriedNPCs,1,-1 do
-		if(not buriedNPCs[i].isValid or buriedNPCs[i].data.buried ~= true) then
-			table.remove(buriedNPCs,i);
+	-- If Pal is despawned, then
+	if  self:mem(0x12A, FIELD_WORD) <= 0  then
+		data.bark.active = false
+		if  data.move.state ~= MOVE.ROAM  then
+			setPalMoveState (self, MOVE.ROAM)
+			setPalAnimState (self, ANIM.STAND)
 		end
-	end
 
-	-- Manage follow targeting
-	local allTargets = table.append ({player}, buriedNPCs, NPC.get(REACTIDS, player.section))
-	local closestDist = data.follow.maxdist
-	local closestTarget = nil
-	local closestType = nil
-	local closestReact = "NONE"
-	for  _,v in ipairs(allTargets)  do
+	else
+		-- Stubborn following coroutine stopgap
+		if  data.startDigging  then
+			data.startDigging = false
+			setPalMoveState (self, MOVE.DIG)
+		end
+		
+		for i=#buriedNPCs,1,-1 do
+			if(not buriedNPCs[i].isValid or buriedNPCs[i].data.buried ~= true) then
+				table.remove(buriedNPCs,i);
+			end
+		end
 
-		-- Determine validity based on object type
-		local isValid = false
-		local targetType = nil
-		local reactType  = nil
+		-- Manage follow targeting
+		local allTargets = table.append ({player}, buriedNPCs, NPC.get(REACTIDS, player.section))
+		local closestDist = data.follow.maxdist
+		local closestTarget = nil
+		local closestType = nil
+		local closestReact = "NONE"
+		for  _,v in ipairs(allTargets)  do
 
-		if  v.__type == "NPC"  then
-			-- if it's an NPC, the NPC must not be hidden unless it's something to dig up
-			v = pnpc.wrap(v)
-			isValid = (not v:mem(0x40, FIELD_BOOL)  or  v.data.buried == true)
-			if  isValid  then
-				targetType = "npc"
-				reactType = REACTTYPES[v.id]
-				if  v.data.buried == true  then
-					reactType = "DIG"
+			-- Determine validity based on object type
+			local isValid = false
+			local targetType = nil
+			local reactType  = nil
+
+			if  v.__type == "NPC"  then
+				-- if it's an NPC, the NPC must not be hidden unless it's something to dig up
+				v = pnpc.wrap(v)
+				isValid = (not v:mem(0x40, FIELD_BOOL)  or  v.data.buried == true)
+				if  isValid  then
+					targetType = "npc"
+					reactType = REACTTYPES[v.id]
+					if  v.data.buried == true  then
+						reactType = "DIG"
+					end
+				end
+			else
+				-- if it's the player, automatically valid unless being held
+				if data.move.state ~= MOVE.HELD  then
+					isValid = true
+					targetType = "player"
+					reactType = "PLAYER"
+
+					-- If the player is riding a catllama, become angry (or scared if the player tried to eat him)
+					if  v:mem(0x108, FIELD_WORD) == 3  then
+						targetType = "player"
+						reactType = "ANGER"
+						if  scaredOfCatllamas  then
+							reactType = "SCARE"
+						end
+					end
 				end
 			end
-		else
-			-- if it's the player, automatically valid unless being held
-			if data.move.state ~= MOVE.HELD  then
-				isValid = true
-				targetType = "player"
-				reactType = "PLAYER"
+
+			-- If the target is valid and there's a clear line of sight, 
+			--   get the distance and check whether it's the closest/highest-priority thing so far
+			if  isValid  and  clearShot(self,v)  then
+				local isNew = false
+				local dist = objDistance (self,v)
+				local defDist = data.follow.maxdist or 128
+				local typeDist = REACTDIST[reacttype] or 128
+
+				if  dist <= math.max(defDist, typeDist)  and
+					((dist <= closestDist  and  REACTPRIORITY[reactType] == REACTPRIORITY[closestReact])  or
+					 (REACTPRIORITY[reactType] > REACTPRIORITY[closestReact]))                            then
+					closestDist = dist
+					closestTarget = v
+					closestType = targetType
+					closestReact = reactType
+				end
 			end
 		end
 
-		-- If the target is valid and there's a clear line of sight, 
-		--   get the distance and check whether it's the closest/highest-priority thing so far
-		if  isValid  and  clearShot(self,v)  then
-			local isNew = false
-			local dist = objDistance (self,v)
-			local defDist = data.follow.maxdist or 128
-			local typeDist = REACTDIST[reacttype] or 128
-
-			if  dist <= math.max(defDist, typeDist)  and
-				((dist <= closestDist  and  REACTPRIORITY[reactType] == REACTPRIORITY[closestReact])  or
-				 (REACTPRIORITY[reactType] > REACTPRIORITY[closestReact]))                            then
-				closestDist = dist
-				closestTarget = v
-				closestType = targetType
-				closestReact = reactType
+		-- If there is not a valid target to follow, stick to the current one for two seconds, or half a second if carried
+		if  closestTarget == nil  then
+		
+			if(data.move.state == MOVE.HELD) then
+				data.follow.timer = (data.follow.timer + 1) % lunatime.toTicks(0.5)
+			else
+				data.follow.timer = (data.follow.timer + 1) % lunatime.toTicks(2)
 			end
-		end
-	end
 
-	-- If there is not a valid target to follow, stick to the current one for two seconds, or half a second if carried
-	if  closestTarget == nil  then
-	
-		if(data.move.state == MOVE.HELD) then
-			data.follow.timer = (data.follow.timer + 1) % lunatime.toTicks(0.5)
+			-- If those two seconds are up, stop following
+			if  data.follow.timer == 0  then
+				data.follow.distance = math.huge
+				data.follow.target   = nil
+				data.follow.type     = nil
+				data.follow.react    = "NONE"
+				data.follow.timer    = 1
+			end
+		-- If there is a valid target to follow... well, follow it!
 		else
-			data.follow.timer = (data.follow.timer + 1) % lunatime.toTicks(2)
-		end
-
-		-- If those two seconds are up, stop following
-		if  data.follow.timer == 0  then
-			data.follow.distance = math.huge
-			data.follow.target   = nil
-			data.follow.type     = nil
-			data.follow.react    = "NONE"
+			Graphics.draw {type=RTYPE_TEXT, x=closestTarget.x, y=closestTarget.y, text="T", isSceneCoordinates=true}
+			data.follow.distance = objDistance(self, {x=closestTarget.x, y=self.y, width=closestTarget.width, height=self.height})
+			data.follow.target   = closestTarget
+			data.follow.type     = closestType
+			data.follow.react    = closestReact
 			data.follow.timer    = 1
 		end
-	-- If there is a valid target to follow... well, follow it!
-	else
-		Graphics.draw {type=RTYPE_TEXT, x=closestTarget.x, y=closestTarget.y, text="T", isSceneCoordinates=true}
-		data.follow.distance = objDistance(self, {x=closestTarget.x, y=self.y, width=closestTarget.width, height=self.height})
-		data.follow.target   = closestTarget
-		data.follow.type     = closestType
-		data.follow.react    = closestReact
-		data.follow.timer    = 1
-	end
 
 
-	-- Manage barking
-	if  data.bark.active  then
-		data.bark.timer = data.bark.timer + 1
+		-- Manage barking
+		if  data.bark.active  then
+			data.bark.timer = data.bark.timer + 1
 
-		-- Perform bark
-		if  data.bark.timer >= 0  then
+			-- Perform bark
+			if  data.bark.timer >= 0  then
+				data.bark.mouthOpen = false
+			end
+
+			if  data.bark.timer >= data.bark.freq  then
+				data.bark.timer = -10
+				data.bark.mouthOpen = true
+
+				local selectedList = REACTBARKS.NONE
+				if  data.follow.react ~= nil  then
+					selectedList = REACTBARKS[data.follow.react]
+					if  data.follow.distance < 64  then
+						selectedList = REACTBARKS2[data.follow.react]
+					end
+				end
+				
+				local selectedSound = rng.randomEntry(selectedList)
+				audio.PlaySound{sound = Misc.resolveFile("sound/voice/pal/v-pal-"..selectedSound..".ogg"), volume = rng.random(0.4,0.5)}
+				-- sound effect
+			end
+		else
+			data.bark.timer = 0
 			data.bark.mouthOpen = false
 		end
 
-		if  data.bark.timer >= data.bark.freq  then
-			data.bark.timer = -10
-			data.bark.mouthOpen = true
 
-			local selectedList = REACTBARKS.NONE
-			if  data.follow.react ~= nil  then
-				selectedList = REACTBARKS[data.follow.react]
-				if  data.follow.distance < 64  then
-					selectedList = REACTBARKS2[data.follow.react]
+		-- Natural state transitions
+		data.follow.maxdist = 256
+
+			-- SLEEPING
+			if      data.move.state == MOVE.SLEEP  then
+				-- wake up if the player runs, lands or picks up
+
+			-- ROAMING
+			elseif  data.move.state == MOVE.ROAM   then
+
+				-- If a target is found, switch to follow mode
+				if  data.follow.target ~= nil  then
+					setPalMoveState(self, MOVE.FOLLOW)
+				end
+
+			-- FOLLOWING
+			elseif  data.move.state == MOVE.FOLLOW   then
+				data.bark.freq = rng.randomInt (20,65)
+
+			-- LANDING
+			elseif  data.move.state == MOVE.AIR  then
+				if  data.move.grounded  then
+					self.speedX = self.speedX * 0.75
+					
+					if  math.abs(self.speedX) < 0.5  then
+						setPalMoveState(self, MOVE.ROAM)
+					end
 				end
 			end
-			
-			local selectedSound = rng.randomEntry(selectedList)
-			audio.PlaySound{sound = Misc.resolveFile("sound/voice/pal/v-pal-"..selectedSound..".ogg"), volume = rng.random(0.4,0.5)}
-			-- sound effect
-		end
-	else
-		data.bark.timer = 0
-		data.bark.mouthOpen = false
-	end
 
 
-	-- Natural state transitions
-	data.follow.maxdist = 256
-
-		-- SLEEPING
-		if      data.move.state == MOVE.SLEEP  then
-			-- wake up if the player runs, lands or picks up
-
-		-- ROAMING
-		elseif  data.move.state == MOVE.ROAM   then
-
-			-- If a target is found, switch to follow mode
-			if  data.follow.target ~= nil  then
-				setPalMoveState(self, MOVE.FOLLOW)
-			end
-
-		-- FOLLOWING
-		elseif  data.move.state == MOVE.FOLLOW   then
-			data.bark.freq = rng.randomInt (20,65)
-
-		-- LANDING
-		elseif  data.move.state == MOVE.AIR  then
-			if  data.move.grounded  then
-				self.speedX = self.speedX * 0.75
-				
-				if  math.abs(self.speedX) < 0.5  then
-					setPalMoveState(self, MOVE.ROAM)
+		-- Forced state transitions
+			-- THROWING
+			if  data.move.state == MOVE.HELD  then
+				if  self:mem(0x12E, FIELD_WORD) < 30  then
+					setPalMoveState(self, MOVE.AIR)
 				end
+
+			-- PICKING UP
+			elseif  self:mem(0x12C, FIELD_WORD) > 0  then  -- If being held by a player
+				setPalMoveState(self, MOVE.HELD)
+				data.follow.maxdist = 2560
+
+			elseif  self:mem(0x138, FIELD_WORD) == 5  then  -- being eaten by a catllama		
+				setPalMoveState(self, MOVE.SPITOUT)
+			end
+
+
+
+
+		-- Manage physics
+		data.move.grounded = (self:mem(0x0A, FIELD_WORD) == 2)
+
+		if  data.accel ~= 0  then
+			self.speedX = self.speedX + data.accel
+		end
+		if  data.friction ~= 0  then
+			if  math.abs(self.speedX) < data.friction  then
+				self.speedX = 0
+			else
+				self.speedX = self.speedX - (self.speedX/math.abs(self.speedX))*data.friction
 			end
 		end
 
 
-	-- Forced state transitions
-		-- THROWING
-		if  data.move.state == MOVE.HELD  then
-			if  self:mem(0x12E, FIELD_WORD) < 30  then
-				setPalMoveState(self, MOVE.AIR)
-			end
-
-		-- PICKING UP
-		elseif  self:mem(0x12C, FIELD_WORD) > 0  then  -- If being held by a player
-			setPalMoveState(self, MOVE.HELD)
-			data.follow.maxdist = 2560
+		-- Manage animation
+		self.animationFrame = data.anim.frame-1;
+		if  self.direction == DIR_RIGHT  then
+			self.animationFrame = self.animationFrame + 22
 		end
-
-
-
-
-	-- Manage physics
-	data.move.grounded = (self:mem(0x0A, FIELD_WORD) == 2)
-
-	if  data.accel ~= 0  then
-		self.speedX = self.speedX + data.accel
+		self.animationTimer = 2;
 	end
-	if  data.friction ~= 0  then
-		if  math.abs(self.speedX) < data.friction  then
-			self.speedX = 0
-		else
-			self.speedX = self.speedX - (self.speedX/math.abs(self.speedX))*data.friction
-		end
-	end
-
-
-	-- Manage animation
-	self.animationFrame = data.anim.frame-1;
-	if  self.direction == DIR_RIGHT  then
-		self.animationFrame = self.animationFrame + 22
-	end
-	self.animationTimer = 2;
 end
 
 
