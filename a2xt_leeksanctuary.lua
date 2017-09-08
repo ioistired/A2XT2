@@ -80,7 +80,7 @@ local particleSet = Misc.resolveFile("graphics/sanctuary/p_leeks.ini");
 
 function leeks.onInitAPI()
 	registerEvent(leeks, "onTick","onTick",true)
-	registerEvent(leeks, "onDraw","onDraw",true)
+	registerEvent(leeks, "onCameraDraw","onCameraDraw",true)
 	registerEvent(leeks, "onStart","onStart",true)
 	registerEvent(leeks, "onInputUpdate","onInputUpdate",true)
 end
@@ -372,28 +372,28 @@ local function drawLevel(info,i,basex,y,alpha)
 			end
 end
 
-function leeks.onDraw()
+function leeks.onCameraDraw()
 
 	if(leeks.sections[player.section] ~= nil and leeks.sections[player.section] ~= false) then
-		Graphics.draw{x=Section(player.section).boundary.left, y=Section(player.section).boundary.top,isSceneCoordinates=true,type=RTYPE_IMAGE,priority=-95,image=leeks.SANC_BG}
-		Graphics.draw{x=Section(player.section).boundary.left, y=Section(player.section).boundary.top,isSceneCoordinates=true,type=RTYPE_IMAGE,priority=-64,image=leeks.SANC_FG}
-		Graphics.draw{x=Section(player.section).boundary.left+96, y=Section(player.section).boundary.top+376,isSceneCoordinates=true,type=RTYPE_IMAGE,priority=-60,image=leeks.SANC_DOOR}
+		local bounds = Section(player.section).boundary;
+		Graphics.draw{x=bounds.left, y=bounds.top,isSceneCoordinates=true,type=RTYPE_IMAGE,priority=-95,image=leeks.SANC_BG}
+		Graphics.draw{x=bounds.left, y=bounds.top,isSceneCoordinates=true,type=RTYPE_IMAGE,priority=-64,image=leeks.SANC_FG}
+		Graphics.draw{x=bounds.left+96, y=bounds.top+376,isSceneCoordinates=true,type=RTYPE_IMAGE,priority=-60,image=leeks.SANC_DOOR}
 		
-		
-		local verts = {0,0,800,0,0,600,800,600};
+		local verts = {bounds.left,bounds.top,bounds.left+800,bounds.top,bounds.left,bounds.top+600,bounds.left+800,bounds.top+600};
 		local tx = {0,0,1,0,0,1,1,1};
 		
 		local c = 0;
 		
-		Graphics.glDraw{vertexCoords=verts,textureCoords=tx,vertexColors={c,c,c,0,c,c,c,0,c,c,c,0,c,c,c,0},primitive=Graphics.GL_TRIANGLE_STRIP,priority=-94,texture=leeks.SANC_HALO}
+		Graphics.glDraw{vertexCoords=verts,textureCoords=tx,vertexColors={c,c,c,0,c,c,c,0,c,c,c,0,c,c,c,0},sceneCoords = true,primitive=Graphics.GL_TRIANGLE_STRIP,priority=-94,texture=leeks.SANC_HALO}
 		
 		local c = 0.75;
 		
-		Graphics.glDraw{vertexCoords=verts,textureCoords=tx,vertexColors={c,c,c,0,c,c,c,0,c,c,c,0,c,c,c,0},primitive=Graphics.GL_TRIANGLE_STRIP,priority=-93,texture=leeks.SANC_BEAM}
+		Graphics.glDraw{vertexCoords=verts,textureCoords=tx,vertexColors={c,c,c,0,c,c,c,0,c,c,c,0,c,c,c,0},sceneCoords = true,primitive=Graphics.GL_TRIANGLE_STRIP,priority=-93,texture=leeks.SANC_BEAM}
 		
 		c = 0.3;
 		
-		Graphics.glDraw{vertexCoords=verts,textureCoords=tx,vertexColors={c,c,c,0,c,c,c,0,c,c,c,0,c,c,c,0},primitive=Graphics.GL_TRIANGLE_STRIP,priority=-4,texture=leeks.SANC_LIGHT}
+		Graphics.glDraw{vertexCoords=verts,textureCoords=tx,vertexColors={c,c,c,0,c,c,c,0,c,c,c,0,c,c,c,0},sceneCoords = true,primitive=Graphics.GL_TRIANGLE_STRIP,priority=-4,texture=leeks.SANC_LIGHT}
 		
 		for k,v in ipairs(leeks.sectionParticles[player.section]) do
 			if(k~=3) then
@@ -409,7 +409,7 @@ function leeks.onDraw()
 			if(k:mem(0x146, FIELD_WORD) ~= player.section) then
 				k.data.particles = nil;
 			else
-				k.data.particles:Draw();
+				k.data.particles:Draw(-5);
 				k.data.particles:SetOffset(math.sin(k.data.t)*24,0)
 				k.data.t=k.data.t+(math.pi/(64));
 			end
