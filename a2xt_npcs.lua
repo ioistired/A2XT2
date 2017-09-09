@@ -399,11 +399,12 @@ a2xt_message.presetSequences.chest = function(args)
 		eventu.waitSeconds (1)
 
 		a2xt_rewards.give(table.join (data, {useTransitions=false, endScene=false, wait=true}))
-		chest.data.event = nil
 	end
 
 	Audio.MusicResume()
 	a2xt_scene.endScene()
+	chest.data.event = nil
+	chest.msg.str = ""
 end
 
 function chest:onTickNPC()
