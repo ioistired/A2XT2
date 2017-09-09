@@ -198,7 +198,7 @@ local function cor_arena(state)
 		eventu.waitFrames(0);
 	end
 	
-	player.x = 1296;
+	player.x = 1008;
 	player.y = -player.height-64;
 	player:mem(0x15A,FIELD_WORD,10) --player.section = 10;
 	
@@ -215,7 +215,7 @@ local function cor_arena(state)
 	end
 	
 	blockInput = false;
-	local spawnPos = {{x=224; y=-128;}, {x=832; y=-64;}, {x=1792; y=-64;}, {x=2400; y=-128;}}
+	local spawnPos = {{x=224; y=-128;}, {x=736; y=-64;}, {x=1312; y=-64;}, {x=1824; y=-128;}}
 	
 	doRoundHeader(state.round)
 	
@@ -265,7 +265,7 @@ local function cor_exitarena(state)
 	end
 	
 	player:mem(0x13E, FIELD_WORD, 0)
-	player.x = -18864 + 32 - player.width*0.5;
+	player.x = state.owner.x + state.owner.width*0.5 + 32 - player.width*0.5;
 	player.y = -player.height-64-20000;
 	player:mem(0x15A,FIELD_WORD,9) --player.section = 9;
 	
