@@ -268,18 +268,18 @@ local function cor_positionPlayer (args)
 		while (math.abs(d) < range and timeout > 0)  do
 			d = (npc.x+npc.width*0.5) - (player.x+player.width*0.5);
 			
-			if(not settings.noturn) then
-				if  l and (player.x + player.width*0.5 < npc.x + npc.width*0.5 or not r) then
+			if(not settings.noturn and not npc.data.noturn) then
+				if  l and (player.x + player.width*0.5 <= npc.x + npc.width*0.5 or not r) then
 					npc.direction = -1
 				elseif r and (player.x + player.width*0.5 > npc.x + npc.width*0.5 or not l)  then
 					npc.direction = 1
 				end
 			end
 			
-			if(npc.direction == -1 and l) then
+			if(player.x + player.width*0.5 <= npc.x + npc.width*0.5 and l) then
 				player.speedX = -2
 				player:mem(0x106, FIELD_WORD, -1)
-			elseif  (npc.direction == 1 and r)  then
+			elseif  (r)  then
 				player.speedX = 2
 				player:mem(0x106, FIELD_WORD, 1)
 			else --we ain't going anywhere
@@ -290,13 +290,11 @@ local function cor_positionPlayer (args)
 		end
 	end
 	
-	
-
 	player.speedX = 0
 	
-	if  npc.direction == -1  then
+	if  (player.x + player.width*0.5 < npc.x + npc.width*0.5)  then
 		player:mem(0x106, FIELD_WORD, 1)
-	elseif  npc.direction == 1  then
+	elseif  (player.x + player.width*0.5 > npc.x + npc.width*0.5)  then
 		player:mem(0x106, FIELD_WORD, -1)
 	end
 	

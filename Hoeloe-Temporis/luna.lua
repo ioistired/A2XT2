@@ -898,6 +898,12 @@ function onDraw()
 	waterwheel:Draw(-70);
 	
 	do
+		--Arena Lobby stuff
+		
+		for _,v in ipairs(NPC.get(111,9)) do
+			v.x = v:mem(0xA8, FIELD_DFLOAT)
+		end
+		
 		--Minigame stuff
 		if(minigame.inGame) then
 		
