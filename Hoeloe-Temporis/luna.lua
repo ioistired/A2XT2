@@ -191,7 +191,11 @@ local function spawnArenaNPC(id, spawnpos, direction, extra)
 	
 	if(extra) then
 		for k,v in pairs(extra) do
-			n[k] = v;
+			if(k=="hp") then
+				n:mem(0x148, FIELD_FLOAT, v)
+			else
+				n[k] = v;
+			end
 		end
 	end
 	
@@ -324,8 +328,8 @@ local function cor_arena(state)
 	eventu.waitFrames(96)
 	spawnArenaNPC(135, spawnPos[2], 1);
 	spawnArenaNPC(135, spawnPos[3], -1);
-	spawnArenaNPC(39, spawnPos[1], 1);
-	spawnArenaNPC(39, spawnPos[4], -1);
+	spawnArenaNPC(39, spawnPos[1], 1, {hp=1});
+	spawnArenaNPC(39, spawnPos[4], -1, {hp=1});
 	eventu.waitFrames(96)
 	spawnArenaNPC(135, spawnPos[2], 1);
 	spawnArenaNPC(135, spawnPos[3], -1);
@@ -367,12 +371,13 @@ local function cor_arena(state)
 	waitUntilDead();
 	eventu.waitFrames(48);
 	
-	spawnArenaNPC(314, spawnPos[2], 1);
-	spawnArenaNPC(314, spawnPos[3], -1);
+	spawnArenaNPC(315, spawnPos[2], 1);
+	spawnArenaNPC(315, spawnPos[3], -1);
 	eventu.waitFrames(196)
 	spawnArenaNPC(313, spawnPos[1], 1);
 	spawnArenaNPC(313, spawnPos[4], -1);
 	
+	state.round = 4
 	waitUntilDead();
 	eventu.waitFrames(64);
 	state.round = state.round + 1;
@@ -450,6 +455,10 @@ end
 
 function minigame.onEnd(state)
 	eventu.run(cor_exitarena, state);
+end
+
+local function cor_openIdolDoor(args)
+	
 end
 
 do --funky dialogue
