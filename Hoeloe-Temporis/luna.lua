@@ -458,7 +458,34 @@ function minigame.onEnd(state)
 end
 
 local function cor_openIdolDoor(args)
+	idolDoorOpen = true;
+	local delay = 0.5;
 	
+	local tempTargets = cameraman.playerCam[1].targets;
+	
+	cameraman.playerCam[1]:Queue {time=1, targets={{x=-175744, y=-181184-player.height}}, easeBoth=cameraman.EASE.QUAD};
+	
+	eventu.waitSeconds(1);
+	
+	for i = 1,4 do
+		eventu.waitSeconds(0.5);
+		idolDoor[i]:hide(false); 
+		Audio.playSFX(37);
+		Defines.earthquake = 2;
+	end
+	
+	eventu.waitSeconds(0.5);
+	
+	Audio.playSFX("smash.ogg");
+	Defines.earthquake = 8;
+	
+	eventu.waitSeconds(0.5);
+	
+	cameraman.playerCam[1]:Queue {time=1, targets=tempTargets, easeBoth=cameraman.EASE.QUAD};
+	
+	eventu.waitSeconds(1);
+	
+	a2xt_scene.endScene();
 end
 
 do --funky dialogue
@@ -534,19 +561,20 @@ do --funky dialogue
 			
 			eventu.waitSeconds(0.5)
 			
-			
-			a2xt_scene.endScene()
-			a2xt_message.endMessage();
-			
 			eventu.waitFrames(0)
 			
-			a2xt_rewards.giveCard("butts")
+			cameraman.playerCam[1]:Queue {time=0.25, targets={player}, easeBoth=cameraman.EASE.QUAD, zoom=1.5}
 			
-			cameraman.playerCam[1]:Queue {time=0.25, targets=tempTargets, easeBoth=cameraman.EASE.QUAD, zoom=1}
+			a2xt_rewards.give{type="card", quantity="butts", useTransitions = false, endScene = false, wait=true}
+			
+			cameraman.playerCam[1]:Queue {time=0.25, targets={player}, easeBoth=cameraman.EASE.QUAD, zoom=1}
 			
 			SaveData.world3.town.garishComplete = true;
 			talker.data.talkIcon = 1;
 			talker.data.a2xt_message.iconSpr.state = 1;
+			
+			a2xt_scene.endScene()
+			a2xt_message.endMessage();
 		end
 	end
 	
@@ -665,6 +693,20 @@ function onStart()
 	
 	if(idolsReady[154]) then
 		Layer.get("FireBGOs"):hide(true);
+	end
+	
+	local allidolsplaced = true;
+	for k,_ in pairs(idolsDone) do
+		if(not SaveData.world3.town["idol"..k]) then
+			allidolsplaced = false;
+		end
+	end
+	
+	if(allidolsplaced) then
+		idolDoorOpen = true;
+		for i = 1,4 do
+			idolDoor[i]:hide(false); 
+		end
 	end
 	
 	for _,v in ipairs(NPC.get()) do
@@ -813,12 +855,7 @@ function onTick()
 	end
 	
 	if(allIdolsDone and not idolDoorOpen) then
-		idolDoorOpen = true;
-		local delay = 0.5;
-		--cinematx.runCutscene(function() cinematx.panToPos(1, -175744, -181184-player.height, 5, true); cinematx.waitSeconds(delay*4 + 1); cinematx.panToObj(1,player,5,true) cinematx.endCutscene() end);
-		local i = 1;
-		eventu.setTimer(delay,function() idolDoor[i]:hide(false); i = i+1; playSFX(37); Defines.earthquake = 2; end, 4);
-		eventu.setTimer(delay*5,function() Audio.playSFX("smash.ogg"); Defines.earthquake = 8; end);
+		a2xt_scene.startScene{scene=cor_openIdolDoor}
 	end
 	
 	if(player.section == 1) then

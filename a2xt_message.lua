@@ -276,7 +276,7 @@ local function cor_positionPlayer (args)
 				end
 			end
 			
-			if(player.x + player.width*0.5 <= npc.x + npc.width*0.5 and l) then
+			if(not r or player.x + player.width*0.5 <= npc.x + npc.width*0.5 and l) then
 				player.speedX = -2
 				player:mem(0x106, FIELD_WORD, -1)
 			elseif  (r)  then
