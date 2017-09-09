@@ -1,9 +1,10 @@
 --local cinematx = loadSharedAPI("cinematx");
-local eventu = loadSharedAPI("eventu");
-local particles = loadSharedAPI("particles");
-local raocoin = loadSharedAPI("raocoin2");
-local colliders = loadSharedAPI("colliders");
-local sanctuary = loadSharedAPI("a2xt_leeksanctuary");
+local eventu = API.load("eventu");
+local particles = API.load("particles");
+local raocoin = API.load("raocoin2");
+local colliders = API.load("colliders");
+local sanctuary = API.load("a2xt_leeksanctuary");
+local minigame = API.load("a2xt_minigame");
 local defines =  API.load("expandedDefines");
 local paralx2 = API.load("paralx2");
 local vectr = API.load("vectr");
@@ -16,6 +17,7 @@ local a2xt_message = API.load("a2xt_message");
 local a2xt_scene = API.load("a2xt_scene")
 local a2xt_raocoins = API.load("a2xt_raocoincounter");
 local a2xt_rewards = API.load("a2xt_rewards");
+local a2xt_hud = API.load("a2xt_hud");
 local npcmanager = API.load("npcmanager")
 
 local textblox = API.load("textblox");
@@ -33,6 +35,8 @@ local ylimit = -200320;
 local targetcamY;
 local lastcamY;
 local refreshCamera;
+
+local blockInput = false;
 
 local sandstorm = particles.Emitter(0,0,Misc.resolveFile("p_sandstorm.ini"));
 sandstorm:AttachToCamera(Camera.get()[1]);
@@ -126,6 +130,166 @@ local grabtorches = {};
 
 --cinematx.defineQuest ("dickson", "An Explorer's Mission", "Help Prof. Dr. D. Dickson Esq. to discover the history of Temporis.")
 
+--Arena minigame stuff
+local arenaNPCs = nil;
+
+local function doRoundHeader(count)
+	local t = 0;
+	local maxt = 300;
+	local alpharate = 5;
+	local alpha = 0;
+	local window = nil;
+	while(t < maxt) do
+		local w,h = textblox.printExt("ROUND "..count, {x = 400, y = 200, width=250, font = GENERIC_FONT, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_MID, z=5, color=0xFFFFFF00+alpha})
+	
+		if(window == nil) then
+			window = a2xt_hud.window{x=400,y=200,width=w+128,height=h+48+GENERIC_FONT.charHeight};
+		end
+		local bga = alpha*0.75;
+		window:Draw{priority=4.9, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
+		if(t < (maxt-(255/alpharate))) then
+			alpha = math.min(alpha + alpharate, 255);
+		else
+			alpha = alpha - alpharate;
+		end
+		t = t+1;
+		eventu.waitFrames(0);
+	end
+end
+
+local function spawnArenaNPC(id, spawnpos, direction)
+	local n = pnpc.wrap(NPC.spawn(id, spawnpos.x, spawnpos.y, 10));
+	
+	n.data.t = 0;
+	
+	n.y = n.y-n.height;
+	n.x = n.x-n.width*0.5;
+	
+	n.data.x = n.x
+	n.data.y = n.y
+	
+	n.x = 0;
+	n.y = 0;
+	
+	if(direction ~= nil) then
+		n.direction = direction;
+	end
+	
+	table.insert(arenaNPCs, n);
+end
+
+local function waitUntilEmpty(list)
+	while(#list > 0) do
+		eventu.waitFrames(0);
+	end
+end
+	
+local function waitUntilDead()
+	waitUntilEmpty(arenaNPCs);
+end
+
+ --arena minigame
+local function cor_arena(state)
+	local t = 0;
+	blockInput = true;
+	while(t < 1) do
+		t = t+0.025;
+		Graphics.drawScreen{color = math.lerp(Color.transparent, Color.black, t), priority = 4};
+		eventu.waitFrames(0);
+	end
+	
+	player.x = 1008;
+	player.y = -player.height-64;
+	player:mem(0x15A,FIELD_WORD,10) --player.section = 10;
+	
+	player.powerup = 1;
+	player.reservePowerup = 0;
+	player:mem(0x16,FIELD_WORD,1);
+	player:mem(0x108, FIELD_WORD,0);
+	player:mem(0x10A, FIELD_WORD,0);
+	
+	while(t > 0) do
+		t = t-0.025;
+		Graphics.drawScreen{color = math.lerp(Color.transparent, Color.black, t), priority = 4};
+		eventu.waitFrames(0);
+	end
+	
+	blockInput = false;
+	local spawnPos = {{x=224; y=-128;}, {x=736; y=-64;}, {x=1312; y=-64;}, {x=1824; y=-128;}}
+	
+	doRoundHeader(state.round)
+	
+	arenaNPCs = {};
+	
+	spawnArenaNPC(1, spawnPos[2], 1);
+	spawnArenaNPC(1, spawnPos[3], -1);
+	eventu.waitFrames(48);
+	spawnArenaNPC(1, spawnPos[2], 1);
+	spawnArenaNPC(1, spawnPos[3], -1);
+	eventu.waitFrames(48);
+	spawnArenaNPC(1, spawnPos[2], 1);
+	spawnArenaNPC(1, spawnPos[3], -1);
+	
+	waitUntilDead();
+	eventu.waitFrames(48);
+	
+	spawnArenaNPC(109, spawnPos[2], 1);
+	spawnArenaNPC(109, spawnPos[3], -1);
+	spawnArenaNPC(109, spawnPos[1], 1);
+	spawnArenaNPC(109, spawnPos[4], -1);
+	
+	waitUntilDead();
+	Text.dialog("buttman")
+	
+end
+
+local minigameRound = 0;
+
+ --arena minigame
+local function cor_exitarena(state)
+	local t = 0;
+
+	
+	blockInput = true;
+	while(t < 1) do
+		if(player:mem(0x13E, FIELD_WORD) > 120) then
+			player:mem(0x13E, FIELD_WORD, 120)
+		end
+		t = t+0.025;
+		Graphics.drawScreen{color = math.lerp(Color.transparent, Color.black, t), priority = 4};
+		eventu.waitFrames(0);
+	end
+	
+	for _,v in ipairs(arenaNPCs) do
+		v:kill(9);
+	end
+	
+	player:mem(0x13E, FIELD_WORD, 0)
+	player.x = state.owner.x + state.owner.width*0.5 + 32 - player.width*0.5;
+	player.y = -player.height-64-20000;
+	player:mem(0x15A,FIELD_WORD,9) --player.section = 9;
+	
+	minigame.restorePlayerState();
+	
+	Graphics.drawScreen{color = Color.black, priority = 4};
+	
+	
+	while(t > 0) do
+		t = t-0.025;
+		Graphics.drawScreen{color = math.lerp(Color.transparent, Color.black, t), priority = 4};
+		eventu.waitFrames(0);
+	end
+	
+	minigameRound = state.round;
+	a2xt_message.talkToNPC(state.owner)
+	
+	blockInput = false;
+end
+
+function minigame.onEnd(state)
+	eventu.run(cor_exitarena, state);
+end
+
 do --funky dialogue
 	a2xt_message.presetSequences.buyStoneIdol = function(args)
 		local talker = args.npc
@@ -215,6 +379,61 @@ do --funky dialogue
 		end
 	end
 	
+	a2xt_message.presetSequences.arena = function(args)
+		local talker = args.npc;
+		
+		if(minigameRound ~= 0) then
+			if(minigameRound > 5) then --WINNER IS YOU
+			
+			else
+				a2xt_message.showMessageBox {target=talker, type="bubble", 
+				text="Aww, what a shame. Better luck next time!"}
+				a2xt_message.waitMessageEnd();
+			end
+			
+			minigameRound = 0;
+		else
+		
+			a2xt_message.showMessageBox {target=talker, type="bubble", 
+			text="Hello, and welcome to the Temporis Arena!<page>Here you can compete in gladitorial combat for a chance to win big!"}
+			a2xt_message.waitMessageEnd();
+			if(not SaveData.world3.town.fireIdolReady) then
+				a2xt_message.showMessageBox {target=talker, type="bubble", text="We're currently searching for a champion to take home our grand trophy, think you're up for the task?"}
+				a2xt_message.waitMessageEnd();
+			end
+			
+			local price = 5;
+			
+			a2xt_message.promptChosen = false
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="How about giving it a shot? The entry fee is only "..price..CHAR_RC..", sound good?", closeWith="prompt"}
+			a2xt_message.waitMessageDone()
+				
+			a2xt_scene.displayRaocoinHud(true);
+				
+			a2xt_message.showPrompt()
+			a2xt_message.waitPrompt()
+			
+			if(a2xt_message.promptChoice == 1) then
+				if(a2xt_raocoins.buy(price)) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Beat all 5 rounds to score our top prize!<page>Are you ready?"}
+					a2xt_message.waitMessageEnd();
+					minigame.start(cor_arena, {round = 1, owner = talker});
+				else
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Oof. Sorry, but you can't compete unless you can front the entry fee."}
+					a2xt_message.waitMessageEnd();
+				end
+			else
+				a2xt_message.showMessageBox {target=talker, type="bubble", text="Your loss. Come back if you change your mind."}
+				a2xt_message.waitMessageEnd();
+			end
+		
+			a2xt_scene.displayRaocoinHud(false);
+		end
+		
+		a2xt_scene.endScene()
+		a2xt_message.endMessage();
+	end
+	
 	a2xt_message.presetSequences.bes = function(args)
 		local talker = args.npc;
 		
@@ -245,6 +464,10 @@ function onStart()
 		for _,v in ipairs(NPC.get(65)) do
 			v:kill(9)
 		end
+	end
+	
+	if(idolsReady[154]) then
+		Layer.get("FireBGOs"):hide(true);
 	end
 	
 	for _,v in ipairs(NPC.get()) do
@@ -338,7 +561,6 @@ end
 local wheelTime = 0;
 	
 function onTick()
-
 	local allIdolsDone = true;
 	local bounds = Section(1).boundary;
 	
@@ -351,11 +573,14 @@ function onTick()
 			if(pcnt >= 1) then
 				oob = (ps[1]:mem(0x146, FIELD_WORD) == 1 and (ps[1].x > bounds.right or ps[1].x < bounds.left-32 or ps[1].y > bounds.bottom or ps[1].y < bounds.top-32));
 			end
-			if(pcnt < 1 or oob or not idolsReady[k]) then
+			if((pcnt < 1 or oob or not idolsReady[k]) and not (player:mem(0x154,FIELD_WORD) > 0 and player.holdingNPC ~= nil and player.holdingNPC.id == k)) then
 				if(pcnt >= 1) then
 					ps[1]:kill(9);
 				end
 				if(idolsReady[k]) then
+					if(k == 154) then -- fire idol
+						Layer.get("FireBGOs"):hide(true);
+					end
 					local v = NPC.spawn(k,idolSpawns[k].x,idolSpawns[k].y,1);
 					Animation.spawn(10,v.x,v.y);
 					v:mem(0x12A,FIELD_WORD,180);
@@ -364,6 +589,15 @@ function onTick()
 				end
 			end
 			for _,v in ipairs(ps) do
+				if(k == 154) then
+					v = pnpc.wrap(v);
+					if(v:mem(0x12C,FIELD_WORD) > 0) then
+						v.data.grabbed = true;
+					end
+					if(not v.data.grabbed) then
+						v.speedY = -Defines.npc_grav;
+					end
+				end
 				if(not checkIdolPlaced(v)) then
 					v:mem(0x12A,FIELD_WORD,180);
 					if(player.section == 0) then
@@ -435,6 +669,21 @@ function onTick()
 	end
 end
 
+function onInputUpdate()
+	if(blockInput) then
+		player.keys.jump = false;
+		player.keys.altJump = false;
+		player.keys.left = false;
+		player.keys.right = false;
+		player.keys.run = false;
+		player.keys.altRun = false;
+		player.keys.up = false;
+		player.keys.down = false;
+		player.keys.pause = false;
+		player.keys.dropItem = false;
+	end
+end
+
 local reflections = Graphics.CaptureBuffer(800,600);
 local waterShader = nil;
 
@@ -455,6 +704,72 @@ function onDraw()
 	end
 	
 	waterwheel:Draw(-70);
+	
+	do
+		--Minigame stuff
+		if(minigame.inGame) then
+		
+			if(player:mem(0x13E, FIELD_WORD) > 120) then
+				player:mem(0x13E, FIELD_WORD,120);
+				minigame.exit();
+			end
+		
+			--"generator" hackery
+			if(arenaNPCs) then
+				local npcsInArena = NPC.get(NPC.HITTABLE,10);
+				if(#npcsInArena > #arenaNPCs) then
+					for _,v in ipairs(npcsInArena) do
+						v = pnpc.wrap(v);
+						if(not table.ifind(arenaNPCs, v)) then
+							v.data.t = 9999;
+							table.insert(arenaNPCs, v);
+						end
+					end
+				end
+				for i = #arenaNPCs,1,-1 do
+					local v = arenaNPCs[i];
+					if(v.isValid) then
+						v:mem(0x12A,FIELD_WORD, 180);
+						local t = v.data.t/32;
+						if(t <= 1) then
+							local gfxHeight = v:mem(0xB8, FIELD_DFLOAT);
+							local gfxWidth = v:mem(0xC0, FIELD_DFLOAT);
+							v.speedX = 0;
+							v.speedY = 0;
+							v.x = 0;
+							v.y = 0;
+							v.data.t = v.data.t + 1;
+							v.friendly = true;
+							local y = 0;
+							local cfg = NPC.config[v.id];
+							if(v.direction == 1) then
+								if(cfg.framestyle >= 1) then
+									y = (cfg.frames)*gfxHeight;
+								end
+							end
+							
+							Graphics.draw{type = RTYPE_IMAGE, 
+											x = v.data.x + (v.width - gfxWidth)*0.5 + cfg.gfxoffsetx, 
+											y = v.data.y + (v.height - gfxHeight)*0.5 + cfg.gfxoffsety + math.lerp(gfxHeight,0,t), 
+											isSceneCoordinates = true, 
+											priority = -75, 
+											image = Graphics.sprites.npc[v.id].img, 
+											sourceX = 0, sourceY = y, sourceWidth = gfxWidth, sourceHeight = math.lerp(0,gfxHeight,t)
+										}
+						else
+							if(v.friendly) then
+								v.friendly = false;
+								v.x = v.data.x;
+								v.y = v.data.y;
+							end
+						end
+					else
+						table.remove(arenaNPCs,i);
+					end
+				end
+			end
+		end
+	end
 end
 
 local function tableadd(t, c, ...)

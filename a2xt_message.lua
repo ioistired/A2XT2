@@ -967,20 +967,27 @@ function a2xt_message.getTalkNPC()
 	return best;
 end
 
+function a2xt_message.talkToNPC(npc, message)
+	if  not a2xt_scene.inCutscene  then
+		if(npc ~= nil) then
+			message = message or quickparse(tostring(npc.msg));
+		end
+		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=message}, noletterbox=(npc==nil)}
+		a2xt_pause.Block();
+		messageInvincibile = 999999;
+	end
+	
+	a2xt_message.onMessage(npc, message);
+end
+
 function a2xt_message.onMessageBox(eventObj, message)
 	local npc = nil;
 	if(player.upKeyPressing) then
 		npc = a2xt_message.getTalkNPC();
 	end
 	
-	if  not a2xt_scene.inCutscene  then
-		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=quickparse(message)}, noletterbox=(npc==nil)}
-		a2xt_pause.Block();
-		messageInvincibile = 999999;
-	end
+	a2xt_message.talkToNPC(npc, quickparse(message));
 	eventObj.cancelled = true
-	
-	a2xt_message.onMessage(npc, message);
 end
 --[[
 function a2xt_npcs.onMessage (eventObj, message, npc)

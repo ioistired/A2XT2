@@ -9,6 +9,27 @@ local a2xt_rewards = API.load("a2xt_rewards")
 local a2xt_audio = API.load("a2xt_audio")
 local a2xt_message = API.load("a2xt_message")
 
+if(not isOverworld) then
+
+	local starman = API.load("starman")
+	if(isTownLevel()) then
+		starman.start = function(p) p.reservePowerup = starman.id; Audio.playSFX(12); end;
+		starman.startTheStar = starman.start;
+
+		local localstarman = {}
+		
+		npcManager.registerEvent(starman.id, localstarman, "onTickNPC");
+		function localstarman:onTickNPC()
+			self.speedY = math.max(self.speedY, 0);
+			self.speedX = 0;
+		end
+	end
+
+	starman.sfxFile = Misc.resolveFile("popipo.ogg") or Misc.resolveFile("music/popipo.ogg")
+	starman.reloadMusic();
+	starman.duration = lunatime.toTicks(26.6);
+end
+
 local friendlies = {}
 
 local defaults = {frames = 1, 
