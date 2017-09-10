@@ -12,7 +12,7 @@ function trail.onInitAPI()
 	registerEvent(trail, "onCameraDraw", "onCameraDraw", false);
 end
 
-function onStart()
+function trail.onStart()
 	spinjump_trail:Attach(player);
 	spinjump_trail.enabled = false;
 	

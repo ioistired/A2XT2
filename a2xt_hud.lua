@@ -245,11 +245,13 @@ local function drawHUD(priority)
 	end
 end
 
-function renderHUD(idx, priority)
+local function renderHUD(idx, priority)
 	showhud = Graphics.isHudActivated();
 		
 	drawHUD(priority);
 end
+
+Graphics.overrideHUD(renderHUD);
 
 function hud.onDraw()
 	if(isOverworld) then

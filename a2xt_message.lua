@@ -239,7 +239,7 @@ local function checkForSpace(player, npc, range, direction, dbg)
 		for i = 1,3 do
 			py = py + player.height * 0.25;
 			local b, p, n, obj = colliders.raycast({px,py}, {-direction * range, 0}, blockList, dbg or false)
-			if(b and (math.abs(n.x) > 0.65 or obj.y <= player.y)) then
+			if(b and (math.abs(n.x) > 0.65 or obj.y <= player.y-16)) then
 				return false;
 			end
 		end
@@ -268,7 +268,8 @@ local function cor_positionPlayer (args)
 		while (math.abs(d) < range and timeout > 0)  do
 			d = (npc.x+npc.width*0.5) - (player.x+player.width*0.5);
 			
-			if(not settings.noturn and not npc.data.noturn) then
+			local noturn = settings.noturn or npc.data.noturn;
+			if(not noturn) then
 				if  l and (player.x + player.width*0.5 <= npc.x + npc.width*0.5 or not r) then
 					npc.direction = -1
 				elseif r and (player.x + player.width*0.5 > npc.x + npc.width*0.5 or not l)  then
@@ -276,7 +277,7 @@ local function cor_positionPlayer (args)
 				end
 			end
 			
-			if(not r or player.x + player.width*0.5 <= npc.x + npc.width*0.5 and l) then
+			if((not r or player.x + player.width*0.5 <= npc.x + npc.width*0.5 or (noturn and npc.direction == -1)) and l) then
 				player.speedX = -2
 				player:mem(0x106, FIELD_WORD, -1)
 			elseif  (r)  then
