@@ -662,6 +662,21 @@ do --funky dialogue
 	a2xt_message.presetSequences.bes = function(args)
 		local talker = args.npc;
 		
+		if(SaveData.chests["card-butts"]) then
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="Oh, that's what it was? That's not a rare one at all.<page>You can keep that card. I've got 6 more."}
+		elseif(idolDoorOpen) then
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="Oh man! You got the door open!"}
+		else
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="Gosh darnit. I left one of my trading cards in that chest over there, and now the door is locked.<page>It was a pretty rare one too... darn..."}
+		end
+		a2xt_message.waitMessageEnd();
+			
+		a2xt_scene.endScene()
+		a2xt_message.endMessage();
+		
+		--[[ --Old text for Garish
+		local talker = args.npc;
+		
 		local val = "acquaintance";
 		if(player.character == CHARACTER_DEMO or player.character == CHARACTER_IRIS) then
 			val = "brother";
@@ -681,8 +696,10 @@ do --funky dialogue
 			
 		a2xt_scene.endScene()
 		a2xt_message.endMessage();
+		]]
 	end
 end
+
 
 function onStart()
 	if(SaveData.world3.town.garishComplete) then
@@ -856,6 +873,17 @@ function onTick()
 	
 	if(allIdolsDone and not idolDoorOpen) then
 		a2xt_scene.startScene{scene=cor_openIdolDoor}
+	end
+	
+	--Update Bes' icon
+	if(idolDoorOpen) then
+		for _,v in ipairs(NPC.get(107,1)) do
+			v = pnpc.wrap(v);
+			if(v.data.name == "Bes" and v.data.a2xt_message) then
+				v.data.talkIcon = 1;
+				v.data.a2xt_message.iconSpr.state = 1;
+			end
+		end
 	end
 	
 	if(player.section == 1) then

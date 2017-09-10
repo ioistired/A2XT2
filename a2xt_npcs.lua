@@ -358,8 +358,7 @@ end
 local eventu = API.load("eventu");
 local a2xt_scene = API.load("a2xt_scene");
 
-local chestData = SaveData.chests
-if  chestData == nil  then
+if (SaveData.chests == nil)  then
 	SaveData.chests = {}
 end
 
@@ -388,13 +387,12 @@ chest.settings = npcManager.setNpcSettings(chestSettings);
 a2xt_message.presetSequences.chest = function(args)
 	local chest = args.npc
 	local data = chest.data.chest
-	local openFlag = SaveData.chests[data.chestid]
 
-	if  openFlag ~= true  then
+	if (not SaveData.chests[tostring(data.chestid)]) then
 		Audio.SeizeStream(-1)
 		Audio.MusicPause()
 
-		SaveData.chests[data.chestid] = true
+		SaveData.chests[tostring(data.chestid)] = true
 		playSFX(28)
 		eventu.waitSeconds (1)
 
@@ -409,37 +407,38 @@ end
 
 function chest:onTickNPC()
 	self.friendly = true
-	self.data.event = "chest"
+	
+	if(not self.data.open) then
+		self.data.event = "chest"
 
+		-- Initialize data table
+		local data = self.data.chest
 
-	-- Initialize data table
-	local data = self.data.chest
+		if data == nil  then
+			self.data.chest = {
+							 type = self.data.type  or  "raocoin",
+							 quantity = self.data.quantity  or  self.data.item  or  5
+							}
+			data = self.data.chest
 
-	if data == nil  then
-	    self.data.chest = {
-	                     type = self.data.type  or  "raocoin",
-	                     quantity = self.data.quantity  or  self.data.item  or  5
-	                    }
-		data = self.data.chest
+			-- Base the id on the item type: 
+			-- raocoins use the level's filename plus spawn coordinates
+			if  data.type == "raocoin"  or  data.type == "raocoins"  then
+				data.chestid = Level.filename().."-"..tostring(self:mem(0xA8, FIELD_WORD)).."-"..tostring(self:mem(0xB0, FIELD_WORD))
 
-		-- Base the id on the item type: 
-		-- raocoins use the level's filename plus spawn coordinates
-		if  data.type == "raocoin"  or  data.type == "raocoins"  then
-			data.chestid = Level.filename().."-"..tostring(self:mem(0xA8, FIELD_WORD)).."-"..tostring(self:mem(0xB0, FIELD_WORD))
-
-		-- other items just use the type and id number
-		else
-			data.chestid = data.type.."-"..tostring(data.quantity)
+			-- other items just use the type and id number
+			else
+				data.chestid = data.type.."-"..tostring(data.quantity)
+			end
 		end
-	end
 
-
-	-- Manage frame
-	local openFlag = SaveData.chests[data.chestid]
-
-	self.direction = DIR_LEFT
-	self.animationFrame = 0;
-	if  openFlag == true  then
+		-- Manage frame
+		self.direction = DIR_LEFT
+		self.animationFrame = 0;
+		if (SaveData.chests[tostring(data.chestid)])  then
+			self.animationFrame = 1;
+		end
+	else
 		self.animationFrame = 1;
 	end
 	self.animationTimer = 2;

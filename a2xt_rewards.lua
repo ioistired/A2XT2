@@ -23,7 +23,7 @@ local sunburstBox = imagic.Create{x=400, y=-9999, scene=true, align=imagic.ALIGN
 
 local rewardImg = {}
 local rewardBox = {}
-for  _,v in pairs{"card", "raocoin", "costume"}  do
+for  _,v in ipairs{"card", "raocoin", "costume"}  do
 	local img = Graphics.loadImage(Misc.resolveFile("graphics/rewards/reward_"..v..".png"));
 	rewardImg[v] = img
 	rewardBox[v] = imagic.Create{x=400, y=-999, scene=true, align=imagic.ALIGN_CENTRE, primitive=imagic.TYPE_BOX, width=img.width*2, height=img.height*2, texture=img};
@@ -45,20 +45,18 @@ local function cor_giveReward (args)
 		msg = exclaim.." "..msg
 	end
 
-	local currBox = rewardBox.raocoin
+	currBox = rewardBox.raocoin
 	local rewardType = "raocoin"
 	if  args.type == "raocoin"  then
 		msg = msg..tostring(args.quantity).." raocoins!"
 		rewardType = "raocoin"
 		raocoins.add(args.quantity);
-	end
-	if  args.type == "costume"  then
+	elseif  args.type == "costume"  then
 		local costumeInfo = costumes.info[args.quantity]
 		msg = msg.."the "..costumeInfo.name.." costume!"
 		costumes.unlock(args.quantity)
 		rewardType = "costume"
-	end
-	if  args.type == "card"  then
+	elseif  args.type == "card"  then
 		msg = msg.."the "..tostring(args.quantity).." card!"
 		rewardType = "card"
 		-- Add the card
