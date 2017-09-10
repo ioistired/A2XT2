@@ -2,6 +2,7 @@ local scene = API.load("a2xt_scene")
 local message = API.load("a2xt_message")
 local hud = API.load("a2xt_hud")
 local costumes = API.load("a2xt_costumes")
+local raocoins = API.load("a2xt_raocoincounter")
 
 local eventu = API.load("eventu")
 local cman = API.load("cameraman")
@@ -49,7 +50,7 @@ local function cor_giveReward (args)
 	if  args.type == "raocoin"  then
 		msg = msg..tostring(args.quantity).." raocoins!"
 		rewardType = "raocoin"
-		-- Add the raocoins
+		raocoins.add(args.quantity);
 	end
 	if  args.type == "costume"  then
 		local costumeInfo = costumes.info[args.quantity]

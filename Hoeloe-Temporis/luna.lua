@@ -17,6 +17,7 @@ local a2xt_message = API.load("a2xt_message");
 local a2xt_scene = API.load("a2xt_scene")
 local a2xt_raocoins = API.load("a2xt_raocoincounter");
 local a2xt_rewards = API.load("a2xt_rewards");
+local a2xt_pause = API.load("a2xt_pause");
 local a2xt_hud = API.load("a2xt_hud");
 local npcmanager = API.load("npcmanager")
 
@@ -133,6 +134,14 @@ local grabtorches = {};
 --Arena minigame stuff
 local arenaNPCs = nil;
 
+local function spawnArenaPowerup(id)
+	Audio.playSFX(11);
+
+	local n = NPC.spawn(id, player.x+player.width*0.5--[[1024]], -544, 10);
+	n.x = n.x-n.width*0.5;
+	n:mem(0x138, FIELD_WORD, 2);
+end
+
 local function doRoundHeader(count)
 	local t = 0;
 	local maxt = 300;
@@ -140,24 +149,29 @@ local function doRoundHeader(count)
 	local alpha = 0;
 	local window = nil;
 	while(t < maxt) do
-		local w,h = textblox.printExt("ROUND "..count, {x = 400, y = 200, width=250, font = GENERIC_FONT, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_MID, z=5, color=0xFFFFFF00+alpha})
+		local w,h = textblox.printExt("ROUND "..count, {x = 400, y = 200, width=250, font = GENERIC_FONT, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_MID, z=6, color=0xFFFFFF00+alpha})
 	
 		if(window == nil) then
 			window = a2xt_hud.window{x=400,y=200,width=w+128,height=h+48+GENERIC_FONT.charHeight};
 		end
 		local bga = alpha*0.75;
-		window:Draw{priority=4.9, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
+		window:Draw{priority=5.9, colour=0x07122700+bga, bordercolour = 0xFFFFFF00+bga};
 		if(t < (maxt-(255/alpharate))) then
 			alpha = math.min(alpha + alpharate, 255);
 		else
 			alpha = alpha - alpharate;
 		end
+		
+		if(t == maxt-216) then
+			spawnArenaPowerup(9);
+		end
+		
 		t = t+1;
 		eventu.waitFrames(0);
 	end
 end
 
-local function spawnArenaNPC(id, spawnpos, direction)
+local function spawnArenaNPC(id, spawnpos, direction, extra)
 	local n = pnpc.wrap(NPC.spawn(id, spawnpos.x, spawnpos.y, 10));
 	
 	n.data.t = 0;
@@ -168,11 +182,21 @@ local function spawnArenaNPC(id, spawnpos, direction)
 	n.data.x = n.x
 	n.data.y = n.y
 	
-	n.x = 0;
+	n.x = -100;
 	n.y = 0;
 	
 	if(direction ~= nil) then
 		n.direction = direction;
+	end
+	
+	if(extra) then
+		for k,v in pairs(extra) do
+			if(k=="hp") then
+				n:mem(0x148, FIELD_FLOAT, v)
+			else
+				n[k] = v;
+			end
+		end
 	end
 	
 	table.insert(arenaNPCs, n);
@@ -192,6 +216,10 @@ end
 local function cor_arena(state)
 	local t = 0;
 	blockInput = true;
+	
+	Audio.SeizeStream(9);
+	Audio.MusicStopFadeOut(1000);
+	
 	while(t < 1) do
 		t = t+0.025;
 		Graphics.drawScreen{color = math.lerp(Color.transparent, Color.black, t), priority = 4};
@@ -208,6 +236,9 @@ local function cor_arena(state)
 	player:mem(0x108, FIELD_WORD,0);
 	player:mem(0x10A, FIELD_WORD,0);
 	
+	playMusic(10);
+	Audio.ReleaseStream(9);
+	
 	while(t > 0) do
 		t = t-0.025;
 		Graphics.drawScreen{color = math.lerp(Color.transparent, Color.black, t), priority = 4};
@@ -215,11 +246,13 @@ local function cor_arena(state)
 	end
 	
 	blockInput = false;
+	a2xt_pause.Unblock();
 	local spawnPos = {{x=224; y=-128;}, {x=736; y=-64;}, {x=1312; y=-64;}, {x=1824; y=-128;}}
 	
-	doRoundHeader(state.round)
 	
 	arenaNPCs = {};
+	
+	doRoundHeader(state.round)
 	
 	spawnArenaNPC(1, spawnPos[2], 1);
 	spawnArenaNPC(1, spawnPos[3], -1);
@@ -237,10 +270,140 @@ local function cor_arena(state)
 	spawnArenaNPC(109, spawnPos[3], -1);
 	spawnArenaNPC(109, spawnPos[1], 1);
 	spawnArenaNPC(109, spawnPos[4], -1);
+	eventu.waitFrames(48)
+	spawnArenaNPC(109, spawnPos[2], 1);
+	spawnArenaNPC(109, spawnPos[3], -1);
+	spawnArenaNPC(109, spawnPos[1], 1);
+	spawnArenaNPC(109, spawnPos[4], -1);
 	
 	waitUntilDead();
-	Text.dialog("buttman")
+	eventu.waitFrames(48);
 	
+	spawnArenaNPC(109, spawnPos[2], 1);
+	spawnArenaNPC(109, spawnPos[3], -1);
+	eventu.waitFrames(48)
+	spawnArenaNPC(109, spawnPos[2], 1);
+	spawnArenaNPC(109, spawnPos[3], -1);
+	spawnArenaNPC(29, spawnPos[1], 1);
+	spawnArenaNPC(29, spawnPos[4], -1);
+	
+	waitUntilDead();
+	eventu.waitFrames(64);
+	state.round = state.round + 1;
+	doRoundHeader(state.round)
+	
+	spawnArenaNPC(121, spawnPos[2], 1, {ai1 = 1});
+	spawnArenaNPC(121, spawnPos[3], -1, {ai1 = 1});
+	spawnArenaNPC(121, spawnPos[1], 1, {ai1 = 1});
+	spawnArenaNPC(121, spawnPos[4], -1, {ai1 = 1});
+	
+	waitUntilDead();
+	eventu.waitFrames(48);
+	
+	spawnArenaNPC(29, spawnPos[2], 1);
+	spawnArenaNPC(29, spawnPos[3], -1);
+	spawnArenaNPC(29, spawnPos[1], 1);
+	spawnArenaNPC(29, spawnPos[4], -1);
+	
+	
+	
+	waitUntilDead();
+	eventu.waitFrames(64);
+	state.round = state.round + 1;
+	doRoundHeader(state.round)
+	
+	spawnArenaNPC(129, spawnPos[2], 1);
+	spawnArenaNPC(129, spawnPos[3], -1);
+	spawnArenaNPC(130, spawnPos[1], 1);
+	spawnArenaNPC(130, spawnPos[4], -1);
+	eventu.waitFrames(144)
+	spawnArenaNPC(130, spawnPos[1], 1);
+	spawnArenaNPC(130, spawnPos[4], -1);
+	
+	waitUntilDead();
+	eventu.waitFrames(48);
+	
+	spawnArenaNPC(135, spawnPos[2], 1);
+	spawnArenaNPC(135, spawnPos[3], -1);
+	eventu.waitFrames(96)
+	spawnArenaNPC(135, spawnPos[2], 1);
+	spawnArenaNPC(135, spawnPos[3], -1);
+	spawnArenaNPC(39, spawnPos[1], 1, {hp=1});
+	spawnArenaNPC(39, spawnPos[4], -1, {hp=1});
+	eventu.waitFrames(96)
+	spawnArenaNPC(135, spawnPos[2], 1);
+	spawnArenaNPC(135, spawnPos[3], -1);
+	eventu.waitFrames(96)
+	spawnArenaNPC(135, spawnPos[2], 1);
+	spawnArenaNPC(135, spawnPos[3], -1);
+	eventu.waitFrames(144)
+	spawnArenaNPC(77, spawnPos[1], 1);
+	spawnArenaNPC(77, spawnPos[4], -1);
+	eventu.waitFrames(48);
+	spawnArenaNPC(77, spawnPos[1], 1);
+	spawnArenaNPC(77, spawnPos[4], -1);
+	eventu.waitFrames(48);
+	spawnArenaNPC(77, spawnPos[1], 1);
+	spawnArenaNPC(77, spawnPos[4], -1);
+	eventu.waitFrames(48);
+	
+	waitUntilDead();
+	eventu.waitFrames(64);
+	state.round = state.round + 1;
+	doRoundHeader(state.round)
+	
+	spawnArenaNPC(121, spawnPos[2], 1);
+	spawnArenaNPC(121, spawnPos[3], -1);
+	spawnArenaNPC(121, spawnPos[1], 1);
+	spawnArenaNPC(121, spawnPos[4], -1);
+	
+	waitUntilDead();
+	eventu.waitFrames(48);
+	
+	spawnArenaNPC(123, spawnPos[2], 1, {ai1 = 1});
+	spawnArenaNPC(123, spawnPos[3], -1, {ai1 = 1});
+	eventu.waitFrames(300);
+	spawnArenaNPC(123, spawnPos[2], 1, {ai1 = 1});
+	spawnArenaNPC(123, spawnPos[3], -1, {ai1 = 1});
+	spawnArenaNPC(389, spawnPos[1], 1);
+	spawnArenaNPC(389, spawnPos[4], -1);
+	
+	waitUntilDead();
+	eventu.waitFrames(48);
+	
+	spawnArenaNPC(315, spawnPos[2], 1);
+	spawnArenaNPC(315, spawnPos[3], -1);
+	eventu.waitFrames(196)
+	spawnArenaNPC(313, spawnPos[1], 1);
+	spawnArenaNPC(313, spawnPos[4], -1);
+	
+	state.round = 4
+	waitUntilDead();
+	eventu.waitFrames(64);
+	state.round = state.round + 1;
+	doRoundHeader(state.round)
+	
+	spawnArenaNPC(15, spawnPos[2], 1);
+	spawnArenaNPC(15, spawnPos[3], -1);
+	eventu.waitFrames(500)
+	spawnArenaNPC(280, spawnPos[1], 1);
+	spawnArenaNPC(280, spawnPos[4], -1);
+	
+	waitUntilDead();
+	
+	Audio.SeizeStream(10);
+	Audio.MusicStopFadeOut(1000);
+	
+	eventu.waitFrames(64);
+	
+	blockInput = true;
+	
+	Audio.playSFX(52);
+	state.round = state.round + 1;
+	
+	eventu.waitFrames(256);
+	
+	minigame.exit();
 end
 
 local minigameRound = 0;
@@ -261,7 +424,9 @@ local function cor_exitarena(state)
 	end
 	
 	for _,v in ipairs(arenaNPCs) do
-		v:kill(9);
+		if(v.isValid) then
+			v:kill(9);
+		end
 	end
 	
 	player:mem(0x13E, FIELD_WORD, 0)
@@ -273,6 +438,8 @@ local function cor_exitarena(state)
 	
 	Graphics.drawScreen{color = Color.black, priority = 4};
 	
+	playMusic(9);
+	Audio.ReleaseStream(10);
 	
 	while(t > 0) do
 		t = t-0.025;
@@ -288,6 +455,37 @@ end
 
 function minigame.onEnd(state)
 	eventu.run(cor_exitarena, state);
+end
+
+local function cor_openIdolDoor(args)
+	idolDoorOpen = true;
+	local delay = 0.5;
+	
+	local tempTargets = cameraman.playerCam[1].targets;
+	
+	cameraman.playerCam[1]:Queue {time=1, targets={{x=-175744, y=-181184-player.height}}, easeBoth=cameraman.EASE.QUAD};
+	
+	eventu.waitSeconds(1);
+	
+	for i = 1,4 do
+		eventu.waitSeconds(0.5);
+		idolDoor[i]:hide(false); 
+		Audio.playSFX(37);
+		Defines.earthquake = 2;
+	end
+	
+	eventu.waitSeconds(0.5);
+	
+	Audio.playSFX("smash.ogg");
+	Defines.earthquake = 8;
+	
+	eventu.waitSeconds(0.5);
+	
+	cameraman.playerCam[1]:Queue {time=1, targets=tempTargets, easeBoth=cameraman.EASE.QUAD};
+	
+	eventu.waitSeconds(1);
+	
+	a2xt_scene.endScene();
 end
 
 do --funky dialogue
@@ -363,28 +561,57 @@ do --funky dialogue
 			
 			eventu.waitSeconds(0.5)
 			
-			
-			a2xt_scene.endScene()
-			a2xt_message.endMessage();
-			
 			eventu.waitFrames(0)
 			
-			a2xt_rewards.giveCard("butts")
+			cameraman.playerCam[1]:Queue {time=0.25, targets={player}, easeBoth=cameraman.EASE.QUAD, zoom=1.5}
 			
-			cameraman.playerCam[1]:Queue {time=0.25, targets=tempTargets, easeBoth=cameraman.EASE.QUAD, zoom=1}
+			a2xt_rewards.give{type="card", quantity="butts", useTransitions = false, endScene = false, wait=true}
+			
+			cameraman.playerCam[1]:Queue {time=0.25, targets={player}, easeBoth=cameraman.EASE.QUAD, zoom=1}
 			
 			SaveData.world3.town.garishComplete = true;
 			talker.data.talkIcon = 1;
 			talker.data.a2xt_message.iconSpr.state = 1;
+			
+			a2xt_scene.endScene()
+			a2xt_message.endMessage();
 		end
 	end
 	
 	a2xt_message.presetSequences.arena = function(args)
 		local talker = args.npc;
+			
+		local price = 5;
 		
 		if(minigameRound ~= 0) then
 			if(minigameRound > 5) then --WINNER IS YOU
-			
+				if(not SaveData.world3.town.fireIdolReady) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Wow! That was incredible! We have a new champion!<page>You've won our champion's trophy!"}
+					a2xt_message.waitMessageEnd();
+					SaveData.world3.town.fireIdolReady = true;
+					idolsReady[154] = true;
+					local tempTargets = cameraman.playerCam[1].targets;
+					
+					cameraman.playerCam[1]:Queue {time=0.5, targets={{x=-18992; y=-20256; width=32; height=32;}}, easeBoth=cameraman.EASE.QUAD, zoom = 2}
+					
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="The trophy is actually sitting above the door there, so just grab it when you're ready!", keepOnscreen = true}
+					a2xt_message.waitMessageEnd();
+					
+					cameraman.playerCam[1]:Queue {time=0.5, targets=tempTargets, easeBoth=cameraman.EASE.QUAD, zoom = 1.5}
+					
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="It's your trophy for good now, but if you can beat the Arena again, you'll get a bunch of raocoins in reward! It's a sweet deal!"}
+					a2xt_message.waitMessageEnd();
+				else
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="DING DING DING! We have a winner!<page>Here's your prize!"}
+					a2xt_message.waitMessageEnd();
+					
+					a2xt_rewards.give{type="raocoin", quantity=20, useTransitions = false, endScene = false, wait=true}
+				end
+			elseif(minigameRound >= 4) then
+				a2xt_message.showMessageBox {target=talker, type="bubble", 
+				text="Ah, so close! You may not have won the grand prize, but you've won your entry fee back, so that's something!"}
+				a2xt_message.waitMessageEnd();
+				a2xt_rewards.give{type="raocoin", quantity=price, useTransitions = false, endScene = false, wait=true}
 			else
 				a2xt_message.showMessageBox {target=talker, type="bubble", 
 				text="Aww, what a shame. Better luck next time!"}
@@ -401,8 +628,6 @@ do --funky dialogue
 				a2xt_message.showMessageBox {target=talker, type="bubble", text="We're currently searching for a champion to take home our grand trophy, think you're up for the task?"}
 				a2xt_message.waitMessageEnd();
 			end
-			
-			local price = 5;
 			
 			a2xt_message.promptChosen = false
 			a2xt_message.showMessageBox {target=talker, type="bubble", text="How about giving it a shot? The entry fee is only "..price..CHAR_RC..", sound good?", closeWith="prompt"}
@@ -468,6 +693,20 @@ function onStart()
 	
 	if(idolsReady[154]) then
 		Layer.get("FireBGOs"):hide(true);
+	end
+	
+	local allidolsplaced = true;
+	for k,_ in pairs(idolsDone) do
+		if(not SaveData.world3.town["idol"..k]) then
+			allidolsplaced = false;
+		end
+	end
+	
+	if(allidolsplaced) then
+		idolDoorOpen = true;
+		for i = 1,4 do
+			idolDoor[i]:hide(false); 
+		end
 	end
 	
 	for _,v in ipairs(NPC.get()) do
@@ -578,11 +817,14 @@ function onTick()
 					ps[1]:kill(9);
 				end
 				if(idolsReady[k]) then
+					local v = NPC.spawn(k,idolSpawns[k].x,idolSpawns[k].y,1);
+					
 					if(k == 154) then -- fire idol
 						Layer.get("FireBGOs"):hide(true);
+					else
+						Animation.spawn(10,v.x,v.y);
 					end
-					local v = NPC.spawn(k,idolSpawns[k].x,idolSpawns[k].y,1);
-					Animation.spawn(10,v.x,v.y);
+					
 					v:mem(0x12A,FIELD_WORD,180);
 					v:mem(0xA8,FIELD_DFLOAT,v.x);
 					v:mem(0xB0,FIELD_DFLOAT,v.y);
@@ -613,12 +855,7 @@ function onTick()
 	end
 	
 	if(allIdolsDone and not idolDoorOpen) then
-		idolDoorOpen = true;
-		local delay = 0.5;
-		--cinematx.runCutscene(function() cinematx.panToPos(1, -175744, -181184-player.height, 5, true); cinematx.waitSeconds(delay*4 + 1); cinematx.panToObj(1,player,5,true) cinematx.endCutscene() end);
-		local i = 1;
-		eventu.setTimer(delay,function() idolDoor[i]:hide(false); i = i+1; playSFX(37); Defines.earthquake = 2; end, 4);
-		eventu.setTimer(delay*5,function() Audio.playSFX("smash.ogg"); Defines.earthquake = 8; end);
+		a2xt_scene.startScene{scene=cor_openIdolDoor}
 	end
 	
 	if(player.section == 1) then
@@ -681,6 +918,7 @@ function onInputUpdate()
 		player.keys.down = false;
 		player.keys.pause = false;
 		player.keys.dropItem = false;
+		a2xt_pause.Block();
 	end
 end
 
@@ -706,6 +944,12 @@ function onDraw()
 	waterwheel:Draw(-70);
 	
 	do
+		--Arena Lobby stuff
+		
+		for _,v in ipairs(NPC.get(111,9)) do
+			v.x = v:mem(0xA8, FIELD_DFLOAT)
+		end
+		
 		--Minigame stuff
 		if(minigame.inGame) then
 		
@@ -736,7 +980,7 @@ function onDraw()
 							local gfxWidth = v:mem(0xC0, FIELD_DFLOAT);
 							v.speedX = 0;
 							v.speedY = 0;
-							v.x = 0;
+							v.x = -100;
 							v.y = 0;
 							v.data.t = v.data.t + 1;
 							v.friendly = true;
