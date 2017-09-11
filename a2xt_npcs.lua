@@ -404,6 +404,7 @@ a2xt_message.presetSequences.chest = function(args)
 	end
 
 	Audio.MusicResume()
+	Audio.ReleaseStream(-1)
 	a2xt_scene.endScene()
 	a2xt_message.endMessage();
 	chest.data.event = nil

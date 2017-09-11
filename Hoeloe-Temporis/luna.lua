@@ -496,7 +496,7 @@ do --funky dialogue
 	a2xt_message.presetSequences.buyStoneIdol = function(args)
 		local talker = args.npc
 		
-		if(idolsReady[156]) then
+		if(idolsReady[156] or idolsDone[156]) then
 			a2xt_message.showMessageBox {target=talker, type="bubble", text="Hey again. Sorry, I'm all outta curios this time.<page>Hope you got some good use outta that rock though!"}
 			a2xt_message.waitMessageEnd()
 		else
