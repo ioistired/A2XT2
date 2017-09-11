@@ -81,6 +81,9 @@ local wheelRadius = 512-32;
 local wheelPlatforms = 8;
 local wheelBlocks = 289;
 
+local mini_wheel = imagic.Create{x = 0, y = 0, width = 70, height = 70, primitive = imagic.TYPE_BOX, texture = Graphics.loadImage("background-3.png"), align = imagic.ALIGN_CENTRE, scene = true}
+local mini_wheel_smoke = particles.Emitter(120504,119743,Misc.resolveFile("p_tinysmoke.ini"));
+local mini_wheel_audio = audio.Create{sound="mini-wheel.ogg", x = -999999, y = -999999, type = audio.SOURCE_POINT, falloffRadius = 800, volume = 0.75};
 
 local cavebg = paralx2.Background(1, {left = -176480, top = -180320, right=-173186, bottom=-179008},
 {img=Graphics.loadImage("cave_0.png"), depth = INFINITE, alignY = paralx2.align.BOTTOM, x = -4992, y = -76, repeatX = true},
@@ -1354,6 +1357,16 @@ function onCameraDraw()
 		
 	elseif(player.section == 0) then
 		sandstorm:Draw(-40);
+	elseif(player.section == 16) then
+		mini_wheel_smoke:Draw(-64);
+		local bg = BGO.get(3)[1];
+		mini_wheel.x = bg.x + 35;
+		mini_wheel.y = bg.y + 35;
+		mini_wheel_audio.x = mini_wheel.x;
+		mini_wheel_audio.y = mini_wheel.y;
+		bg.isHidden = true;
+		mini_wheel:Draw(-64);
+		mini_wheel:Rotate(1);
 	end
 end
 
