@@ -22,7 +22,7 @@ function dc.onStart()
 			SaveData.deaths[Level.filename()] = 0;
 		end
 		
-		GLOBAL_DEMOS = SaveData.deaths._TOTAL;
+		_G.GLOBAL_DEMOS = SaveData.deaths._TOTAL;
 end
 
 function dc.GetDemos(level)

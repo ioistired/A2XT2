@@ -551,7 +551,7 @@ message.presetSequences.steve = function(args)
 	
 	if  message.promptChoice == 1  then
 		if(GLOBAL_LIVES >= price) then
-			GLOBAL_LIVES = GLOBAL_LIVES - price;
+			_G.GLOBAL_LIVES = GLOBAL_LIVES - price;
 			bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Thankssss for your patronage."}
 			shouldBuy = true;
 		else

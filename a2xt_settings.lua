@@ -62,7 +62,7 @@ function settings.onInitAPI()
 end
 
 function settings.onStart()
-	GLOBAL_LIVES = mem(0x00B2C5AC, FIELD_FLOAT);
+	_G.GLOBAL_LIVES = mem(0x00B2C5AC, FIELD_FLOAT);
 	if(not isOverworld) then
 		mem(0x00B2C5AC, FIELD_FLOAT, 50);
 	end
@@ -71,14 +71,14 @@ end
 if(not isOverworld) then
 	function settings.onTick()
 		if(mem(0x00B2C5AC, FIELD_FLOAT) ~= 50) then
-			GLOBAL_LIVES = GLOBAL_LIVES + mem(0x00B2C5AC, FIELD_FLOAT) - 50;
+			_G.GLOBAL_LIVES = GLOBAL_LIVES + mem(0x00B2C5AC, FIELD_FLOAT) - 50;
 			mem(0x00B2C5AC, FIELD_FLOAT, 50);
 		end
 	end
 
 	function settings.onExitLevel()
 		if(player:mem(0x13C, FIELD_BOOL)) then
-			GLOBAL_LIVES = GLOBAL_LIVES - 1;
+			_G.GLOBAL_LIVES = GLOBAL_LIVES - 1;
 		end
 		mem(0x00B2C5AC, FIELD_FLOAT, GLOBAL_LIVES);
 	end
