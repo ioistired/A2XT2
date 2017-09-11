@@ -362,6 +362,10 @@ if (SaveData.chests == nil)  then
 	SaveData.chests = {}
 end
 
+if (SaveData.chests[Level.filename()] == nil)  then
+	SaveData.chests[Level.filename()] = {}
+end
+
 local chest = {}
 local chestSettings = table.join(
 				 defaults,
@@ -388,12 +392,12 @@ a2xt_message.presetSequences.chest = function(args)
 	local chest = args.npc
 	local data = chest.data.chest
 
-	if (not SaveData.chests[tostring(data.chestid)]) then
+	if (not SaveData.chests[Level.filename()][tostring(data.chestid)]) then
 		Audio.SeizeStream(-1)
 		Audio.MusicPause()
 
-		SaveData.chests[tostring(data.chestid)] = true
-		playSFX(28)
+		SaveData.chests[Level.filename()][tostring(data.chestid)] = true
+		Audio.playSFX(28)
 		eventu.waitSeconds (1)
 
 		a2xt_rewards.give(table.join (data, {useTransitions=false, endScene=false, wait=true}))
@@ -401,9 +405,12 @@ a2xt_message.presetSequences.chest = function(args)
 
 	Audio.MusicResume()
 	a2xt_scene.endScene()
+	a2xt_message.endMessage();
 	chest.data.event = nil
-	chest.msg.str = ""
+	chest.msg = ""
 end
+
+local chestIDCounter = 0;
 
 function chest:onTickNPC()
 	self.friendly = true
@@ -417,25 +424,28 @@ function chest:onTickNPC()
 		if data == nil  then
 			self.data.chest = {
 							 type = self.data.type  or  "raocoin",
-							 quantity = self.data.quantity  or  self.data.item  or  5
+							 quantity = self.data.quantity  or  self.data.item  or  5,
+							 chestid = self.data.chestid
 							}
 			data = self.data.chest
 
-			-- Base the id on the item type: 
-			-- raocoins use the level's filename plus spawn coordinates
-			if  data.type == "raocoin"  or  data.type == "raocoins"  then
-				data.chestid = Level.filename().."-"..tostring(self:mem(0xA8, FIELD_WORD)).."-"..tostring(self:mem(0xB0, FIELD_WORD))
-
-			-- other items just use the type and id number
-			else
-				data.chestid = data.type.."-"..tostring(data.quantity)
+			if(data.chestid == nil) then
+				data.chestid = chestIDCounter;
+				chestIDCounter = chestIDCounter + 1;
+			end
+			
+			-- Update open state for costumes and cards, just in case
+			if  (data.type == "costume" or data.type == "card") and SaveData.costumes and SaveData.costumes[data.quantity] then
+				SaveData.chests[Level.filename()][tostring(data.chestid)] = true;
 			end
 		end
 
 		-- Manage frame
 		self.direction = DIR_LEFT
 		self.animationFrame = 0;
-		if (SaveData.chests[tostring(data.chestid)])  then
+		if (SaveData.chests[Level.filename()][tostring(data.chestid)])  then
+			self.data.event = nil
+			self.msg = ""
 			self.animationFrame = 1;
 		end
 	else

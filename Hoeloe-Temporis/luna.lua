@@ -111,7 +111,6 @@ local waterImgs =
 	{ img = Graphics.loadImage("water_1.png"), offset = 0, speed = 3.7 },
 }
 
-
 idolColliders[154] = colliders.Box(-176160,-181248,32,32);
 idolColliders[155] = colliders.Box(-176064,-181248,32,32);
 idolColliders[156] = colliders.Box(-175968,-181248,32,32);
@@ -121,6 +120,11 @@ idolBlocks[154] = 227;
 idolBlocks[155] = 228;
 idolBlocks[156] = 229;
 idolBlocks[157] = 230;
+
+local idolOverlays = {};
+for _,v in pairs(idolBlocks) do
+	idolOverlays[v] = {alpha = 0, x = 0, y = 0, visible = false, obj = imagic.Create{x = 0, y = 0, width = 48, height = 48, primitive = imagic.TYPE_BOX, texture = Graphics.loadImage("overlay-"..v..".png")}};
+end
 
 local idolDoor = {Layer(4),Layer(5),Layer(6),Layer(7)};
 
@@ -662,7 +666,7 @@ do --funky dialogue
 	a2xt_message.presetSequences.bes = function(args)
 		local talker = args.npc;
 		
-		if(SaveData.chests["card-butts"]) then
+		if(SaveData.chests[Level.filename()]["1"]) then
 			a2xt_message.showMessageBox {target=talker, type="bubble", text="Oh, that's what it was? That's not a rare one at all.<page>You can keep that card. I've got 6 more."}
 		elseif(idolDoorOpen) then
 			a2xt_message.showMessageBox {target=talker, type="bubble", text="Oh man! You got the door open!"}
@@ -698,6 +702,22 @@ do --funky dialogue
 		a2xt_message.endMessage();
 		]]
 	end
+	
+	
+	a2xt_message.presetSequences.arn = function(args)
+		local talker = args.npc;
+		
+		if(talker.data.expletive) then
+			talker.data.expletive:closeSelf()
+			talker.data.expletive = nil;
+		end
+		
+		a2xt_message.showMessageBox {target=talker, type="bubble", text="DAMN THIS GAME!"}
+		a2xt_message.waitMessageEnd();
+			
+		a2xt_scene.endScene()
+		a2xt_message.endMessage();
+	end
 end
 
 
@@ -722,7 +742,7 @@ function onStart()
 	if(allidolsplaced) then
 		idolDoorOpen = true;
 		for i = 1,4 do
-			idolDoor[i]:hide(false); 
+			idolDoor[i]:hide(true); 
 		end
 	end
 	
@@ -793,10 +813,15 @@ local function checkIdolPlaced(npc)
 		idolsDone[npc.id] = true;
 		SaveData.world3.town["idol"..npc.id] = true;
 		npc:kill(9);
-		Animation.spawn(10,c.x,c.y);
-		playSFX(37);
+		if(lunatime.tick() > 2) then
+			Animation.spawn(10,c.x,c.y);
+		end
+		Audio.playSFX(37);
 		for _,v in ipairs(Block.getIntersecting(c.x,c.y,c.x+c.width,c.y+c.height)) do
 			if(v.id == idolBlocks[npc.id]) then
+				idolOverlays[v.id].visible = true;
+				idolOverlays[v.id].x = v.x - 8;
+				idolOverlays[v.id].y = v.y + 16;
 				v:mem(0x1C, FIELD_WORD, 0);
 				break;
 			end
@@ -887,6 +912,13 @@ function onTick()
 	end
 	
 	if(player.section == 1) then
+		
+		for _,v in pairs(idolOverlays) do
+			if(v.visible) then
+				v.alpha = math.min(1,v.alpha + 0.1);
+			end
+		end
+	
 		local npcs = NPC.get(defines.NPC_ALL, 1);
 		table.insert(npcs, player);
 		for _,v in ipairs(npcs) do
@@ -915,6 +947,28 @@ function onTick()
 			local npc = pnpc.wrap(rng.irandomEntry(NPC.get(89,7)));
 			if(npc.data.meep == nil or npc.data.meep:isFinished()) then
 				npc.data.meep = a2xt_message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Meep.<pause 20>", closeWith = "auto"}
+			end
+		end
+	elseif(player.section == 11) then --game grumps
+		if(not a2xt_scene.inCutscene and rng.random() < 0.02) then
+			local npc = pnpc.wrap(NPC.get(404,11)[1]);
+			if(npc.data.expletive == nil or npc.data.expletive:isFinished()) then
+				npc.data.expletive = a2xt_message.showMessageBox 
+				{
+					target=npc, x=npc.x,y=npc.y, 
+					text=rng.irandomEntry
+					{
+					"DAMMIT!", "NO!\0", "ARRRRGHHH!", "WHAT IS THIS?", "WHAT IS MY LIFE?", "This time for real.", "How am I supposed to watch anime on a sushi?","I! WANT! MURDER!","I'm OUT.",
+					"EVERYTHING I KNOW IS A LIE!","Really? Yeah? Okay, fine. FINE. ALRIGHT.","This is a SCONE.","You are uninvited to my birthday party.","WHAT?! YOU DECAYING MONGOOSE!",
+					"Dude, just... just pity laugh, at least.","I'm not physically good at anything aside from yelling a lot.","Dude, I just had a smart for a sec.","I'll just steal and destroy another cop car.",
+					"My dad told me that I would be accepted as I am. As a true man. Little did he know that that wouldn't be the case, actually.", "Why do you enjoy watching me suffer so?", 
+					"If by okay you mean like on the inside I'm just going AAAAAAAHHHHHH! Then yes I'm quite okay.","I didn't have any problem at all after I died twice.", "Such a nice man we ripped off there.",
+					"HEY LADIES. I'M TOM JONES. LEADER OF THE TOM JONES CULT. MY NAME'S TOM JONES. GIMME THIRTY APPLES. TWENTY-FIVE APPLES.", "23 is my number!", "Yes... yes... NOOOOO!", "Even 90s rock won't make me feel good about this!",
+					"I don't know anything about memes.", "I moved to Madagascar... where my best friend was a SLOTH!", "I'm in a totally different spot now. Like a spot I wasn't before.", "Um, did you see how strong his bullet was?",
+					"My eyebrows are slippery and slimy. I grease them.", "MARK ZUCKERBERG!", "Well thank you so much, that's so nice of you to say, but I don't believe you and you're a liar.", "If you can't beat em, shoot 'em with a gun!"
+					}.."<pause 30>", 
+					closeWith = "auto"
+				}
 			end
 		end
 	end
@@ -1211,6 +1265,10 @@ function onCameraUpdate(obj, camid)
 		end
 		lastcamY = cam.y;
 	end
+end
+
+function onCameraDraw()
+	local cam = Camera.get()[1];
 	
 	for _,v in ipairs(torches) do
 		v:Draw(-84);
@@ -1235,6 +1293,14 @@ function onCameraUpdate(obj, camid)
 		Graphics.drawImageToSceneWP(waterfallOverlay, -173184, -180448, 0.9, -85);
 		
 		drawWater(cam);
+		
+		for _,v in pairs(idolOverlays) do
+			if(v.visible) then
+				v.obj.x = v.x-cam.x;
+				v.obj.y = v.y-cam.y;
+				v.obj:Draw(-64,0xFFFFFF00+(v.alpha*255));
+			end
+		end
 		
 	elseif(player.section == 0) then
 		sandstorm:Draw(-40);
