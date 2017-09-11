@@ -93,6 +93,10 @@ local cavebg = paralx2.Background(1, {left = -176480, top = -180320, right=-1731
 {img=Graphics.loadImage("cave_4.png"), depth = 80, alignY = paralx2.align.BOTTOM, x = -4992, y = 40, repeatX = true},
 {img=Graphics.loadImage("cave_5.png"), depth = 40, alignY = paralx2.align.BOTTOM, x = -4992, y = 40, repeatX = true});
 
+local cave_l,cave_t,cave_r,cave_b = -196864, -200256, -193184, -199040;
+local present_cave = colliders.Box(cave_l, cave_t, cave_r-cave_l, cave_b-cave_t);
+local haze_blend = 1;
+
 --Copy cave background to new section and reposition
 local cavebg2 = cavebg:Clone();
 cavebg2.section = 0;
@@ -845,8 +849,9 @@ local function checkIdolPlaced(npc)
 		npc:kill(9);
 		if(lunatime.tick() > 2) then
 			Animation.spawn(10,c.x,c.y);
+			Audio.playSFX(37);
+			Audio.playSFX("chime.ogg")
 		end
-		Audio.playSFX(37);
 		for _,v in ipairs(Block.getIntersecting(c.x,c.y,c.x+c.width,c.y+c.height)) do
 			if(v.id == idolBlocks[npc.id]) then
 				idolOverlays[v.id].visible = true;
@@ -1036,6 +1041,9 @@ end
 
 local reflections = Graphics.CaptureBuffer(800,600);
 local waterShader = nil;
+
+local hazeBuffer = Graphics.CaptureBuffer(800,600);
+local hazeShader = nil;
 
 local npc_hardcoded = 
 {
@@ -1281,11 +1289,6 @@ end
 
 function onCameraUpdate(obj, camid)
 	if(camid ~= 1) then return end;
-	
-	if(waterShader == nil) then
-		waterShader = Shader();
-		waterShader:compileFromFile(nil, "reflection.frag");
-	end
 	local cam = Camera.get()[1];
 	
 	if(player.section < 2) then
@@ -1336,6 +1339,16 @@ function onCameraDraw()
 		end
 	end
 
+	
+	if(waterShader == nil) then
+		waterShader = Shader();
+		waterShader:compileFromFile(nil, "reflection.frag");
+	end
+	
+	if(hazeShader == nil) then
+		hazeShader = Shader();
+		hazeShader:compileFromFile(nil, "haze.frag");
+	end
 
 	
 	if(player.section == 1) then
@@ -1357,6 +1370,32 @@ function onCameraDraw()
 		
 	elseif(player.section == 0) then
 		sandstorm:Draw(-40);
+		
+		if(colliders.collide(player, present_cave)) then
+			sandstorm.enabled = false;
+			haze_blend = math.max(0, haze_blend - 0.01);
+		else
+			sandstorm.enabled = true;
+			haze_blend = math.min(1, haze_blend + 0.01);
+		end
+		
+		if(haze_blend > 0) then
+			local haze_p = 0
+			hazeBuffer:captureAt(haze_p);
+			Graphics.drawScreen{color={1,1,1,haze_blend*0.4}, 
+			shader = hazeShader, 
+			texture = hazeBuffer, 
+			priority = haze_p,
+			uniforms = 
+					{
+						time = lunatime.tick(), 
+						yOffset = cam.y/2;
+						intensity = 0.002,
+						frequency = 0.1,
+						speed = 0.05
+					}};
+		end
+		
 	elseif(player.section == 16) then
 		mini_wheel_smoke:Draw(-64);
 		local bg = BGO.get(3)[1];

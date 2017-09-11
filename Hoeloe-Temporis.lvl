@@ -180055,7 +180055,7 @@
 1
 107
 #FALSE#
-"Mas:Our entire city is powered by a massive underground water wheel.<page>It's a really impressive feat of engineering, but the guy who maintains it is kind of weird..."
+"Mas:Our entire city is powered by a massive underground water wheel.<page>It's a really impressive feat of engineering, but the guy who maintains it is kind of weird.<page>I heard he keeps some kind of Water Statue hidden away. Who does that kind of thing?"
 #TRUE#
 #TRUE#
 #FALSE#
@@ -180086,6 +180086,21 @@
 107
 #FALSE#
 "Bil:Aw man, I can't wait to get myself some hot new threads."
+#TRUE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-179808
+-180384
+-1
+198
+#FALSE#
+"Fet:Feel free to head out of town. You've done a bit of a time jump backwards from when you first arrived, so don't be surprised if things look a bit different."
 #TRUE#
 #FALSE#
 #FALSE#
