@@ -718,6 +718,26 @@ do --funky dialogue
 		a2xt_scene.endScene()
 		a2xt_message.endMessage();
 	end
+	
+	a2xt_message.presetSequences.dog = function(args)
+		local talker = args.npc;
+		
+		if(player:mem(0x154,FIELD_WORD) > 0 and player.holdingNPC ~= nil and player.holdingNPC.id == 985) then
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="!!! Identity thief!"}
+		elseif(SaveData.world3.town.spokenToDog) then
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="Woof."}
+		else
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="Hi, I'm Dog."}
+		end
+		
+		SaveData.world3.town.spokenToDog = true;
+		talker.data.name = "Dog"
+		
+		a2xt_message.waitMessageEnd();
+			
+		a2xt_scene.endScene()
+		a2xt_message.endMessage();
+	end
 end
 
 
@@ -725,6 +745,13 @@ function onStart()
 	if(SaveData.world3.town.garishComplete) then
 		for _,v in ipairs(NPC.get(65)) do
 			v:kill(9)
+		end
+	end
+	
+	if(SaveData.world3.town.spokenToDog) then
+		for _,v in ipairs(NPC.get(403, 13)) do
+			v = pnpc.wrap(v);
+			v.data.name = "Dog";
 		end
 	end
 	

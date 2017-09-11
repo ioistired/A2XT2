@@ -143,6 +143,10 @@ if(isOverworld) then
 end
 
 local function drawMusic(p)
+	if(not Audio.MusicIsPlaying()) then
+		return;
+	end
+	
 	local y = 500;
 	
 	Graphics.glDraw{vertexCoords={0,y,800,y,800,y+100,0,y+100}, color = {0,0,0,0.5}, priority = p, primitive = Graphics.GL_TRIANGLE_FAN};
