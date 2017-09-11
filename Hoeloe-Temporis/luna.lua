@@ -310,7 +310,6 @@ local function cor_arena(state)
 	spawnArenaNPC(29, spawnPos[4], -1);
 	
 	
-	
 	waitUntilDead();
 	eventu.waitFrames(64);
 	state.round = state.round + 1;
@@ -351,6 +350,7 @@ local function cor_arena(state)
 	spawnArenaNPC(77, spawnPos[4], -1);
 	eventu.waitFrames(48);
 	
+	
 	waitUntilDead();
 	eventu.waitFrames(64);
 	state.round = state.round + 1;
@@ -381,7 +381,7 @@ local function cor_arena(state)
 	spawnArenaNPC(313, spawnPos[1], 1);
 	spawnArenaNPC(313, spawnPos[4], -1);
 	
-	state.round = 4
+	
 	waitUntilDead();
 	eventu.waitFrames(64);
 	state.round = state.round + 1;
@@ -755,15 +755,15 @@ function onStart()
 		end
 	end
 	
-	if(idolsReady[154]) then
-		Layer.get("FireBGOs"):hide(true);
-	end
-	
 	local allidolsplaced = true;
 	for k,_ in pairs(idolsDone) do
 		if(not SaveData.world3.town["idol"..k]) then
 			allidolsplaced = false;
 		end
+	end
+
+	if(idolsReady[154] or SaveData.world3.town.idol154) then
+		Layer.get("FireBGOs"):hide(true);
 	end
 	
 	if(allidolsplaced) then
@@ -1034,6 +1034,24 @@ end
 local reflections = Graphics.CaptureBuffer(800,600);
 local waterShader = nil;
 
+local npc_hardcoded = 
+{
+	[109] = {framestyle = 1, frames = 2};
+	[121] = {framestyle = 1, frames = 2};
+	[29] = {framestyle = 1, frames = 3};
+	[130] = {framestyle = 2, frames = 2};
+	[129] = {framestyle = 2, frames = 2};
+	[135] = {framestyle = 2, frames = 2};
+	[39] = {framestyle = 1, frames = 5};
+	[77] = {framestyle = 1, frames = 2};
+	[123] = {framestyle = 1, frames = 2};
+	
+	[389] = {framestyle = 1, frames = 3};
+	[313] = {framestyle = 1, frames = 7};
+	[315] = {framestyle = 1, frames = 3};
+	[280] = {framestyle = 1, frames = 5};
+}
+
 function onDraw()
 	local i = 1;
 	while i <= #splashes do
@@ -1094,16 +1112,21 @@ function onDraw()
 							v.data.t = v.data.t + 1;
 							v.friendly = true;
 							local y = 0;
-							local cfg = NPC.config[v.id];
+							local id = v.id;
+							local cfg = NPC.config[id];
 							if(v.direction == 1) then
-								if(cfg.framestyle >= 1) then
-									y = (cfg.frames)*gfxHeight;
+								if(cfg.framestyle >= 1 or (npc_hardcoded[id] and npc_hardcoded[id].framestyle and npc_hardcoded[id].framestyle >= 1)) then
+									local frms = cfg.frames;
+									if(npc_hardcoded[id] and npc_hardcoded[id].frames) then
+										frms = npc_hardcoded[id].frames;
+									end
+									y = (frms)*gfxHeight;
 								end
 							end
 							
 							Graphics.draw{type = RTYPE_IMAGE, 
 											x = v.data.x + (v.width - gfxWidth)*0.5 + cfg.gfxoffsetx, 
-											y = v.data.y + (v.height - gfxHeight)*0.5 + cfg.gfxoffsety + math.lerp(gfxHeight,0,t), 
+											y = v.data.y + (v.height - gfxHeight) + cfg.gfxoffsety + math.lerp(gfxHeight,0,t), 
 											isSceneCoordinates = true, 
 											priority = -75, 
 											image = Graphics.sprites.npc[v.id].img, 
