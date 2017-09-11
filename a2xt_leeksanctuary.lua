@@ -145,7 +145,18 @@ function leeks.onStart()
 		
 		for k,v in pairs(leeks.sections) do
 			spawnSanctuaryBlocks(k)
-			local n = NPC.spawn(leeks.id, Section(k).boundary.left + 368, Section(k).boundary.top + 362, k);
+			local sobj =  Section(k);
+			
+			for _,v in ipairs(Warp.getIntersectingEntrance(sobj.boundary.left, sobj.boundary.top, sobj.boundary.right, sobj.boundary.bottom)) do
+				v.entranceX = sobj.boundary.left + 128;
+				v.entranceY = sobj.boundary.top + 440;
+			end
+			for _,v in ipairs(Warp.getIntersectingExit(sobj.boundary.left, sobj.boundary.top, sobj.boundary.right, sobj.boundary.bottom)) do
+				v.exitX = sobj.boundary.left + 128;
+				v.exitY = sobj.boundary.top + 440;
+			end
+			
+			local n = NPC.spawn(leeks.id, sobj.boundary.left + 368, sobj.boundary.top + 362, k);
 			n:mem(0xA8,FIELD_DFLOAT,n.x);
 			n:mem(0xB0,FIELD_DFLOAT,n.y);
 			n:mem(0xDC,FIELD_WORD,leeks.id);
@@ -154,9 +165,9 @@ function leeks.onStart()
 			
 			local lightdust = Misc.resolveFile("graphics/sanctuary/p_lightDust.ini");
 			
-			local p1 = particles.Emitter(Section(k).boundary.left+340, Section(k).boundary.top + 80, lightdust)
-			local p2 = particles.Emitter(Section(k).boundary.left+668, Section(k).boundary.top + 80, lightdust)
-			local p3 = particles.Emitter(Section(k).boundary.left+504, Section(k).boundary.top + 80, lightdust)
+			local p1 = particles.Emitter(sobj.boundary.left+340, sobj.boundary.top + 80, lightdust)
+			local p2 = particles.Emitter(sobj.boundary.left+668, sobj.boundary.top + 80, lightdust)
+			local p3 = particles.Emitter(sobj.boundary.left+504, sobj.boundary.top + 80, lightdust)
 			
 			p3:setParam("scale","0.03:0.2")
 			
@@ -164,6 +175,7 @@ function leeks.onStart()
 			table.insert(leeks.sectionParticles[k],p2)
 			table.insert(leeks.sectionParticles[k],p3)
 			
+			sobj.musicID = 24;
 			setSectionCustomMusic(k, "music/A2XT Allium Ampeloprasum.ogg");
 		end
 		
