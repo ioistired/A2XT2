@@ -24,7 +24,7 @@ local CASH = 2;
 local KEY = 3;
 local ROULETTE = 1;
 
-function _G.isTownLevel()
+function isTownLevel()
 	local d = leveldata.GetData();
 	if(d) then
 		return d.Type == leveldata.TYPE_TOWN;

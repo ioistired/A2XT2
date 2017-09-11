@@ -539,8 +539,12 @@ function pal.onStart()
 	for _,v in ipairs(NPC.get()) do
 		v = pnpc.getExistingWrapper(v);
 		if(v and v.data.buried == true) then
-			table.insert(buriedNPCs, v);
-			v.isHidden = true;
+			if(v.id == 979 and SaveData.chests[Level.filename()][tostring(v.data.chestid)]) then --Don't let pal dig up chests you've already opened
+				v:kill(9);
+			else
+				table.insert(buriedNPCs, v);
+				v.isHidden = true;
+			end
 		end
 	end
 end

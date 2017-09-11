@@ -1,39 +1,52 @@
-local pman = API.load("playerManager")
 costumes = {}
-
 
 --*****************************
 --** Costume info            **
 --*****************************
 
-local charids = {mario=CHARACTER_MARIO, luigi=CHARACTER_LUIGI, peach=CHARACTER_PEACH, toad=CHARACTER_TOAD, link=CHARACTER_LINK, unclebroadsword=CHARACTER_UNCLEBROADSWORD}
-
--- Total number of costumes between all characters
-costumes.totalNum = 0
+local charids = {mario=CHARACTER_DEMO, luigi=CHARACTER_IRIS, peach=CHARACTER_KOOD, toad=CHARACTER_RAOCOW, link=CHARACTER_SHEATH, unclebroadsword=CHARACTER_UNCLEBROADSWORD}
 
 -- The costume IDs specific to each character
 costumes.charLists = {}
 
+--Fill this in
+costumes.data = 
+{
+	DEMO_BOBBLE = {path = "Demo-BobbleHat", name = "Bobble Hat Demo"};
+}
+
+local reference = {}
+
+for k,v in pairs(costumes.data) do
+	reference[v.path] = k;
+end
+
 -- Properties for each costume
 costumes.info = {}
-for  _,v1 in pairs(Misc.listFiles("graphics/costumes"))  do
-	for  _,v2 in pairs(Misc.listFiles("graphics/costumes/"..v1))  do
-		costumes.totalNum = costumes.totalNum+1
-		local cid = charids[v1]
+for  _,v1 in ipairs(Misc.listDirectories(Misc.episodePath().."graphics/costumes"))  do
+	for  _,v2 in ipairs(Misc.listDirectories(Misc.episodePath().."/graphics/costumes/"..v1))  do
+		local costume_id = reference[v2];
+		
+		if(costume_id) then
+			local cid = charids[v1]
 
-		if  costumes.charLists[cid] == nil  then
-			costumes.charLists[cid] = {}
+			if  costumes.charLists[cid] == nil  then
+				costumes.charLists[cid] = {}
+			end
+			local charList = costumes.charLists[cid]
+			
+			table.insert(charList, costume_id);
+
+			local info = {
+				path = "graphics/costumes/"..v1.."/"..v2,
+				id = costume_id,
+				name = costumes.data[costume_id].name,
+				character = cid
+				-- any other properties defined in a text document maybe?
+			}
+			
+			costumes.info[costume_id] = info
 		end
-		local charList = costumes.charLists[cid]
-		charList[#charList+1] = costumes.totalNum
-
-		local info = {
-			path = "graphics/costumes/"..v1.."/"..v2,
-			name = v2,
-			character = cid
-			-- any other properties defined in a text document maybe?
-		}
-		costumes.info[costumes.totalNum] = info
 
 	end
 end
@@ -49,10 +62,10 @@ end
 
 
 function costumes.getUnlocked (character)
-	local unlocked = {0}
+	local unlocked = {}
 	for  _,v in pairs (costumes.charLists[character])  do
 		if  SaveData.costumes[v]  then
-			unlocked[#unlocked+1] = v
+			table.insert(unlocked, v)
 		end
 	end
 
@@ -67,7 +80,7 @@ end
 
 function costumes.wear (id)
 	local info = costumes.info[id]
-	pman.setCostume(info.character, info.name)
+	Player.setCostume(info.character, info.name)
 end
 
 

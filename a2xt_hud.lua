@@ -7,9 +7,9 @@ local vectr;
 local map3d;
 local leveldata;
 
-_G.A2XT_FONT_MAIN = textblox.Font (textblox.FONTTYPE_SPRITE, {ini = "graphics/fonts/font_main.ini", image = Graphics.loadImage(Misc.resolveFile("graphics/fonts/font_main.png"))})	
+A2XT_FONT_MAIN = textblox.Font (textblox.FONTTYPE_SPRITE, {ini = "graphics/fonts/font_main.ini", image = Graphics.loadImage(Misc.resolveFile("graphics/fonts/font_main.png"))})	
 
-_G.CHAR_RC = "<color white>\127<color default>"
+CHAR_RC = "<color white>\127<color default>"
 
 textblox.presetProps[textblox.PRESET_SYSTEM].font = A2XT_FONT_MAIN
 textblox.presetProps[textblox.PRESET_BUBBLE].font = A2XT_FONT_MAIN

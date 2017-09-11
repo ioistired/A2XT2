@@ -1,4 +1,4 @@
-_G["GLOBAL_DEMOS"] = 0;
+GLOBAL_DEMOS = 0;
 
 local settings = API.load("a2xt_settings");
 
@@ -22,7 +22,7 @@ function dc.onStart()
 			SaveData.deaths[Level.filename()] = 0;
 		end
 		
-		_G.GLOBAL_DEMOS = SaveData.deaths._TOTAL;
+		GLOBAL_DEMOS = SaveData.deaths._TOTAL;
 end
 
 function dc.GetDemos(level)

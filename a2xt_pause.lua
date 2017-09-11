@@ -18,7 +18,7 @@ local game_paused = false;
 local unpausing = false;
 local pause_blend = 0;
 
-function _G.isGamePaused()
+function isGamePaused()
 	return game_paused;
 end
 

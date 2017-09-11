@@ -1,25 +1,25 @@
-_G["GLOBAL_LIVES"] = 0;
+GLOBAL_LIVES = 0;
 
-_G["CHARACTER_DEMO"] = CHARACTER_MARIO;
-_G["CHARACTER_IRIS"] = CHARACTER_LUIGI;
-_G["CHARACTER_KOOD"] = CHARACTER_PEACH;
-_G["CHARACTER_RAOCOW"] = CHARACTER_TOAD;
-_G["CHARACTER_SHEATH"] = CHARACTER_LINK;
+CHARACTER_DEMO = CHARACTER_MARIO;
+CHARACTER_IRIS = CHARACTER_LUIGI;
+CHARACTER_KOOD = CHARACTER_PEACH;
+CHARACTER_RAOCOW = CHARACTER_TOAD;
+CHARACTER_SHEATH = CHARACTER_LINK;
 
-_G["CHARACTER_NAME"] = {
-                        [CHARACTER_MARIO] = "Demo",
-                        [CHARACTER_LUIGI] = "Iris",
-                        [CHARACTER_PEACH] = "Kood",
-                        [CHARACTER_TOAD]  = "Raocow",
-                        [CHARACTER_LINK]  = "Sheath"
-                       }
+CHARACTER_NAME = {
+                    [CHARACTER_MARIO] = "Demo",
+                    [CHARACTER_LUIGI] = "Iris",
+                    [CHARACTER_PEACH] = "Kood",
+                    [CHARACTER_TOAD]  = "Raocow",
+                    [CHARACTER_LINK]  = "Sheath"
+                  }
 
 local textblox = loadSharedAPI("textblox")
 local encrypt =  API.load("encrypt");
 local pm = API.load("playerManager");
 pm.overworldCharacters = {CHARACTER_DEMO,CHARACTER_IRIS,CHARACTER_RAOCOW,CHARACTER_KOOD,CHARACTER_SHEATH};
 
-_G["GENERIC_FONT"] = textblox.FONT_SPRITEDEFAULT4X2;
+GENERIC_FONT = textblox.FONT_SPRITEDEFAULT4X2;
 
 local settings = {};
 
@@ -62,7 +62,7 @@ function settings.onInitAPI()
 end
 
 function settings.onStart()
-	_G.GLOBAL_LIVES = mem(0x00B2C5AC, FIELD_FLOAT);
+	GLOBAL_LIVES = mem(0x00B2C5AC, FIELD_FLOAT);
 	if(not isOverworld) then
 		mem(0x00B2C5AC, FIELD_FLOAT, 50);
 	end
@@ -71,14 +71,14 @@ end
 if(not isOverworld) then
 	function settings.onTick()
 		if(mem(0x00B2C5AC, FIELD_FLOAT) ~= 50) then
-			_G.GLOBAL_LIVES = GLOBAL_LIVES + mem(0x00B2C5AC, FIELD_FLOAT) - 50;
+			GLOBAL_LIVES = GLOBAL_LIVES + mem(0x00B2C5AC, FIELD_FLOAT) - 50;
 			mem(0x00B2C5AC, FIELD_FLOAT, 50);
 		end
 	end
 
 	function settings.onExitLevel()
 		if(player:mem(0x13C, FIELD_BOOL)) then
-			_G.GLOBAL_LIVES = GLOBAL_LIVES - 1;
+			GLOBAL_LIVES = GLOBAL_LIVES - 1;
 		end
 		mem(0x00B2C5AC, FIELD_FLOAT, GLOBAL_LIVES);
 	end
