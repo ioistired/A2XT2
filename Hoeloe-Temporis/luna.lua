@@ -28,7 +28,7 @@ textblox.npcPresets[151] = textblox.PRESET_BUBBLE
 sanctuary.world = 1;
 sanctuary.sections[4] = true
 
-npcmanager.setNpcSettings{id = 65, talkrange = 64};
+npcmanager.setNpcSettings{id = 94, talkrange = 64};
 
 local shop = {}
 
@@ -138,9 +138,17 @@ local idolDoor = {Layer(4),Layer(5),Layer(6),Layer(7)};
 local idolDoorOpen = false;
 
 local torches = {};
+local torchExplorers = {};
 local grabtorches = {};
 
 --cinematx.defineQuest ("dickson", "An Explorer's Mission", "Help Prof. Dr. D. Dickson Esq. to discover the history of Temporis.")
+local function getGender(p)
+	if(p.character == CHARACTER_MARIO or p.character == CHARACTER_LUIGI or p.character == CHARACTER_LINK) then
+		return true;
+	else
+		return false;
+	end
+end
 
 --Arena minigame stuff
 local arenaNPCs = nil;
@@ -745,6 +753,41 @@ do --funky dialogue
 		a2xt_scene.endScene()
 		a2xt_message.endMessage();
 	end
+	
+	a2xt_message.presetSequences.dickson = function(args)
+		local talker = args.npc;
+		
+		local p = "lad";
+		if(getGender(player)) then
+			p = "lass";
+		end
+		
+		if(SaveData.world3.town.dicksonStarted) then
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="Hello young "..p..", have you got any new information for me?", closeWith="prompt"}
+			a2xt_message.waitMessageDone()
+				
+			a2xt_message.promptChosen = false
+			
+			local options = {};
+			
+			table.insert(options, "Nothing yet.");
+			a2xt_message.showPrompt{options=options}
+			a2xt_message.waitPrompt()
+			
+			if(a2xt_message.promptChoice == #options) then
+				a2xt_message.showMessageBox {target=talker, type="bubble", text="Ah, well. Please do make sure to let me know if you find anything out from my Aides."}
+				a2xt_message.waitMessageEnd();
+			end
+			
+		else
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="Hello there young "..p..". My name is Professor Doctor D. Duff Dickson Esq.<page>Most folk call me Professor Dickson for short.<page>I'm a world-renowned archaeologist and explorer, and I'm in charge of excavating this here city.<page>There's a lot we don't know about the people who lived here, but this find should answer a lot of our questions.<page>Perhaps you can help? My Aides are out exploring the city right now, but my old legs aren't what they used to be.<page>If you run across any of them, could you relay any of their findings to me?<page>I'm sure I'll be able to reward you for your efforts."}
+			a2xt_message.waitMessageEnd();
+			SaveData.world3.town.dicksonStarted = true
+		end
+			
+		a2xt_scene.endScene()
+		a2xt_message.endMessage();
+	end
 end
 
 
@@ -827,6 +870,14 @@ function onStart()
 		local p = particles.Emitter(v.x+16,v.y-4,Misc.resolveFile("particles/p_flame_small.ini"));
 		audio.Create{sound="torches.ogg", x = v.x+16, y=v.y, falloffRadius = 500, volume = 0.5};
 		table.insert(torches, p);
+	end
+	
+	for _,v in ipairs(NPC.get(405)) do
+		local p = particles.Emitter(v.x+24,v.y+6,Misc.resolveFile("particles/p_flame_small.ini"));
+		audio.Create{sound="torches.ogg", x = v.x+16, y=v.y+10, falloffRadius = 500, volume = 0.5};
+		v = pnpc.wrap(v);
+		v.data.torch = p;
+		table.insert(torchExplorers, v)
 	end
 	
 	for _,v in ipairs(NPC.get(31)) do
@@ -1326,8 +1377,15 @@ end
 function onCameraDraw()
 	local cam = Camera.get()[1];
 	
-	for _,v in ipairs(torches) do
-		v:Draw(-84);
+	if(player.section == 1) then
+		for _,v in ipairs(torches) do
+			v:Draw(-84);
+		end
+	elseif(player.section == 0) then
+		for _,v in ipairs(torchExplorers) do
+			v.data.torch.x = v.x + v.width*0.5 - 6*v.direction;
+			v.data.torch:Draw(-44);
+		end
 	end
 	
 	for _,v in ipairs(grabtorches) do
@@ -1411,12 +1469,4 @@ end
 
 function onLoadSection()
 	refreshCamera = true;
-end
-
-local function getGender(p)
-	if(p.character == CHARACTER_MARIO or p.character == CHARACTER_LUIGI or p.character == CHARACTER_LINK) then
-		return true;
-	else
-		return false;
-	end
 end

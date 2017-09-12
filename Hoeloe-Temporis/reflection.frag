@@ -9,7 +9,8 @@ uniform float speed = 0.07;
 
 void main()
 {
-	vec2 uv = vec2(clamp(gl_TexCoord[0].x + intensity*(gl_FragCoord.y - depthOffset) *sin((gl_FragCoord.y - depthOffset)*frequency + time * speed),0,1), gl_TexCoord[0].y);
+	//Clamp x coordinate between 0 and 0.78 - coordinates are to Po2 texture
+	vec2 uv = vec2(clamp(gl_TexCoord[0].x + intensity*(gl_FragCoord.y - depthOffset) *sin((gl_FragCoord.y - depthOffset)*frequency + time * speed),0,0.78), gl_TexCoord[0].y);
 	vec4 c = texture2D( iChannel0, uv);
 	
 	c.rgb *= clamp(1 - (gl_FragCoord.x - fadeR.x)/(fadeR.y-fadeR.x),0,1) * clamp(abs(gl_FragCoord.y - depthOffset)*0.1, 0, 1);

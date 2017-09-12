@@ -643,9 +643,9 @@ function a2xt_message.showPrompt(args)
 	a2xt_message.promptChosen = false
 	a2xt_message.promptChoiceStr = ""
 
-	local fullStr = options[1].."<br>"..options[2]
-	if  #options > 2  then
-		for i=3,#options  do
+	local fullStr = options[1]
+	if  #options > 1  then
+		for i=2,#options  do
 			fullStr = fullStr.."<br>"..options[i]
 		end
 	end

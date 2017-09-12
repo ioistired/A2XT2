@@ -253,8 +253,8 @@
 #FALSE#
 #FALSE#
 ""
-120369
-119696
+-199984
+-200378
 24
 54
 0
@@ -179162,12 +179162,12 @@
 ""
 ""
 ""
--199360
--200502
+-197784
+-200370
 -1
 94
 #FALSE#
-"{key=dickson, icon=1, scene=text_dickson}"
+"Professor Dickson:Hello there young [lass/lass/lad/lad/lass]. My name is Professor Doctor D. Duff Dickson Esq.<page>Most people call me Professor Dickson for short.<page>I'm a world-renowned archaeologist and explorer, and I'm in charge of excavating this here city.<page>There's a lot we don't know about the people who lived here, but this find should answer a lot of our questions.<page>Perhaps you can help? My Aides are out exploring the city right now, but my old legs aren't what they used to be.<page>If you run across any of them, could you relay any of their findings to me?<page>I'm sure I'll be able to reward you for your efforts."
 #TRUE#
 #FALSE#
 #FALSE#
@@ -180101,6 +180101,81 @@
 198
 #FALSE#
 "Fet:Feel free to head out of town. You've done a bit of a time jump backwards from when you first arrived, so don't be surprised if things look a bit different."
+#TRUE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-193792
+-199926
+-1
+405
+#FALSE#
+"Explorer Aide:It's dark in this cave, you'll probably need a torch."
+#TRUE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-194240
+-199190
+-1
+405
+#FALSE#
+"Explorer Aide:This mural is very impressive. I wonder what it shows...?"
+#TRUE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-195680
+-199126
+-1
+405
+#FALSE#
+"Explorer Aide:What's this huge wheel for? Why put such a massive thing so deep underground?"
+#TRUE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-193920
+-199158
+1
+405
+#FALSE#
+"Explorer Aide:Have you got a torch? You might need one."
+#TRUE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-199392
+-200502
+-1
+151
+#FALSE#
+"Explorer Aide:Hi there. We've discovered a ruined city here.<page>We're in the middle of excavating it to find out some more about the people who lived here.<page>Professor Dickson is in charge of the dig, so go and talk to him if you'd like to know more."
 #TRUE#
 #FALSE#
 #FALSE#
