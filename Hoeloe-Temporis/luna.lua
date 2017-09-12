@@ -754,6 +754,17 @@ do --funky dialogue
 		a2xt_message.endMessage();
 	end
 	
+	local explorer_info = 
+	{
+		[2] = "Strange Device",
+		[5] = "Mural",
+		[6] = "Underground Wheel",
+		[7] = "Statues",
+		[8] = "Large Building",
+		[10] = "Canyon",
+		[11] = "Underground Houses"
+	}
+	
 	a2xt_message.presetSequences.dickson = function(args)
 		local talker = args.npc;
 		
@@ -762,7 +773,14 @@ do --funky dialogue
 			p = "lass";
 		end
 		
-		if(SaveData.world3.town.dicksonStarted) then
+		if(SaveData.world3.town.explorer == nil) then
+			SaveData.world3.town.explorer = {};
+		end
+		
+		if(SaveData.world3.town.dicksonDone) then
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="All we have to do is collate our data and form our theory.<page>These people are fascinating. I hope I get the opportunity to learn even more about them."}
+			a2xt_message.waitMessageEnd();
+		elseif(SaveData.world3.town.dicksonStarted) then
 			a2xt_message.showMessageBox {target=talker, type="bubble", text="Hello young "..p..", have you got any new information for me?", closeWith="prompt"}
 			a2xt_message.waitMessageDone()
 				
@@ -770,13 +788,66 @@ do --funky dialogue
 			
 			local options = {};
 			
-			table.insert(options, "Nothing yet.");
+			local results = {};
+			
+			local totalInfo = 0;
+			local maxInfo = 0;
+			
+			for k,v in pairs(explorer_info) do
+				if(SaveData.world3.town.explorer[tostring(k)] == 1) then
+					table.insert(options, v);
+					table.insert(results, k);
+				elseif(SaveData.world3.town.explorer[tostring(k)] == 2) then
+					totalInfo = totalInfo + 1;
+				end
+				maxInfo = maxInfo+1;
+			end
+			
+			table.insert(options, "Nothing yet");
 			a2xt_message.showPrompt{options=options}
 			a2xt_message.waitPrompt()
 			
 			if(a2xt_message.promptChoice == #options) then
 				a2xt_message.showMessageBox {target=talker, type="bubble", text="Ah, well. Please do make sure to let me know if you find anything out from my Aides."}
 				a2xt_message.waitMessageEnd();
+			else
+				local idx = results[a2xt_message.promptChoice];
+				if(idx == 2) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Ah, another of those strange devices! This does fit our hypothesis well.<page>I believe this devices may be related to these people's obsession with time, and they may have been used to alter the flow of time itself!"}
+					a2xt_message.waitMessageEnd();
+				elseif(idx == 5) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="A mural? Interesting...<page>We don't know a lot about this people's culture, but a mural could provide some fantastic insight.<page>It could even provide us with information about their perspective on time!"}
+					a2xt_message.waitMessageEnd();
+				elseif(idx == 6) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Hmm. A large underground wheel...<page>My suspicion is that it could be some sort of generator. It seems these people may have had rather advanced technology."}
+					a2xt_message.waitMessageEnd();
+				elseif(idx == 7) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Statues you say? Connected to some sort of mechanical device?<page>Intriguing. These people seem more advanced than we first thought..."}
+					a2xt_message.waitMessageEnd();
+				elseif(idx == 8) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="A large building? Perhaps some sort of public space...?<page>It seems not only their technology, but their culture is also advanced."}
+					a2xt_message.waitMessageEnd();
+				elseif(idx == 10) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="A huge canyon you say? Well that certainly is interesting.<page>If it used to be the site of a large river it would explain why there is a town all the way out here."}
+					a2xt_message.waitMessageEnd();
+				elseif(idx == 11) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="So, these people lived primarily underground.<page>That is an interesting find, and certainly makes sense considering our other findings."}
+					a2xt_message.waitMessageEnd();
+				end
+				SaveData.world3.town.explorer[tostring(idx)] = 2;
+				totalInfo = totalInfo + 1;
+				
+				if(totalInfo >= maxInfo) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="That's it! The final piece of the puzzle!<page>I think we can finally begin to understand these people. Now all we have to do is collate our data and form our theory!<page>Thank you very much for gathering this information for me. I hope this is a suitable reward."}
+					a2xt_message.waitMessageEnd();
+					a2xt_rewards.give{type="card", quantity="Professor Doctor D. Duff Dickson Esq.", useTransitions = false, endScene = false, wait=true}
+					SaveData.world3.town.dicksonDone = true
+					talker.data.talkIcon = 1;
+					talker.data.a2xt_message.iconSpr.state = 1;
+				else
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Thank you for bringing me this information.<page>There's still so much more we need to learn, so I hope you'll bing me some more soon."}
+					a2xt_message.waitMessageEnd();
+				end
 			end
 			
 		else
@@ -785,6 +856,36 @@ do --funky dialogue
 			SaveData.world3.town.dicksonStarted = true
 		end
 			
+		a2xt_scene.endScene()
+		a2xt_message.endMessage();
+	end
+	a2xt_message.presetSequences.explorer = function(args)
+		local talker = args.npc;
+		
+		local text = a2xt_message.quickparse(tostring(talker.msg));
+		
+		if(SaveData.world3.town.explorer == nil) then
+			SaveData.world3.town.explorer = {};
+		end
+		
+		if(SaveData.world3.town.dicksonStarted and not SaveData.world3.town.dicksonDone and SaveData.world3.town.explorer[tostring(talker.data.explorerID)] == nil) then
+			a2xt_message.showMessageBox {target=talker, type="bubble", text=text, closeWith="prompt"};
+			
+			a2xt_message.waitMessageDone()	
+			a2xt_message.promptChosen = false
+			
+			a2xt_message.showPrompt{options={"Got any info?", "K. Thanks."}}
+			a2xt_message.waitPrompt()
+			
+			if(a2xt_message.promptChoice == 1) then
+				a2xt_message.showMessageBox {target=talker, type="bubble", text=a2xt_message.quickparse(talker.data.info)};
+				a2xt_message.waitMessageEnd()	
+				SaveData.world3.town.explorer[tostring(talker.data.explorerID)] = 1;
+			end
+		else
+			a2xt_message.showMessageBox {target=talker, type="bubble", text=text};
+			a2xt_message.waitMessageEnd()	
+		end
 		a2xt_scene.endScene()
 		a2xt_message.endMessage();
 	end
@@ -991,6 +1092,18 @@ function onTick()
 		for _,v in ipairs(NPC.get(107,1)) do
 			v = pnpc.wrap(v);
 			if(v.data.name == "Bes" and v.data.a2xt_message) then
+				v.data.talkIcon = 1;
+				v.data.a2xt_message.iconSpr.state = 1;
+			end
+		end
+	end
+	
+	--Update Dickon's icon
+	
+	if(SaveData.world3.town.dicksonDone) then
+		for _,v in ipairs(NPC.get(94, 0)) do
+			v = pnpc.wrap(v);
+			if(v.data.a2xt_message) then
 				v.data.talkIcon = 1;
 				v.data.a2xt_message.iconSpr.state = 1;
 			end

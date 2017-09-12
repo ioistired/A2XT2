@@ -157,7 +157,7 @@ local function quickparse_perchar(a)
 	return t[player.character] or t[1];
 end
 
-local function quickparse(msg)
+function a2xt_message.quickparse(msg)
 	if(isTownLevel()) then
 		return (msg:gsub("(%b[])", quickparse_perchar))
 	else
@@ -973,7 +973,7 @@ end
 function a2xt_message.talkToNPC(npc, message)
 	if  not a2xt_scene.inCutscene  then
 		if(npc ~= nil) then
-			message = message or quickparse(tostring(npc.msg));
+			message = message or a2xt_message.quickparse(tostring(npc.msg));
 		end
 		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=message}, noletterbox=(npc==nil)}
 		a2xt_pause.Block();
@@ -989,7 +989,7 @@ function a2xt_message.onMessageBox(eventObj, message)
 		npc = a2xt_message.getTalkNPC();
 	end
 	
-	a2xt_message.talkToNPC(npc, quickparse(message));
+	a2xt_message.talkToNPC(npc, a2xt_message.quickparse(message));
 	eventObj.cancelled = true
 end
 --[[
