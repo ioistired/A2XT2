@@ -1576,8 +1576,14 @@ function onCameraDraw()
 			v.data.particles.y = v.y-2;
 			v.data.particles:Draw(-44);
 			
-			v.data.light.x = v.data.particles.x;
-			v.data.light.y = v.data.particles.y;
+			if(math.abs(v.data.light.x-v.data.particles.x) > 64 or math.abs(v.data.light.y-v.data.particles.y) > 64) then
+				v.data.light.x = v.data.particles.x;
+				v.data.light.y = v.data.particles.y;
+			else
+				--Smooth out light motion, as it's quite large and can cause some eye-burning jerkiness when spinjumping and such
+				v.data.light.x = math.lerp(v.data.light.x,v.data.particles.x,0.5);
+				v.data.light.y = math.lerp(v.data.light.y,v.data.particles.y,0.5);
+			end
 			v.data.light.radius = rng.random(v.data.lightRadius-10,v.data.lightRadius+10);
 			v.data.light.brightness = rng.random(0.95,1.05)
 			
