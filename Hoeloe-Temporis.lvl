@@ -253,8 +253,8 @@
 #FALSE#
 #FALSE#
 ""
--196024
--200750
+-193868
+-199938
 24
 54
 0
@@ -179594,7 +179594,7 @@
 ""
 ""
 ""
--197884
+-197660
 -200352
 -1
 33
@@ -179611,36 +179611,6 @@
 ""
 -199036
 -200448
--1
-33
-#FALSE#
-"{buried=true}"
-#FALSE#
-#FALSE#
-#FALSE#
-"Default"
-""
-""
-""
-""
-""
--198076
--200352
--1
-33
-#FALSE#
-"{buried=true}"
-#FALSE#
-#FALSE#
-#FALSE#
-"Default"
-""
-""
-""
-""
-""
--198012
--200352
 -1
 33
 #FALSE#
@@ -179720,21 +179690,6 @@
 33
 #FALSE#
 "{buried=true}"
-#FALSE#
-#FALSE#
-#FALSE#
-"Default"
-""
-""
-""
-""
-""
--195840
--199104
--1
-169
-#FALSE#
-"{buried=true, saveDeath='digTanuki_1'}"
 #FALSE#
 #FALSE#
 #FALSE#
@@ -180014,12 +179969,12 @@
 ""
 ""
 ""
--193792
+-193856
 -199926
 -1
 405
 #FALSE#
-"{name='Explorer Aide',newMsg='It\'s dark in this cave, you\'ll probably need a torch.',event='explorer',info='Nope, sorry. I\'m just here to hand out torches.',explorerID=3}"
+"{name='Explorer Aide',newMsg='It\'s dark in this cave, you\'ll probably need a torch.',event='explorer',info='Nope, sorry. I\'m just here to hand out torches.',explorerID=3,torchMsg='Here. I\'ll let you borrow one.'}"
 #TRUE#
 #FALSE#
 #FALSE#
@@ -180064,7 +180019,7 @@
 1
 405
 #FALSE#
-"{name='Explorer Aide',newMsg='Have you got a torch? You might need one.',event='explorer',info='Sorry, but I\'ve got nothing.',explorerID=4}"
+"{name='Explorer Aide',newMsg='Have you got a torch? You might need one.',event='explorer',info='Sorry, but I\'ve got nothing.',explorerID=4,torchMsg='I\'ll let you borrow one.'}"
 #TRUE#
 #FALSE#
 #FALSE#
@@ -180152,11 +180107,26 @@
 40352
 39754
 1
-151
+405
 #FALSE#
-"{name='Explorer Aide',newMsg='There are a lot of underground houses around here.',event='explorer',info='Please tell the professor about all these underground houses.<page>They\'ll provide and insight into how these people lived.',explorerID=11}"
+"{name='Explorer Aide',newMsg='There are a lot of underground houses around here.',event='explorer',info='Please tell the professor about all these underground houses.<page>They\'ll provide an insight into how these people lived.',explorerID=11}"
 #TRUE#
 #TRUE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-195808
+-199136
+-1
+979
+#FALSE#
+"{type='raocoin',quantity=5,chestid=3,buried=true}"
+#TRUE#
+#FALSE#
 #FALSE#
 "Default"
 ""

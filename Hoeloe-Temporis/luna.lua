@@ -20,6 +20,7 @@ local a2xt_rewards = API.load("a2xt_rewards");
 local a2xt_pause = API.load("a2xt_pause");
 local a2xt_hud = API.load("a2xt_hud");
 local npcmanager = API.load("npcmanager")
+local darkness = API.load("darkness/darkness")
 
 local textblox = API.load("textblox");
 
@@ -97,6 +98,31 @@ local cave_l,cave_t,cave_r,cave_b = -196864, -200256, -193184, -199040;
 local present_cave = colliders.Box(cave_l, cave_t, cave_r-cave_l, cave_b-cave_t);
 local haze_blend = 1;
 
+local ambientLight = Color.fromHexRGB(0x09091A);
+local default_cave_bounds = {left=present_cave.x-1600, top=present_cave.y-600,right=present_cave.x+present_cave.width+200,bottom=present_cave.y+present_cave.height+600};
+
+local darknessSettings = {
+					maxLights = 200;
+					falloff=darkness.Falloff.INV_SQR,
+					shadows=darkness.Shadow.NONE, 
+					uniforms = 
+					{ 
+					}
+					};
+
+local cave_darkness = darkness.Field(table.join(darknessSettings, 
+					{
+						ambient=0xFFFFFF,
+						bounds = table.clone(default_cave_bounds),
+						boundBlendLength=600
+					}));
+						
+				
+local cave_darkness_indoors = darkness.Field(table.join(darknessSettings, 
+					{
+						ambient=ambientLight:toHexRGB();
+					}));
+
 --Copy cave background to new section and reposition
 local cavebg2 = cavebg:Clone();
 cavebg2.section = 0;
@@ -141,7 +167,6 @@ local torches = {};
 local torchExplorers = {};
 local grabtorches = {};
 
---cinematx.defineQuest ("dickson", "An Explorer's Mission", "Help Prof. Dr. D. Dickson Esq. to discover the history of Temporis.")
 local function getGender(p)
 	if(p.character == CHARACTER_MARIO or p.character == CHARACTER_LUIGI or p.character == CHARACTER_LINK) then
 		return true;
@@ -859,19 +884,41 @@ do --funky dialogue
 		a2xt_scene.endScene()
 		a2xt_message.endMessage();
 	end
+	
+	local function spawnTorch(talker)
+			eventu.waitFrames(24);
+			local n = NPC.spawn(31,talker.x+16,talker.y+16,0);
+			n:mem(0x136, FIELD_BOOL, true);
+			n.speedX = 4*talker.direction;
+			n.speedY = -5;
+			Audio.playSFX(9);
+	end
+	
 	a2xt_message.presetSequences.explorer = function(args)
 		local talker = args.npc;
 		
 		local text = a2xt_message.quickparse(tostring(talker.msg));
+		local throwtorch = false;
+		if(talker.data.torchMsg and (player:mem(0x154,FIELD_WORD) == 0 or player.holdingNPC == nil or player.holdingNPC.id ~= 31) and #NPC.get(31,0) < 5) then
+			text = text.."<page>"..a2xt_message.quickparse(talker.data.torchMsg);
+			throwtorch = true;
+		end
 		
 		if(SaveData.world3.town.explorer == nil) then
 			SaveData.world3.town.explorer = {};
 		end
 		
 		if(SaveData.world3.town.dicksonStarted and not SaveData.world3.town.dicksonDone and SaveData.world3.town.explorer[tostring(talker.data.explorerID)] == nil) then
-			a2xt_message.showMessageBox {target=talker, type="bubble", text=text, closeWith="prompt"};
+			local box = a2xt_message.showMessageBox {target=talker, type="bubble", text=text, closeWith="prompt"};
 			
 			a2xt_message.waitMessageDone()	
+			
+			if(throwtorch) then
+				spawnTorch(talker);
+				box:closeSelf();
+				eventu.waitFrames(64);
+			end
+			
 			a2xt_message.promptChosen = false
 			
 			a2xt_message.showPrompt{options={"Got any info?", "K. Thanks."}}
@@ -885,12 +932,16 @@ do --funky dialogue
 		else
 			a2xt_message.showMessageBox {target=talker, type="bubble", text=text};
 			a2xt_message.waitMessageEnd()	
+			
+			if(throwtorch) then
+				spawnTorch(talker);
+				eventu.waitFrames(64);
+			end
 		end
 		a2xt_scene.endScene()
 		a2xt_message.endMessage();
 	end
 end
-
 
 function onStart()
 	if(SaveData.world3.town.garishComplete) then
@@ -978,17 +1029,11 @@ function onStart()
 		audio.Create{sound="torches.ogg", x = v.x+16, y=v.y+10, falloffRadius = 500, volume = 0.5};
 		v = pnpc.wrap(v);
 		v.data.torch = p;
+		v.data.light = darkness.Light(p.x,p.y,300,1,0xFF9900);
+		v.data.lightRadius = 300;
+		cave_darkness:AddLight(v.data.light);
+		cave_darkness_indoors:AddLight(v.data.light);
 		table.insert(torchExplorers, v)
-	end
-	
-	for _,v in ipairs(NPC.get(31)) do
-		local p = particles.Emitter(v.x+8,v.y-4,Misc.resolveFile("particles/p_flame_small.ini"));
-		p:setParam("space", "local");
-		p:Attach(v,false);
-		v = pnpc.wrap(v);
-		audio.Create{sound="torches.ogg", parent = v, x = v.x+16, y=v.y, falloffRadius = 400, volume = 0.4};
-		v.data.particles = p;
-		table.insert(grabtorches, v);
 	end
 end
 
@@ -1494,19 +1539,64 @@ function onCameraDraw()
 		for _,v in ipairs(torches) do
 			v:Draw(-84);
 		end
-	elseif(player.section == 0) then
+	elseif(player.section == 0 or player.section == 12) then
 		for _,v in ipairs(torchExplorers) do
 			v.data.torch.x = v.x + v.width*0.5 - 6*v.direction;
 			v.data.torch:Draw(-44);
+			
+			v.data.light.radius = rng.random(v.data.lightRadius-10,v.data.lightRadius+10);
+			v.data.light.brightness = rng.random(0.95,1.05)
 		end
 	end
 	
-	for _,v in ipairs(grabtorches) do
-		v:mem(0x12A,FIELD_WORD,180);
-		if(v:mem(0x12A,FIELD_WORD) >= 0) then
-			v.data.particles:Draw(-60);
+	for _,v in ipairs(NPC.get(31)) do
+		v = pnpc.wrap(v);
+		if(v.data.particles == nil) then
+		
+			local p = particles.Emitter(v.x+8,v.y-4,Misc.resolveFile("particles/p_flame_small.ini"));
+			p:setParam("space", "local");
+			p:setParam("scale", "0.25:0.75");
+			
+			v.data.particles = p;
+			
+			v.data.light = darkness.Light(p.x,p.y,256,1,0xFF9900);
+			v.data.lightRadius = 256;
+			cave_darkness:AddLight(v.data.light);
+			cave_darkness_indoors:AddLight(v.data.light);
+			
+			v.data.sound = audio.Create{sound="torches.ogg", parent = v, x = v.x+16, y=v.y, falloffRadius = 400, volume = 0.4};
+			table.insert(grabtorches,v)
+		end
+	end
+	
+	for i = #grabtorches,1,-1 do
+		v = grabtorches[i];
+		if(v.isValid) then
+			v.data.particles.x = v.x+8;
+			v.data.particles.y = v.y-2;
+			v.data.particles:Draw(-44);
+			
+			v.data.light.x = v.data.particles.x;
+			v.data.light.y = v.data.particles.y;
+			v.data.light.radius = rng.random(v.data.lightRadius-10,v.data.lightRadius+10);
+			v.data.light.brightness = rng.random(0.95,1.05)
+			
+			--Despawn based on light radius rather than npc size
+			if(v:mem(0x12A, FIELD_WORD) < 180 and 
+			 v.x > cam.x-v.data.lightRadius and v.x < cam.x+cam.width+v.data.lightRadius and 
+			 v.y > cam.y-v.data.lightRadius and v.y < cam.y+cam.height+v.data.lightRadius) then
+				v:mem(0x12A, FIELD_WORD,180);
+			end
+			
+			--Sounds for these are fudged to be relative to the player, not the camera
+			v.data.sound.x = cam.x+cam.width*0.5 + (v.data.particles.x-player.x+player.width*0.5);
+			v.data.sound.y = cam.y+cam.height*0.5 + (v.data.particles.y-player.y+player.height*0.5);
 		else
 			v.data.particles:KillParticles();
+			cave_darkness:RemoveLight(v.data.light);
+			cave_darkness_indoors:RemoveLight(v.data.light);
+			v.data.sound:Destroy()
+			table.remove(grabtorches,i);
 		end
 	end
 
@@ -1542,13 +1632,34 @@ function onCameraDraw()
 	elseif(player.section == 0) then
 		sandstorm:Draw(-40);
 		
+		if(cave_darkness.ambient[1] < 1 or cave_darkness.ambient[2] < 1 or cave_darkness.ambient[3] < 1) then
+			cave_darkness:Draw();
+		end
+		
+		local amb_col;
+		local boundmod = default_cave_bounds.right + math.lerp(0, 800, math.min((present_cave.x + present_cave.width - player.x)/400,1));
 		if(colliders.collide(player, present_cave)) then
 			sandstorm.enabled = false;
 			haze_blend = math.max(0, haze_blend - 0.01);
+			amb_col = ambientLight;
+			cave_darkness.bounds.right = boundmod;
 		else
 			sandstorm.enabled = true;
 			haze_blend = math.min(1, haze_blend + 0.01);
+			
+			if(player.y > present_cave.y) then
+				amb_col = math.lerp(Color.white, ambientLight, math.min((player.y - present_cave.y)/128,1));
+				cave_darkness.bounds.right = boundmod;
+			else
+				amb_col = Color.white;
+				cave_darkness.bounds.right = default_cave_bounds.right;
+			end
 		end
+		
+		
+		cave_darkness.ambient[1] = amb_col.r;
+		cave_darkness.ambient[2] = amb_col.g;
+		cave_darkness.ambient[3] = amb_col.b;
 		
 		if(haze_blend > 0) then
 			local haze_p = 0
@@ -1577,6 +1688,8 @@ function onCameraDraw()
 		bg.isHidden = true;
 		mini_wheel:Draw(-64);
 		mini_wheel:Rotate(1);
+	elseif(player.section == 12 or player.section == 14) then
+		cave_darkness_indoors:Draw();
 	end
 end
 
