@@ -887,7 +887,7 @@ do --funky dialogue
 	
 	local function spawnTorch(talker)
 			eventu.waitFrames(24);
-			local n = NPC.spawn(31,talker.x+16,talker.y+16,0);
+			local n = NPC.spawn(158,talker.x+16,talker.y+16,0);
 			n:mem(0x136, FIELD_BOOL, true);
 			n.speedX = 4*talker.direction;
 			n.speedY = -5;
@@ -899,7 +899,7 @@ do --funky dialogue
 		
 		local text = a2xt_message.quickparse(tostring(talker.msg));
 		local throwtorch = false;
-		if(talker.data.torchMsg and (player:mem(0x154,FIELD_WORD) == 0 or player.holdingNPC == nil or player.holdingNPC.id ~= 31) and #NPC.get(31,0) < 5) then
+		if(talker.data.torchMsg and not (player:mem(0x154,FIELD_WORD) > 0 and player.holdingNPC ~= nil and player.holdingNPC.id == 158) and #NPC.get(15,0) < 5) then
 			text = text.."<page>"..a2xt_message.quickparse(talker.data.torchMsg);
 			throwtorch = true;
 		end
@@ -1549,7 +1549,7 @@ function onCameraDraw()
 		end
 	end
 	
-	for _,v in ipairs(NPC.get(31)) do
+	for _,v in ipairs(NPC.get(158)) do
 		v = pnpc.wrap(v);
 		if(v.data.particles == nil) then
 		

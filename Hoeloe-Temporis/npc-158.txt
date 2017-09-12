@@ -9,3 +9,4 @@ npcblocktop=0
 frames=1
 framespeed=8
 framestyle=0
+speed=0

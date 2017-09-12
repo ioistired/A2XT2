@@ -71,7 +71,10 @@ local HUD_IMG = {
 					x = Graphics.loadImage(Misc.resolveGraphicsFile("graphics/HUD/x.png")),
 					coins = Graphics.loadImage(Misc.resolveGraphicsFile("graphics/HUD/coins.png")),
 					raocoins = Graphics.loadImage(Misc.resolveGraphicsFile("graphics/HUD/raocoins.png")),
-					leeks = Graphics.loadImage(Misc.resolveGraphicsFile("graphics/HUD/leeks.png"))
+					leeks = Graphics.loadImage(Misc.resolveGraphicsFile("graphics/HUD/leeks.png")),
+					key = Graphics.loadImage(Misc.resolveGraphicsFile("graphics/HUD/icon_secret.png")),
+					key_empty = Graphics.loadImage(Misc.resolveGraphicsFile("graphics/HUD/icon_secret_empty.png")),
+					bombs = Graphics.loadImage(Misc.resolveGraphicsFile("graphics/HUD/bombs.png"))
 				}
 				
 local HEART_IMG = {
@@ -169,6 +172,15 @@ local function drawHUD(priority)
 		
 		printHUDObj(HUD_IMG.coins, mem(0x00B2C5A8,FIELD_WORD), 400+sideoffset+96, 20,priority);
 		printHUDObj(HUD_IMG.leeks, mem(0x00B251E0,FIELD_WORD), 400+sideoffset+96, 38,priority);
+		
+		if(player.character == CHARACTER_SHEATH) then
+			printHUDObj(HUD_IMG.bombs, player:mem(0x08,FIELD_WORD), 400-8, 58, priority);
+			local img = HUD_IMG.key_empty;
+			if(player:mem(0x12, FIELD_BOOL)) then
+				img = HUD_IMG.key;
+			end
+			Graphics.drawImageWP(img,400-40,58,priority);
+		end
 		
 		hud.drawRC(400+sideoffset, 20,priority);
 		
