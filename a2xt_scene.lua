@@ -94,6 +94,39 @@ local function fade_RGBA(col1, col2, percent)
 	return tonumber(Dec2Hex(r3)..Dec2Hex(g3)..Dec2Hex(b3)..Dec2Hex(a3),16)
 end
 
+local function disableGrab()
+	-- Disable side grab
+	mem(0x009AD622, FIELD_WORD, 0xE990)
+	--mem(0x009AD622, FIELD_WORD, 0x850F)
+	
+	-- Disable top grab
+	mem(0x009CC392, FIELD_WORD, 0xE990)
+	--mem(0x009CC392, FIELD_WORD, 0x850F)
+	
+	-- Disable shell side grab
+	mem(0x009ADA63, FIELD_WORD, 0x9090)
+	--mem(0x009ADA63, FIELD_WORD, 0x1474)
+	
+	 -- Disable shell top grab
+	mem(0x009AC6C4, FIELD_WORD, 0xE990)
+	--mem(0x009AC6C4, FIELD_WORD, 0x850F)
+	
+end
+
+local function enableGrab()
+	-- side grab
+	mem(0x009AD622, FIELD_WORD, 0x850F)
+
+	-- top grab
+	mem(0x009CC392, FIELD_WORD, 0x850F)
+
+	--  shell side grab
+	mem(0x009ADA63, FIELD_WORD, 0x1474)
+
+	-- shell top grab
+	mem(0x009AC6C4, FIELD_WORD, 0x850F)
+end
+
 
 --***************************
 --** Coroutines            **
@@ -228,6 +261,7 @@ function a2xt_scene.startScene(args)
 end
 function a2xt_scene.endScene()
 	eventu.abort(currentScene)
+	enableGrab();
 	currentScene = nil
 end
 function a2xt_scene.setSkippable(routine)
@@ -313,6 +347,9 @@ function a2xt_scene.onInputUpdate()
 			a2xt_scene.prevInputs[v] = a2xt_scene.currInputs[v]
 			a2xt_scene.currInputs[v] = player[v.."KeyPressing"]
 			player[v.."KeyPressing"] = false
+		end
+		if(player:mem(0x154,FIELD_WORD) == 0) then
+			disableGrab();
 		end
 		player.runKeyPressing = true;
 
