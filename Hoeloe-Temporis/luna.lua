@@ -20,6 +20,7 @@ local a2xt_rewards = API.load("a2xt_rewards");
 local a2xt_pause = API.load("a2xt_pause");
 local a2xt_hud = API.load("a2xt_hud");
 local npcmanager = API.load("npcmanager")
+local darkness = API.load("darkness/darkness")
 
 local textblox = API.load("textblox");
 
@@ -97,6 +98,31 @@ local cave_l,cave_t,cave_r,cave_b = -196864, -200256, -193184, -199040;
 local present_cave = colliders.Box(cave_l, cave_t, cave_r-cave_l, cave_b-cave_t);
 local haze_blend = 1;
 
+local ambientLight = Color.fromHexRGB(0x09091A);
+local default_cave_bounds = {left=present_cave.x-1600, top=present_cave.y-600,right=present_cave.x+present_cave.width+200,bottom=present_cave.y+present_cave.height+600};
+
+local darknessSettings = {
+					maxLights = 200;
+					falloff=darkness.Falloff.INV_SQR,
+					shadows=darkness.Shadow.NONE, 
+					uniforms = 
+					{ 
+					}
+					};
+
+local cave_darkness = darkness.Field(table.join(darknessSettings, 
+					{
+						ambient=0xFFFFFF,
+						bounds = table.clone(default_cave_bounds),
+						boundBlendLength=600
+					}));
+						
+				
+local cave_darkness_indoors = darkness.Field(table.join(darknessSettings, 
+					{
+						ambient=ambientLight:toHexRGB();
+					}));
+
 --Copy cave background to new section and reposition
 local cavebg2 = cavebg:Clone();
 cavebg2.section = 0;
@@ -141,7 +167,6 @@ local torches = {};
 local torchExplorers = {};
 local grabtorches = {};
 
---cinematx.defineQuest ("dickson", "An Explorer's Mission", "Help Prof. Dr. D. Dickson Esq. to discover the history of Temporis.")
 local function getGender(p)
 	if(p.character == CHARACTER_MARIO or p.character == CHARACTER_LUIGI or p.character == CHARACTER_LINK) then
 		return true;
@@ -754,6 +779,17 @@ do --funky dialogue
 		a2xt_message.endMessage();
 	end
 	
+	local explorer_info = 
+	{
+		[2] = "Strange Device",
+		[5] = "Mural",
+		[6] = "Underground Wheel",
+		[7] = "Statues",
+		[8] = "Large Building",
+		[10] = "Canyon",
+		[11] = "Underground Houses"
+	}
+	
 	a2xt_message.presetSequences.dickson = function(args)
 		local talker = args.npc;
 		
@@ -762,7 +798,14 @@ do --funky dialogue
 			p = "lass";
 		end
 		
-		if(SaveData.world3.town.dicksonStarted) then
+		if(SaveData.world3.town.explorer == nil) then
+			SaveData.world3.town.explorer = {};
+		end
+		
+		if(SaveData.world3.town.dicksonDone) then
+			a2xt_message.showMessageBox {target=talker, type="bubble", text="All we have to do is collate our data and form our theory.<page>These people are fascinating. I hope I get the opportunity to learn even more about them."}
+			a2xt_message.waitMessageEnd();
+		elseif(SaveData.world3.town.dicksonStarted) then
 			a2xt_message.showMessageBox {target=talker, type="bubble", text="Hello young "..p..", have you got any new information for me?", closeWith="prompt"}
 			a2xt_message.waitMessageDone()
 				
@@ -770,13 +813,66 @@ do --funky dialogue
 			
 			local options = {};
 			
-			table.insert(options, "Nothing yet.");
+			local results = {};
+			
+			local totalInfo = 0;
+			local maxInfo = 0;
+			
+			for k,v in pairs(explorer_info) do
+				if(SaveData.world3.town.explorer[tostring(k)] == 1) then
+					table.insert(options, v);
+					table.insert(results, k);
+				elseif(SaveData.world3.town.explorer[tostring(k)] == 2) then
+					totalInfo = totalInfo + 1;
+				end
+				maxInfo = maxInfo+1;
+			end
+			
+			table.insert(options, "Nothing yet");
 			a2xt_message.showPrompt{options=options}
 			a2xt_message.waitPrompt()
 			
 			if(a2xt_message.promptChoice == #options) then
 				a2xt_message.showMessageBox {target=talker, type="bubble", text="Ah, well. Please do make sure to let me know if you find anything out from my Aides."}
 				a2xt_message.waitMessageEnd();
+			else
+				local idx = results[a2xt_message.promptChoice];
+				if(idx == 2) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Ah, another of those strange devices! This does fit our hypothesis well.<page>I believe this devices may be related to these people's obsession with time, and they may have been used to alter the flow of time itself!"}
+					a2xt_message.waitMessageEnd();
+				elseif(idx == 5) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="A mural? Interesting...<page>We don't know a lot about this people's culture, but a mural could provide some fantastic insight.<page>It could even provide us with information about their perspective on time!"}
+					a2xt_message.waitMessageEnd();
+				elseif(idx == 6) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Hmm. A large underground wheel...<page>My suspicion is that it could be some sort of generator. It seems these people may have had rather advanced technology."}
+					a2xt_message.waitMessageEnd();
+				elseif(idx == 7) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Statues you say? Connected to some sort of mechanical device?<page>Intriguing. These people seem more advanced than we first thought..."}
+					a2xt_message.waitMessageEnd();
+				elseif(idx == 8) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="A large building? Perhaps some sort of public space...?<page>It seems not only their technology, but their culture is also advanced."}
+					a2xt_message.waitMessageEnd();
+				elseif(idx == 10) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="A huge canyon you say? Well that certainly is interesting.<page>If it used to be the site of a large river it would explain why there is a town all the way out here."}
+					a2xt_message.waitMessageEnd();
+				elseif(idx == 11) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="So, these people lived primarily underground.<page>That is an interesting find, and certainly makes sense considering our other findings."}
+					a2xt_message.waitMessageEnd();
+				end
+				SaveData.world3.town.explorer[tostring(idx)] = 2;
+				totalInfo = totalInfo + 1;
+				
+				if(totalInfo >= maxInfo) then
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="That's it! The final piece of the puzzle!<page>I think we can finally begin to understand these people. Now all we have to do is collate our data and form our theory!<page>Thank you very much for gathering this information for me. I hope this is a suitable reward."}
+					a2xt_message.waitMessageEnd();
+					a2xt_rewards.give{type="card", quantity="Professor Doctor D. Duff Dickson Esq.", useTransitions = false, endScene = false, wait=true}
+					SaveData.world3.town.dicksonDone = true
+					talker.data.talkIcon = 1;
+					talker.data.a2xt_message.iconSpr.state = 1;
+				else
+					a2xt_message.showMessageBox {target=talker, type="bubble", text="Thank you for bringing me this information.<page>There's still so much more we need to learn, so I hope you'll bing me some more soon."}
+					a2xt_message.waitMessageEnd();
+				end
 			end
 			
 		else
@@ -788,8 +884,64 @@ do --funky dialogue
 		a2xt_scene.endScene()
 		a2xt_message.endMessage();
 	end
+	
+	local function spawnTorch(talker)
+			eventu.waitFrames(24);
+			local n = NPC.spawn(31,talker.x+16,talker.y+16,0);
+			n:mem(0x136, FIELD_BOOL, true);
+			n.speedX = 4*talker.direction;
+			n.speedY = -5;
+			Audio.playSFX(9);
+	end
+	
+	a2xt_message.presetSequences.explorer = function(args)
+		local talker = args.npc;
+		
+		local text = a2xt_message.quickparse(tostring(talker.msg));
+		local throwtorch = false;
+		if(talker.data.torchMsg and (player:mem(0x154,FIELD_WORD) == 0 or player.holdingNPC == nil or player.holdingNPC.id ~= 31) and #NPC.get(31,0) < 5) then
+			text = text.."<page>"..a2xt_message.quickparse(talker.data.torchMsg);
+			throwtorch = true;
+		end
+		
+		if(SaveData.world3.town.explorer == nil) then
+			SaveData.world3.town.explorer = {};
+		end
+		
+		if(SaveData.world3.town.dicksonStarted and not SaveData.world3.town.dicksonDone and SaveData.world3.town.explorer[tostring(talker.data.explorerID)] == nil) then
+			local box = a2xt_message.showMessageBox {target=talker, type="bubble", text=text, closeWith="prompt"};
+			
+			a2xt_message.waitMessageDone()	
+			
+			if(throwtorch) then
+				spawnTorch(talker);
+				box:closeSelf();
+				eventu.waitFrames(64);
+			end
+			
+			a2xt_message.promptChosen = false
+			
+			a2xt_message.showPrompt{options={"Got any info?", "K. Thanks."}}
+			a2xt_message.waitPrompt()
+			
+			if(a2xt_message.promptChoice == 1) then
+				a2xt_message.showMessageBox {target=talker, type="bubble", text=a2xt_message.quickparse(talker.data.info)};
+				a2xt_message.waitMessageEnd()	
+				SaveData.world3.town.explorer[tostring(talker.data.explorerID)] = 1;
+			end
+		else
+			a2xt_message.showMessageBox {target=talker, type="bubble", text=text};
+			a2xt_message.waitMessageEnd()	
+			
+			if(throwtorch) then
+				spawnTorch(talker);
+				eventu.waitFrames(64);
+			end
+		end
+		a2xt_scene.endScene()
+		a2xt_message.endMessage();
+	end
 end
-
 
 function onStart()
 	if(SaveData.world3.town.garishComplete) then
@@ -877,17 +1029,11 @@ function onStart()
 		audio.Create{sound="torches.ogg", x = v.x+16, y=v.y+10, falloffRadius = 500, volume = 0.5};
 		v = pnpc.wrap(v);
 		v.data.torch = p;
+		v.data.light = darkness.Light(p.x,p.y,300,1,0xFF9900);
+		v.data.lightRadius = 300;
+		cave_darkness:AddLight(v.data.light);
+		cave_darkness_indoors:AddLight(v.data.light);
 		table.insert(torchExplorers, v)
-	end
-	
-	for _,v in ipairs(NPC.get(31)) do
-		local p = particles.Emitter(v.x+8,v.y-4,Misc.resolveFile("particles/p_flame_small.ini"));
-		p:setParam("space", "local");
-		p:Attach(v,false);
-		v = pnpc.wrap(v);
-		audio.Create{sound="torches.ogg", parent = v, x = v.x+16, y=v.y, falloffRadius = 400, volume = 0.4};
-		v.data.particles = p;
-		table.insert(grabtorches, v);
 	end
 end
 
@@ -991,6 +1137,18 @@ function onTick()
 		for _,v in ipairs(NPC.get(107,1)) do
 			v = pnpc.wrap(v);
 			if(v.data.name == "Bes" and v.data.a2xt_message) then
+				v.data.talkIcon = 1;
+				v.data.a2xt_message.iconSpr.state = 1;
+			end
+		end
+	end
+	
+	--Update Dickon's icon
+	
+	if(SaveData.world3.town.dicksonDone) then
+		for _,v in ipairs(NPC.get(94, 0)) do
+			v = pnpc.wrap(v);
+			if(v.data.a2xt_message) then
 				v.data.talkIcon = 1;
 				v.data.a2xt_message.iconSpr.state = 1;
 			end
@@ -1381,19 +1539,70 @@ function onCameraDraw()
 		for _,v in ipairs(torches) do
 			v:Draw(-84);
 		end
-	elseif(player.section == 0) then
+	elseif(player.section == 0 or player.section == 12) then
 		for _,v in ipairs(torchExplorers) do
 			v.data.torch.x = v.x + v.width*0.5 - 6*v.direction;
 			v.data.torch:Draw(-44);
+			
+			v.data.light.radius = rng.random(v.data.lightRadius-10,v.data.lightRadius+10);
+			v.data.light.brightness = rng.random(0.95,1.05)
 		end
 	end
 	
-	for _,v in ipairs(grabtorches) do
-		v:mem(0x12A,FIELD_WORD,180);
-		if(v:mem(0x12A,FIELD_WORD) >= 0) then
-			v.data.particles:Draw(-60);
+	for _,v in ipairs(NPC.get(31)) do
+		v = pnpc.wrap(v);
+		if(v.data.particles == nil) then
+		
+			local p = particles.Emitter(v.x+8,v.y-4,Misc.resolveFile("particles/p_flame_small.ini"));
+			p:setParam("space", "local");
+			p:setParam("scale", "0.25:0.75");
+			
+			v.data.particles = p;
+			
+			v.data.light = darkness.Light(p.x,p.y,256,1,0xFF9900);
+			v.data.lightRadius = 256;
+			cave_darkness:AddLight(v.data.light);
+			cave_darkness_indoors:AddLight(v.data.light);
+			
+			v.data.sound = audio.Create{sound="torches.ogg", parent = v, x = v.x+16, y=v.y, falloffRadius = 400, volume = 0.4};
+			table.insert(grabtorches,v)
+		end
+	end
+	
+	for i = #grabtorches,1,-1 do
+		v = grabtorches[i];
+		if(v.isValid) then
+			v.data.particles.x = v.x+8;
+			v.data.particles.y = v.y-2;
+			v.data.particles:Draw(-44);
+			
+			if(math.abs(v.data.light.x-v.data.particles.x) > 64 or math.abs(v.data.light.y-v.data.particles.y) > 64) then
+				v.data.light.x = v.data.particles.x;
+				v.data.light.y = v.data.particles.y;
+			else
+				--Smooth out light motion, as it's quite large and can cause some eye-burning jerkiness when spinjumping and such
+				v.data.light.x = math.lerp(v.data.light.x,v.data.particles.x,0.5);
+				v.data.light.y = math.lerp(v.data.light.y,v.data.particles.y,0.5);
+			end
+			v.data.light.radius = rng.random(v.data.lightRadius-10,v.data.lightRadius+10);
+			v.data.light.brightness = rng.random(0.95,1.05)
+			
+			--Despawn based on light radius rather than npc size
+			if(v:mem(0x12A, FIELD_WORD) < 180 and 
+			 v.x > cam.x-v.data.lightRadius and v.x < cam.x+cam.width+v.data.lightRadius and 
+			 v.y > cam.y-v.data.lightRadius and v.y < cam.y+cam.height+v.data.lightRadius) then
+				v:mem(0x12A, FIELD_WORD,180);
+			end
+			
+			--Sounds for these are fudged to be relative to the player, not the camera
+			v.data.sound.x = cam.x+cam.width*0.5 + (v.data.particles.x-player.x+player.width*0.5);
+			v.data.sound.y = cam.y+cam.height*0.5 + (v.data.particles.y-player.y+player.height*0.5);
 		else
 			v.data.particles:KillParticles();
+			cave_darkness:RemoveLight(v.data.light);
+			cave_darkness_indoors:RemoveLight(v.data.light);
+			v.data.sound:Destroy()
+			table.remove(grabtorches,i);
 		end
 	end
 
@@ -1429,13 +1638,34 @@ function onCameraDraw()
 	elseif(player.section == 0) then
 		sandstorm:Draw(-40);
 		
+		if(cave_darkness.ambient[1] < 1 or cave_darkness.ambient[2] < 1 or cave_darkness.ambient[3] < 1) then
+			cave_darkness:Draw();
+		end
+		
+		local amb_col;
+		local boundmod = default_cave_bounds.right + math.lerp(0, 800, math.min((present_cave.x + present_cave.width - player.x)/400,1));
 		if(colliders.collide(player, present_cave)) then
 			sandstorm.enabled = false;
 			haze_blend = math.max(0, haze_blend - 0.01);
+			amb_col = ambientLight;
+			cave_darkness.bounds.right = boundmod;
 		else
 			sandstorm.enabled = true;
 			haze_blend = math.min(1, haze_blend + 0.01);
+			
+			if(player.y > present_cave.y) then
+				amb_col = math.lerp(Color.white, ambientLight, math.min((player.y - present_cave.y)/128,1));
+				cave_darkness.bounds.right = boundmod;
+			else
+				amb_col = Color.white;
+				cave_darkness.bounds.right = default_cave_bounds.right;
+			end
 		end
+		
+		
+		cave_darkness.ambient[1] = amb_col.r;
+		cave_darkness.ambient[2] = amb_col.g;
+		cave_darkness.ambient[3] = amb_col.b;
 		
 		if(haze_blend > 0) then
 			local haze_p = 0
@@ -1464,6 +1694,8 @@ function onCameraDraw()
 		bg.isHidden = true;
 		mini_wheel:Draw(-64);
 		mini_wheel:Rotate(1);
+	elseif(player.section == 12 or player.section == 14) then
+		cave_darkness_indoors:Draw();
 	end
 end
 
