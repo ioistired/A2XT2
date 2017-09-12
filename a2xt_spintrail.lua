@@ -33,7 +33,7 @@ end
 
 function trail.onCameraDraw()
 	if(lastPlayerPos.x == nil) then return end;
-	if(math.abs(player.x-lastPlayerPos.x) > 200 or math.abs(player.y-lastPlayerPos.y) > 200) then	
+	if(math.abs(player.x-lastPlayerPos.x) > 20 or math.abs(player.y-lastPlayerPos.y) > 20) then	
 		spinjump_trail:Break();
 	end
 	
