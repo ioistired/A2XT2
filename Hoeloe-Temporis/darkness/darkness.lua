@@ -142,7 +142,7 @@ function Field:Draw()
 		};
 		]]
 		
-		capture1:captureAt(-1);
+		capture1:captureAt(-0.01);
 		
 		local cam = Camera.get()[1];
 		
@@ -187,7 +187,7 @@ function Field:Draw()
 			texture = capture1,
 			shader = self.shader,
 			uniforms = uniforms,
-			priority = -1
+			priority = -0.01
 			};
 	end
 end
