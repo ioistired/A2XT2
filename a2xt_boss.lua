@@ -45,11 +45,11 @@ function boss.Start()
 	boss.Active = true;
 end
 
-function boss.Ready()
+function boss.isReady()
 	return boss.Active and introTimer < 0;
 end
 
-function boss.Defeated()
+function boss.isDefeated()
 	return boss.HP <= 0;
 end
 
