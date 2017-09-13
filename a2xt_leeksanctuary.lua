@@ -57,6 +57,9 @@ leeks.ICON_DEMOS = Graphics.loadImage(Misc.resolveFile("graphics/HUD/demos.png")
 leeks.ICON_PENG_EMPTY = Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_peng_empty.png"))
 leeks.ICON_PENG = Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_peng.png"))
 
+leeks.ICON_CARD_EMPTY = Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_card_empty.png"))
+leeks.ICON_CARD = Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_card.png"))
+
 leeks.TYPE_SECRET = leveldata.TYPE_EOW+1;
 leeks.MAXTYPE = leeks.TYPE_SECRET+1;
 
@@ -309,26 +312,53 @@ local function drawLevel(info,i,basex,y,alpha)
 			if(completion == nil or (not completion.Exit and exitindex ~= leveldata.TYPE_TOWN)) then
 				exitindex = exitindex + leeks.MAXTYPE;
 			end
-			local xoffset = 0;
+			
+			local count = 1;
+			if(info[i].Secret) then
+				count = count + 1;
+			end
+			if(info[i].Peng ~= nil) then
+				count = count + 1;
+			end
+			if(info[i].Cards ~= nil) then
+				count = count + #info[i].Cards;
+			end
+			
+			local xoffset = -(count+1)*12
+				
 			
 			if(info[i].Secret) then
-				xoffset = 12;
+				xoffset = xoffset+24;
 				local secretindex = leeks.TYPE_SECRET;
 				if(completion == nil or not completion.Secret) then
 					secretindex = secretindex + leeks.MAXTYPE;
 				end
-				Graphics.drawImage(leeks.ICONS_EXIT[secretindex],basex+xoffset - 8,y, alpha)
+				Graphics.drawImage(leeks.ICONS_EXIT[secretindex],basex-xoffset - 8,y, alpha)
+			end
+			
+			if(info[i].Cards ~= nil) then
+				for _,v in ipairs(info[i].Cards) do
+					xoffset = xoffset+24;
+					local cardimg = leeks.ICON_CARD_EMPTY;
+					--TODO: Maybe adjust this when we add the proper card system
+					if(SaveData.cards ~= nil and SaveData.cards[tostring(v):lower()]) then
+						cardimg = leeks.ICON_CARD;
+					end
+					Graphics.drawImage(cardimg,basex-xoffset - 8,y, alpha)
+				end
 			end
 			
 			if(info[i].Peng ~= nil) then
-				xoffset = 12;
+				xoffset = xoffset+24;
 				local pengimg = leeks.ICON_PENG_EMPTY;
 				if(SaveData.pengs ~= nil and SaveData.pengs[tostring(info[i].Peng)]) then
 					pengimg = leeks.ICON_PENG;
 				end
-				Graphics.drawImage(pengimg,basex+xoffset - 8,y, alpha)
+				Graphics.drawImage(pengimg,basex-xoffset - 8,y, alpha)
 			end
 			
+			xoffset = xoffset+24;
+				
 			Graphics.drawImage(leeks.ICONS_EXIT[exitindex],basex-xoffset - 8,y, alpha)
 			
 			y = y + 30;

@@ -110,7 +110,7 @@ local completion = {};
 
 local worlds = {};
 
-local keywords = {"name","author","type","exit","secret","raocoins","chars","filters","peng"}
+local keywords = {"name","author","type","exit","secret","raocoins","chars","filters","peng","card"}
 
 local function split(s, x)
 	local r = {};
@@ -241,7 +241,6 @@ local function parseFile(f, fname)
 					end
 					--Convert key to lowercase
 					kv[1] = string.lower(kv[1]);
-					
 					--Parse value depending on key
 					if(kv[1] == "name") then
 						dat.Name = kv[2];
@@ -259,6 +258,9 @@ local function parseFile(f, fname)
 						dat.Chars = parseCharFilter(kv[2]);
 					elseif(kv[1] == "peng") then
 						dat.Peng = tonumber(kv[2]);
+					elseif(kv[1] == "card") then
+						dat.Cards = dat.Cards or {};
+						table.insert(dat.Cards, kv[2]);
 					end
 				end
 			end

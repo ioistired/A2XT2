@@ -12,3 +12,5 @@ LEVEL:Hoeloe-Temporis
 	Author=Hoeloe
 	Type=TOWN
 	Peng=993
+	Card=Butts
+	Card=Professor Doctor D. Duff Dickson Esq.

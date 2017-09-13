@@ -61,6 +61,10 @@ local function cor_giveReward (args)
 	elseif (args.type == "card") then
 		msg = msg.."the "..tostring(args.quantity).." card!"
 		rewardType = "card"
+		
+		--TODO: replace this with a proper thing that uses enums like the costume system
+		SaveData.cards = SaveData.cards or {};
+		SaveData.cards[tostring(args.quantity):lower()] = true;
 		-- Add the card
 	else
 		msg = msg.."... nothing! Welp!"
