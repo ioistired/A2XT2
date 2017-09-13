@@ -15,32 +15,32 @@ function onEvent(eventName)
 	end
 end
 
-funtion onLoadSection0()
+function onLoadSection0()
 	_G["ManualTitle"] = "Subway"
 	_G["ManualArtist"] = "Wohlstand"
 end
-funtion onLoadSection1()
+function onLoadSection1()
 	_G["ManualTitle"] = nil
 	_G["ManualArtist"] = nil
 
 end
-funtion onLoadSection2()
+function onLoadSection2()
 	_G["ManualTitle"] = "Minstrel's Song (FM Remake)"
 	_G["ManualArtist"] = "Wohlstand"
 end
-funtion onLoadSection3()
+function onLoadSection3()
 	_G["ManualTitle"] = "Subway"
 	_G["ManualArtist"] = "Wohlstand"
 end
-funtion onLoadSection4()
+function onLoadSection4()
 	_G["ManualTitle"] = "Minstrel's Song (FM Remake)"
 	_G["ManualArtist"] = "Wohlstand"
 end
-funtion onLoadSection5()
+function onLoadSection5()
 	_G["ManualTitle"] = "Minstrel's Song (FM Remake)"
 	_G["ManualArtist"] = "Wohlstand"
 end
-funtion onLoadSection6()
+function onLoadSection6()
 	_G["ManualTitle"] = "Minstrel's Song (FM Remake)"
 	_G["ManualArtist"] = "Wohlstand"
 end

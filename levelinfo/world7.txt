@@ -61,3 +61,9 @@ LEVEL:Sedron-EntropyEngine
 	Author=Sedron
 	Type=LEVEL
 	Exit=LEEK
+LEVEL:Wohlstand-Industrial-town
+	Name=Industrial Town
+	Author=Wohlstand
+	Type=TOWN
+	Peng=995
+	

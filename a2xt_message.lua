@@ -975,9 +975,9 @@ function a2xt_message.talkToNPC(npc, message)
 		if(npc ~= nil) then
 			message = message or a2xt_message.quickparse(tostring(npc.msg));
 		end
+		messageInvincibile = 999999;
 		a2xt_scene.startScene{scene=cor_talkToNPC, sceneArgs={npc=npc, text=message}, noletterbox=(npc==nil)}
 		a2xt_pause.Block();
-		messageInvincibile = 999999;
 	end
 	
 	a2xt_message.onMessage(npc, message);
