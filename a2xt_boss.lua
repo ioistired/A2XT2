@@ -23,10 +23,10 @@ local barwid = 800-2*barx;
 
 local titleY = 500;
 
-local barbgimg = Graphics.loadImage(Misc.resolveFile("HUD/boss_background.png"));
-local barimg = Graphics.loadImage(Misc.resolveFile("HUD/boss_bar.png"));
-local bardmg = Graphics.loadImage(Misc.resolveFile("HUD/boss_dmg.png"));
-local barheal = Graphics.loadImage(Misc.resolveFile("HUD/boss_heal.png"));
+local barbgimg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/boss_background.png"));
+local barimg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/boss_bar.png"));
+local bardmg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/boss_dmg.png"));
+local barheal = Graphics.loadImage(Misc.resolveFile("graphics/HUD/boss_heal.png"));
 
 local barbg = imagic.Create{x=barx, y=bary, primitive = imagic.TYPE_BOXBORDER, width = barwid, height = 16, depth = 8, texture = barbgimg};
 
@@ -107,16 +107,16 @@ function boss.onDraw()
 	if(boss.Active) then
 		if(introTimer > 0) then
 			textblox.printExt(boss.SuperTitle or "", {x = computeX(30, 10, 140), y = titleY, width=600, font = textblox.FONT_SPRITEDEFAULT3, scale = 1.5, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=-1})
-			textblox.printExt(boss.Title or "", {x = computeX(40, 12, 120), y = titleY+15, width=600, font = textblox.FONT_SPRITEDEFAULT3X2, scale = 1.25, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=-1})
+			textblox.printExt(boss.Name or "", {x = computeX(40, 12, 120), y = titleY+15, width=600, font = textblox.FONT_SPRITEDEFAULT3X2, scale = 1.25, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=-1})
 			textblox.printExt(boss.SubTitle or "", {x = computeX(50, 14, 100), y = titleY+42, width=600, font = textblox.FONT_SPRITEDEFAULT3, scale = 1.5, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=-1})
 		end
 		
 		if(introTimer < 0 or introTimer > barAppearTime) then
 			local str;
-			if(boss.SuperTitle and boss.Title) then
-				str = boss.SuperTitle.." "..boss.Title;
+			if(boss.SuperTitle and boss.Name) then
+				str = boss.SuperTitle.." "..boss.Name;
 			else
-				str = boss.Title or boss.SuperTitle;
+				str = boss.Name or boss.SuperTitle;
 			end
 			if(boss.IncludeSubtitle and boss.SubTitle) then
 				str = str.." "..boss.SubTitle;
