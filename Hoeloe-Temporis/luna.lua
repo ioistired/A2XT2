@@ -1607,7 +1607,7 @@ function onCameraDraw()
 		else
 			cave_darkness:RemoveLight(v.data.light);
 			cave_darkness_indoors:RemoveLight(v.data.light);
-			table.remove(grabtorches,i);
+			table.remove(fireballs,i);
 		end
 	end
 	
