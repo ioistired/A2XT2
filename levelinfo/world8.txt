@@ -1,0 +1,64 @@
+LEVEL:zmonbobbo-hillsideromp
+	Name=Hillside Romp
+	Author=zmonbobbo/WestonSmith
+	Type=LEVEL
+	Exit=ROULETTE
+	Raocoins=true
+	FilterMounts
+LEVEL:SpoonyBard-FaceBlockBound
+	Name=FaceBlock Bound
+	Author=SpoonyBardOL
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true
+LEVEL:FrozenQuills-Soaring Sawmill
+	Name=Soaring Sawmill
+	Author=FrozenQuills
+	Type=LEVEL
+	Exit=ROULETTE
+	Secret=KEY
+	Raocoins=true
+LEVEL:Axon-PanicAttackInHighAltitude
+	Name=Panic Attack in High Altitude
+	Author=Axon
+	Type=LEVEL
+	Exit=JAR
+LEVEL:cramps-man-Sky Block Castle
+	Name=Sky Block Castle
+	Author=cramps-man
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true
+	Chars=DIR
+LEVEL:CyberSymphonics-RainbowRaftRide
+	Name=Rainbow Raft Ride
+	Author=CyberSymphonics
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=true
+	Chars=D
+LEVEL:WestonSmith-NightLightFright
+	Name=Night Light Fright
+	Author=WestonSmith
+	Type=LEVEL
+	Exit=LEEK
+	Chars=DRS
+	FilterMounts
+LEVEL:cramps-man-Flip Block Skyway
+	Name=Flip Block Skyway
+	Author=cramps-man
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true
+	Chars=DIR
+LEVEL:lucasadrianogb-The Ninji Gravity Machinery Store
+	Name=The Ninji Gravity Machinery Store
+	Author=lucasadrianogb
+	Type=LEVEL
+	Exit=LEEK
+LEVEL:SAJewers-SideCrawlersClimb
+	Name=Side Crawler's Climb
+	Author=SAJewers
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true

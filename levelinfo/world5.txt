@@ -1,0 +1,71 @@
+LEVEL:raocow-rocksstickingoutofalake
+	Name=rocks sticking out of a lake
+	Author=raocow
+	Type=LEVEL
+	Exit=JAR
+	Raocoins=true
+LEVEL:duvi0-Coral Climb
+	Name=Coral Climb
+	Author=duvi0
+	Type=LEVEL
+	Exit=JAR
+	Secret=LEEK
+	Raocoins=true
+LEVEL:ztarwuff-AmazingPlumberNightmare64
+	Name=Amazing Plumber Nightmare 64
+	Author=ztarwuff
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true
+LEVEL:Validon98-shrineunderthesea
+	Name=The Shrine Under the Sea
+	Author=Validon98
+	Type=LEVEL
+	Exit=CASH
+	Raocoins=true
+	Chars=D
+LEVEL:SAJewers-FishFortress
+	Name=Fish Fortress
+	Author=SAJewers
+	Type=LEVEL
+	Exit=LEEK
+LEVEL:FrozenQuills-EveryoneHatesNinjis
+	Name=Everyone Hates Ninjis
+	Author=FrozenQuills
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=true
+LEVEL:Unaniem-It is 5 AM
+	Name=It is 5AM
+	Author=Unaniem
+	Type=LEVEL
+	Exit=TAPE
+LEVEL:Holy-Sunrise
+	Name=Sunrise
+	Author=Holy
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=true
+LEVEL:SpoonyBard-SeaTurtleSanctuary
+	Name=Sea Turtle Sanctuary
+	Author=SpoonyBardOL
+	Type=LEVEL
+	Exit=TAPE
+	Chars=K
+	Raocoins=true
+LEVEL:Karatekid5-StarlightResortGrandReopening
+	Name=Starlight Resort Grand Reopening
+	Author=Karatekid5
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true
+	Chars=DIRK
+	FilterMounts
+	FilterLeaf
+	FilterOnion
+LEVEL:WestonSmith-SeaSideSlumber
+	Name=Sea Side Slumber
+	Author=WestonSmith
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=true

@@ -6,3 +6,59 @@ LEVEL:Hoeloe-The Descent of Nine
 	Secret=KEY
 	Raocoins=true
 	Chars=DIR
+LEVEL:kitikami-Hakugyokurou
+	Name=Hakugyokurou
+	Author=kitikami
+	Type=LEVEL
+	Exit=ROULETTE
+	Chars=DI
+LEVEL:Pyro-Super Cyclops Girl
+	Name=Super Cyclops Girl
+	Author=Pyro
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=true
+	Chars=D
+	FilterPowers
+	FilterMounts
+LEVEL:duvi0-Frenzy Citadel
+	Name=Frenzy Citadel
+	Author=duvi0
+	Type=LEVEL
+	Exit=LEEK
+	Chars=DIRK
+LEVEL:Unaniem-Claustrophobia
+	Name=Claustrophobia
+	Author=Unaniem
+	Type=LEVEL
+	Exit=LEEK
+LEVEL:Franky-Muwha
+	Name=Muwha
+	Author=Franky
+	Type=LEVEL
+	Exit=CASH
+LEVEL:128Up-Break the Needle Cyclops
+	Name=Break the Needle Cyclops
+	Author=128-Up
+	Type=LEVEL
+	Exit=LEEK
+	Chars=D
+	FilterPowers
+	FilterMounts
+LEVEL:duvi0-Fire Production Land
+	Name=Fire Production Land
+	Author=duvi0
+	Type=LEVEL
+	Exit=CASH
+LEVEL:Friendly Dictator-SKULLDUGGERY
+	Name=SKULLDUGGERY
+	Author=Friendly Dictator
+	Type=LEVEL
+	Exit=LEEK
+LEVEL:XutaWoo-DAMNage_and_Damnation
+	Name=DAMNage and Damnation
+	Author=XutaWoo/Pyro
+	Type=LEVEL
+	Exit=TAPE
+	Secret=KEY
+	Raocoins=true

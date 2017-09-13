@@ -429,19 +429,19 @@ local function cor_manageMessage(bubbleTarget, bubble)
 					bubble.hasTail = bubbleTarget.hasTail;
 				end
 			end
-		end
-		--]]
-		--windowDebug(tostring(bubbleTarget.x).."/n"..tostring(bubble.x))
-		
-		if(bubbleTarget.screenSpace) then
-			bubbleTarget.x = bubbleTarget.initialArgs.x + cam.cam.x
-			bubbleTarget.y = bubbleTarget.initialArgs.y + cam.cam.y
-		end
+			--]]
+			--windowDebug(tostring(bubbleTarget.x).."/n"..tostring(bubble.x))
+			
+			if(bubbleTarget.screenSpace) then
+				bubbleTarget.x = bubbleTarget.initialArgs.x + cam.cam.x
+				bubbleTarget.y = bubbleTarget.initialArgs.y + cam.cam.y
+			end
 
-		-- Log each page as it happens
-		if  pagesLogged < bubble.latestPage  then
-			pagesLogged = bubble.latestPage
-			logText (bubble.pages[pagesLogged], bubbleTarget.name)
+			-- Log each page as it happens
+			if  pagesLogged < bubble.latestPage  then
+				pagesLogged = bubble.latestPage
+				logText (bubble.pages[pagesLogged], bubbleTarget.name)
+			end
 		end
 
 		--Text.dialog("doneyo")

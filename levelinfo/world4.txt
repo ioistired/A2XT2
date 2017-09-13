@@ -1,0 +1,37 @@
+LEVEL:Mikkofier-ObstacleCourseInACave
+	Name=Obstacle Course In A Cave
+	Author=Mikkofier
+	Type=LEVEL
+	Exit=TAPE
+	Secret=CASH
+	Chars=DI
+LEVEL:Holy-Ectoplasmania
+	Name=Ectoplasmania
+	Author=Holy
+	Type=LEVEL
+	Exit=CASH
+LEVEL:SpoonyBard-MangroveCavern
+	Name=Mangrove Cavern
+	Author=SpoonyBardOL
+	Type=LEVEL
+	Exit=TAPE
+	Secret=KEY
+	Raocoins=true
+LEVEL:Oddwrath-BatAnEye
+	Name=Bat An Eye
+	Author=Oddwrath
+	Type=LEVEL
+	Exit=LEEK
+	Chars=DIR
+LEVEL:duvi0-Sheath's Journey to Sheol
+	Name=Sheath's Journey to Sheol
+	Author=duvi0
+	Type=LEVEL
+	Exit=LEEK
+	Chars=S
+LEVEL:MrSecurity-Glum
+	Name=Glum
+	Author=MrSecurity/SAJewers
+	Type=LEVEL
+	Exit=TAPE
+	Secret=KEY

@@ -1,0 +1,63 @@
+LEVEL:SAJewers-DownDownDownToMephistosCafe
+	Name=Down Down Down To Mephisto's Cafe
+	Author=SAJewers
+	Type=LEVEL
+	Exit=JAR
+	Secret=LEEK
+LEVEL:Isrieri-WayTooHighrise
+	Name=Way Too Highrise
+	Author=Isrieri
+	Type=LEVEL
+	Exit=LEEK
+LEVEL:Axon-AnnBrownAndTheFountainhead
+	Name=Ann Brown and the Fountainhead
+	Author=Axon
+	Type=LEVEL
+	Exit=LEEK
+	Chars=D
+LEVEL:cadwyn-hoperidesalone
+	Name=Hope Rides Alone
+	Author=Cadwyn/SAJewers
+	Type=LEVEL
+	Exit=CASH
+LEVEL:Wohlstand-What-About-Railways
+	Name=What About Railways?
+	Author=Wohlstand
+	Type=LEVEL
+	Exit=WARP 19
+	Raocoins=true
+LEVEL:Dusk209-FrozenShellFactory
+	Name=Frozen Shell Factory
+	Author=Dusk209/SAJewers
+	Type=LEVEL
+	Exit=ROULETTE
+	Raocoins=true
+LEVEL:SAJewers-LPProductionFactory
+	Name=LP Production Factory
+	Author=SAJewers
+	Type=LEVEL
+	Exit=TAPE
+LEVEL:ztarwuff-GravityFalls
+	Name=Gravity Falls
+	Author=ztarwuff
+	Type=LEVEL
+	Exit=TAPE
+	Secret=CASH
+	Raocoins=true
+LEVEL:Darkonius64-Frightening_Factory
+	Name=Frightening Factory
+	Author=Darkonius Mavakar
+	Type=LEVEL
+	Exit=LEEK
+LEVEL:Axon-IndustrialPandemonium
+	Name=Industrial Pandemonium
+	Author=Axon
+	Type=LEVEL
+	Exit=TAPE
+	Secret=LEEK
+	Chars=D
+LEVEL:Sedron-EntropyEngine
+	Name=Entropy Engine
+	Author=Sedron
+	Type=LEVEL
+	Exit=LEEK

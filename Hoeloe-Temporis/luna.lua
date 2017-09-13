@@ -26,7 +26,7 @@ local textblox = API.load("textblox");
 
 textblox.npcPresets[151] = textblox.PRESET_BUBBLE
 
-sanctuary.world = 1;
+sanctuary.world = 3;
 sanctuary.sections[4] = true
 
 npcmanager.setNpcSettings{id = 94, talkrange = 64};

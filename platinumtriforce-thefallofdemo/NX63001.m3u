@@ -1,0 +1,24 @@
+# @TITLE       Alien Crush
+# @ARTIST      Compile, Naxat
+# @COMPOSER    Toshiaki Sakoda
+# @DATE        1988-09-14
+# @RIPPER      Ancient Sound Vanished
+# @TAGGER      Kaminari
+
+NX63001.hes::HES,$01,Title,41,36,10
+NX63001.hes::HES,$02,Lunar Eclipse,50,39,10
+NX63001.hes::HES,$12,Demon's Undulate,49,44,10
+NX63001.hes::HES,$0D,Bonus Stage 1,26,23,10
+NX63001.hes::HES,$0F,Bonus Stage 1 Clear,4,,0
+NX63001.hes::HES,$0C,Bonus Stage 2,24,-,10
+NX63001.hes::HES,$10,Bonus Stage 2 Clear,5,,0
+NX63001.hes::HES,$09,Bonus Points,12,,1
+NX63001.hes::HES,$03,Extra Ball,6,,0
+NX63001.hes::HES,$04,Event 1,4,,0
+NX63001.hes::HES,$05,Event 2,4,,0
+NX63001.hes::HES,$06,Event 3,8,,0
+NX63001.hes::HES,$07,Event 4,6,,0
+NX63001.hes::HES,$08,Event 5,8,,0
+NX63001.hes::HES,$0A,Game Over,10,,0
+NX63001.hes::HES,$0E,The Best Five,34,-,10
+NX63001.hes::HES,$0B,Ending,29,-,10

@@ -1,0 +1,5 @@
+cliffturn=1
+noyoshi=1
+nofireball=1
+noiceball=1
+nohammer=1

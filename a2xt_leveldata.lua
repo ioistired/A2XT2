@@ -133,6 +133,10 @@ end
 
 local function parseExit(s)
 	s = string.lower(s);
+	local warp = s:match("^warp%s+(%d+)$");
+	if(warp) then
+		return {tonumber(warp)}; --put in a table to distinguish it from other exit types
+	end
 	return exits[s];
 end
 
@@ -233,7 +237,7 @@ local function parseFile(f, fname)
 				--Separate key from value
 				local kv = split(line, "=");
 				if(#kv ~= 2) then
-					Misc.warn("Malformatted line in "..fname.." at line "..i..": "..line);
+					Text.warn("Malformatted line in "..fname.." at line "..i..": "..line);
 				else
 					--Trim whitespace
 					for k,v in ipairs(kv) do
@@ -423,17 +427,21 @@ function leveldata.onTick()
 end
 
 if(not isOverworld) then
+	local function checkWarp(data)
+		return type(data) == "table" and player:mem(0x15E, FIELD_WORD) == data[1];
+	end
+
 	function leveldata.onExitLevel()
 		local name = string.sub(Level.filename(), 0, -5);
 		local data = lvl[name];
 		if(data) then
 		
-			--Level has been beaten
-			if(winState == data.Exit) then
+			--Level has been beaten (by warp or regular exit)
+			if(checkWarp(data.Exit) or winState == data.Exit) then
 				SaveData.completion[name].Exit = true;
 			end
 			--Secret exit has been beaten
-			if(winState == data.Secret) then
+			if(checkWarp(data.Secret) or winState == data.Secret) then
 				SaveData.completion[name].Secret = true;
 			end
 			

@@ -31,6 +31,18 @@ LEVEL:Tacoradical-Let's go Backwards
 	Type=LEVEL
 	Exit=ROULETTE
 	Raocoins=true
+LEVEL:Griflion-a stroll through the forest
+	Name=A Stroll Through the Forest
+	Author=Griflion
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=true
+LEVEL:Markus_E-bear-ResilientNature
+	Name=Resilient Nature
+	Author=Marcus_E-Bear/SAJewers
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=true
 LEVEL:rockythechao-town1
 	Name=Goopa Village
 	Author=rockythechao

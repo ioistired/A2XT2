@@ -1,0 +1,4 @@
+playerblock=0
+npcblock=0
+grabside=0
+grabtop=0

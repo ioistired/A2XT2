@@ -1,3 +1,9 @@
+LEVEL:raekuul-Approaching the Sand Temple
+	Name=Approaching The Sand Temple
+	Author=Raekuul
+	Type=LEVEL
+	Exit=JAR
+	Raocoins=true
 LEVEL:Hoeloe-Demos Journey Through Time
 	Name=Demo's Journey Through Time
 	Author=Hoeloe
@@ -7,6 +13,11 @@ LEVEL:Hoeloe-Demos Journey Through Time
 	Chars=D
 	FilterTier1
 	FilterMounts
+LEVEL:Darkonius64-Cliffship_Canyon
+	Name=Cliffship Canyon
+	Author=Darkonius Makavar
+	Type=LEVEL
+	Exit=LEEK
 LEVEL:Hoeloe-Temporis
 	Name=Temporis
 	Author=Hoeloe
@@ -14,3 +25,25 @@ LEVEL:Hoeloe-Temporis
 	Peng=993
 	Card=Butts
 	Card=Professor Doctor D. Duff Dickson Esq.
+LEVEL:louiejub-Desert_Dash_Goopa_Brigade
+	Name=Desert Dash: Goopa Brigade!
+	Author=Louiejub
+	Type=LEVEL
+	Exit=LEEK
+	Chars=R
+LEVEL:FrozenQuills-Awesome Moonlight Oasis Vinesaw Pool Party
+	Name=Awesome Moonlight Oasis Vinesaw Pool Party
+	Author=FrozenQuills
+	Type=LEVEL
+	Exit=JAR
+	Raocoins=true
+LEVEL:Mabel-LynariDesert
+	Name=Lynari Desert
+	Author=Mabel
+	Type=LEVEL
+	Exit=LEEK
+LEVEL:Franky-desertfun
+	Name=Desert Fun
+	Author=Franky
+	Type=LEVEL
+	Exit=TAPE

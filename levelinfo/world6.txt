@@ -1,0 +1,62 @@
+LEVEL:Mikkofier-Monoland
+	Name=Monoland
+	Author=Mikkofier
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=true
+LEVEL:castlepokemetroid-shoezone3
+	Name=Shoe Zone 3
+	Author=CastlePokeMetroid
+	Type=LEVEL
+	Exit=LEEK
+	Secret=CASH
+	Raocoins=true
+LEVEL:Holy-Merano
+	Name=Merano
+	Author=Holy
+	Type=LEVEL
+	Exit=LEEK
+	Chars=D
+	FilterPowers
+LEVEL:arabsalmon - Bog Standard
+	Name=Bog Standard
+	Author=arabsalmon
+	Type=LEVEL
+	Exit=LEEK
+	Chars=D
+	FilterPowers
+	FilterMounts
+LEVEL:Unaniem-ANMT
+	Name=ANMT
+	Author=Unaniem
+	Type=LEVEL
+	Exit=TAPE
+LEVEL:Pyro-fieldofgoopers1
+	Name=field of goopers 1
+	Author=Pyro
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true
+	Chars=DIRK
+LEVEL:Mikkofier-raocowsWorkday
+	Name=Raocow's Workday
+	Author=Mikkofier
+	Type=LEVEL
+	Exit=CASH
+	Chars=R
+LEVEL:ztarwuff-TheUpsAndDownsOfADemo
+	Name=The Ups and Downs of a Demo
+	Author=ztarwuff
+	Type=LEVEL
+	Exit=LEEK
+	Chars=D
+	FilterPowers
+	FilterMounts
+LEVEL:platinumtriforce-thefallofdemo
+	Name=The "Fall" of Demo
+	Author=PlatinumTriforce/SAJewers
+	Type=LEVEL
+	Exit=LEEK
+	Secret=CASH
+	Raocoins=true
+	Chars=D
