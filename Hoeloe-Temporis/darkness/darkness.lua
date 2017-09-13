@@ -180,8 +180,6 @@ function Field:Draw()
 			uniforms[k] = v;
 		end
 		
-		Text.print(lightCount,0,0)
-		
 		Graphics.glDraw{
 			vertexCoords = {0, 0, 800, 0, 800, 600, 0, 600 },
 			textureCoords = { 0,0,1,0,1,1,0,1},

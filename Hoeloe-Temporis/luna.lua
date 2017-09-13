@@ -168,6 +168,12 @@ local torchExplorers = {};
 local grabtorches = {};
 local fireballs = {};
 
+local fireballColours = {[13]=0xFF9900, [265]=0x0099FF, [266]=0xFFFFFF}
+local fireballIDs = {}
+for k,_ in pairs(fireballColours) do
+	table.insert(fireballIDs, k);
+end
+
 local function getGender(p)
 	if(p.character == CHARACTER_MARIO or p.character == CHARACTER_LUIGI or p.character == CHARACTER_LINK) then
 		return true;
@@ -1579,10 +1585,10 @@ function onCameraDraw()
 		end
 	end
 	
-	for _,v in ipairs(NPC.get(13)) do
+	for _,v in ipairs(NPC.get(fireballIDs)) do
 		v = pnpc.wrap(v);
 		if(v.data.light == nil) then
-			v.data.light = darkness.Light(v.x,v.y,32,1,0xFF9900);
+			v.data.light = darkness.Light(v.x,v.y,32,1,fireballColours[v.id]);
 			v.data.lightRadius = 32;
 			cave_darkness:AddLight(v.data.light);
 			cave_darkness_indoors:AddLight(v.data.light);
