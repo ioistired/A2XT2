@@ -43,6 +43,8 @@ end
 
 function boss.Start()
 	boss.Active = true;
+	boss.HP = boss.MaxHP;
+	lerpHP = boss.MaxHP;
 end
 
 function boss.isReady()
