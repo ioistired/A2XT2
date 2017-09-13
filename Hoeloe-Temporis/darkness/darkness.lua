@@ -180,6 +180,8 @@ function Field:Draw()
 			uniforms[k] = v;
 		end
 		
+		Text.print(lightCount,0,0)
+		
 		Graphics.glDraw{
 			vertexCoords = {0, 0, 800, 0, 800, 600, 0, 600 },
 			textureCoords = { 0,0,1,0,1,1,0,1},
@@ -238,25 +240,31 @@ function Field:ChooseLights()
 	
 	local count = 0;
 	
-	for i=1,self.maxLights,1 do
-		local val = nullLight
-		if(i <= #distList) then
-			val = self.lights[distList[i][1]];
-			--Don't add lights if the light is entirely offscreen
-			if(val.x+val.radius < cam.x or val.x-val.radius > cam.x+800 or val.y+val.radius < cam.y or val.y-val.radius > cam.y+600) then
-				val = nullLight;
-			else
-				count = count + 1;
-			end
+	for i=1,#distList,1 do
+		local val = self.lights[distList[i][1]];
+		--Don't add lights if the light is entirely offscreen
+		if(val.x+val.radius > cam.x and val.x-val.radius < cam.x+800 and val.y+val.radius > cam.y and val.y-val.radius < cam.y+600) then
+			count = count + 1;
+			
+			table.insert(list, val.x);
+			table.insert(list, val.y);
+			table.insert(list, val.radius);
+			
+			table.insert(colList, val.colour[1]);
+			table.insert(colList, val.colour[2]);
+			table.insert(colList, val.colour[3]);
+			table.insert(colList, val.brightness);
 		end
-		table.insert(list, val.x);
-		table.insert(list, val.y);
-		table.insert(list, val.radius);
-		
-		table.insert(colList, val.colour[1]);
-		table.insert(colList, val.colour[2]);
-		table.insert(colList, val.colour[3]);
-		table.insert(colList, val.brightness);
+	end
+	
+	for i=count+1,self.maxLights,1 do
+		table.insert(list, 0);
+		table.insert(list, 0);
+		table.insert(list, 0);
+		table.insert(colList, 0);
+		table.insert(colList, 0);
+		table.insert(colList, 0);
+		table.insert(colList, 0);
 	end
 	
 	return list,colList, count;

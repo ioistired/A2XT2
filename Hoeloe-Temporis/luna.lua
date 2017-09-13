@@ -166,6 +166,7 @@ local idolDoorOpen = false;
 local torches = {};
 local torchExplorers = {};
 local grabtorches = {};
+local fireballs = {};
 
 local function getGender(p)
 	if(p.character == CHARACTER_MARIO or p.character == CHARACTER_LUIGI or p.character == CHARACTER_LINK) then
@@ -1578,8 +1579,34 @@ function onCameraDraw()
 		end
 	end
 	
+	for _,v in ipairs(NPC.get(13)) do
+		v = pnpc.wrap(v);
+		if(v.data.light == nil) then
+			v.data.light = darkness.Light(v.x,v.y,32,1,0xFF9900);
+			v.data.lightRadius = 32;
+			cave_darkness:AddLight(v.data.light);
+			cave_darkness_indoors:AddLight(v.data.light);
+			table.insert(fireballs,v)
+		end
+	end
+	
+	for i = #fireballs,1,-1 do
+		local v = fireballs[i];
+		if(v.isValid) then
+			v.data.light.x = v.x+v.width*0.5;
+			v.data.light.y = v.y+v.height*0.5;
+			
+			v.data.light.radius = rng.random(v.data.lightRadius-5,v.data.lightRadius+5);
+			v.data.light.brightness = rng.random(0.95,1.05)
+		else
+			cave_darkness:RemoveLight(v.data.light);
+			cave_darkness_indoors:RemoveLight(v.data.light);
+			table.remove(grabtorches,i);
+		end
+	end
+	
 	for i = #grabtorches,1,-1 do
-		v = grabtorches[i];
+		local v = grabtorches[i];
 		if(v.isValid) then
 			v.data.particles.x = v.x+8;
 			v.data.particles.y = v.y-2;
