@@ -3,11 +3,13 @@ local npcconfig = API.load("npcconfig")
 local npcManager = API.load("npcManager")
 local pnpc = API.load("pnpc")
 local audio = API.load("audioMaster")
+local textblox = API.load("textblox")
 
 
 local a2xt_rewards = API.load("a2xt_rewards")
 local a2xt_audio = API.load("a2xt_audio")
 local a2xt_message = API.load("a2xt_message")
+local a2xt_costumes = API.load("a2xt_costumes")
 
 if(not isOverworld) then
 
@@ -294,6 +296,157 @@ function pengs:onTickNPC()
 	end
 end
 
+
+local changebooth = {};
+local boothSettings = 
+				 {id = 978,
+				  gfxheight = 96, 
+				  gfxwidth = 48, 
+				  width = 48,
+				  height = 14,
+				  noblockcollision = true,
+				  nogravity = true,
+				  noturn = true,
+				  speed = 0,
+				  playerblocktop = true,
+				  frames=1,
+				  framespeed=4,
+				  nohurt=true};
+
+npcManager.registerEvent(boothSettings.id, changebooth, "onTickNPC");
+changebooth.settings = npcManager.setNpcSettings(boothSettings);
+
+registerEvent(changebooth, "onTick");
+registerEvent(changebooth, "onDraw");
+
+changebooth.arrowPos = 0;
+changebooth.arrowLeft = Graphics.loadImage(Misc.resolveFile("graphics/sanctuary/sanctuary_arrow_left.png"))
+changebooth.arrowRight = Graphics.loadImage(Misc.resolveFile("graphics/sanctuary/sanctuary_arrow_right.png"))
+
+changebooth.changing = 0;
+
+function changebooth.onTick()
+	local index = player:mem(0x176,FIELD_WORD);
+	if(index > 0 and NPC(index-1).id == boothSettings.id) then
+		changebooth.current = pnpc.wrap(NPC(index-1));
+		
+		if(changebooth.costumes == nil) then
+		
+			changebooth.keyLeft = true;
+			changebooth.keyRight = true;
+			changebooth.changing = 0;
+		
+			changebooth.costumes = a2xt_costumes.getUnlocked(player.character);
+			changebooth.costumeindex = table.ifind(changebooth.costumes, a2xt_costumes.getCurrent(player.character));
+			if(changebooth.costumeindex == nil) then
+				changebooth.costumeindex = 0;
+			end
+		end
+	else
+		changebooth.costumes = nil;
+		changebooth.current = nil;
+	end
+	
+	if(changebooth.current) then
+		player.speedX = 0;
+		
+		player.x = math.lerp(player.x+player.width*0.5, changebooth.current.x+changebooth.current.width*0.5, 0.2) - player.width*0.5
+		
+		
+		if(changebooth.changing == 0) then
+			if(player.keys.left and not changebooth.keyLeft) then
+				changebooth.changing = -7*boothSettings.framespeed;
+			elseif(player.keys.right and not changebooth.keyRight) then
+				changebooth.changing = 7*boothSettings.framespeed;
+			end
+		else
+			player.keys.jump = false;
+			player.keys.altJump = false;
+			
+			if(math.abs(changebooth.changing) == 3*boothSettings.framespeed) then
+				if(changebooth.changing < 0) then
+					changebooth.costumeindex = changebooth.costumeindex - 1;
+					if(changebooth.costumeindex < 0) then
+						changebooth.costumeindex = #changebooth.costumes;
+					end
+				else
+					changebooth.costumeindex = changebooth.costumeindex + 1;
+					if(changebooth.costumeindex > #changebooth.costumes) then
+						changebooth.costumeindex = 0;
+					end
+				end
+				if(changebooth.costumes[changebooth.costumeindex]) then
+					a2xt_costumes.wear(changebooth.costumes[changebooth.costumeindex]);
+				else
+					Player.setCostume(player.character, nil);
+				end
+			end
+		end
+		
+		player.keys.run = false;
+		player.keys.altRun = false;
+		player.keys.dropItem = false;
+		
+		changebooth.keyLeft = player.keys.left;
+		changebooth.keyRight = player.keys.right;
+		
+		player.keys.left = false;
+		player.keys.right = false;
+	end
+	
+end
+
+function changebooth.onDraw()
+	if(changebooth.current) then
+		local idx = 15;
+		if(player.character == CHARACTER_SHEATH) then
+			idx = 1;
+		end
+		player:mem(0x114, FIELD_WORD, idx)
+	
+		if(changebooth.changing == 0) then
+			local priority = 5;
+			local a = math.sin(changebooth.arrowPos)
+						
+			Graphics.drawImageToSceneWP(changebooth.arrowLeft, changebooth.current.x + changebooth.current.width * 0.5 - 48 - a - 8, changebooth.current.y-48, priority)
+			Graphics.drawImageToSceneWP(changebooth.arrowRight, changebooth.current.x + changebooth.current.width * 0.5 + 48 + a - 8, changebooth.current.y-48, priority)
+						
+			changebooth.arrowPos = changebooth.arrowPos+0.1;
+			
+			local name = changebooth.costumes[changebooth.costumeindex];
+			if(name) then
+				name = a2xt_costumes.data[name];
+				if(name) then
+					name = name.name;
+				end
+			end
+			if(not name) then
+				name = "Default";
+			end
+			
+			local x = changebooth.current.x + changebooth.current.width * 0.5;
+			local y = changebooth.current.y - boothSettings.gfxheight - 8
+			
+			textblox.printExt(name, {x = x+2, y = y+2, width=250, font = GENERIC_FONT, bind=textblox.BIND_LEVEL, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=priority, color=0x000000FF});
+			textblox.printExt(name, {x = x, y = y, width=250, font = GENERIC_FONT, bind=textblox.BIND_LEVEL, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=priority, color=0xFFFFFFFF});
+			
+		else
+			local frame = math.ceil(math.abs(changebooth.changing/boothSettings.framespeed));
+			
+			if(changebooth.changing < 0) then
+				changebooth.changing = changebooth.changing + 1;
+			else
+				changebooth.changing = changebooth.changing - 1;
+				frame = 8-frame;
+			end
+			
+			Graphics.drawImageToSceneWP(Graphics.sprites.npc[boothSettings.id].img, changebooth.current.x, changebooth.current.y + changebooth.current.height - boothSettings.gfxheight, 0, boothSettings.gfxheight*(frame), boothSettings.gfxwidth, boothSettings.gfxheight, -15)
+		end
+	end
+end
+
+function changebooth:onTickNPC()
+end
 
 -- ***********************
 -- ** DEMO KREW         **

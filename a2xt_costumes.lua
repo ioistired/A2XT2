@@ -40,6 +40,7 @@ for  _,v1 in ipairs(Misc.listDirectories(Misc.episodePath().."graphics/costumes"
 			local info = {
 				path = "graphics/costumes/"..v1.."/"..v2,
 				id = costume_id,
+				costume = v2,
 				name = costumes.data[costume_id].name,
 				character = cid
 				-- any other properties defined in a text document maybe?
@@ -63,7 +64,7 @@ end
 
 function costumes.getUnlocked (character)
 	local unlocked = {}
-	for  _,v in pairs (costumes.charLists[character])  do
+	for  _,v in ipairs (costumes.charLists[character])  do
 		if  SaveData.costumes[v]  then
 			table.insert(unlocked, v)
 		end
@@ -72,6 +73,20 @@ function costumes.getUnlocked (character)
 	return unlocked
 end
 
+function costumes.getCurrent(character)	
+	local current = Player.getCostume(character);
+	if(current) then
+		current = current:upper();
+	else
+		return nil;
+	end
+	for  _,v in ipairs (costumes.charLists[character])  do
+		if(costumes.data[v] and costumes.data[v].path:upper() == current) then
+			return v;
+		end
+	end
+	return nil;
+end
 
 function costumes.unlock (id)
 	SaveData.costumes[id] = true
@@ -80,7 +95,7 @@ end
 
 function costumes.wear (id)
 	local info = costumes.info[id]
-	Player.setCostume(info.character, info.name)
+	Player.setCostume(info.character, info.costume)
 end
 
 
