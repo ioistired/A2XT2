@@ -64,9 +64,11 @@ end
 
 function costumes.getUnlocked (character)
 	local unlocked = {}
-	for  _,v in ipairs (costumes.charLists[character])  do
-		if  SaveData.costumes[v]  then
-			table.insert(unlocked, v)
+	if(costumes.charLists[character])then
+		for  _,v in ipairs (costumes.charLists[character])  do
+			if  SaveData.costumes[v]  then
+				table.insert(unlocked, v)
+			end
 		end
 	end
 
