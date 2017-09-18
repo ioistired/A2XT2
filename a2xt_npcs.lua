@@ -603,6 +603,7 @@ function chest:onTickNPC()
 			self.animationFrame = 1;
 		end
 	else
+		self.msg = ""
 		self.animationFrame = 1;
 	end
 	self.animationTimer = 2;
