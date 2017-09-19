@@ -4,7 +4,8 @@ local npcManager = API.load("npcManager")
 local pnpc = API.load("pnpc")
 local audio = API.load("audioMaster")
 local textblox = API.load("textblox")
-
+local pm = API.load("playerManager")
+local colliders = API.load("colliders")
 
 local a2xt_rewards = API.load("a2xt_rewards")
 local a2xt_audio = API.load("a2xt_audio")
@@ -464,43 +465,94 @@ local demokrewData =
 demokrew[1] = table.join(
 				 {id = 980,
 				  width = 32, 
-				  height = 64},
+				  height = 64,
+				  speed = 0},
 				  defaults);
 
 local krewInfo = {
                  chars     = {[980]=CHARACTER_MARIO, [981]=CHARACTER_LUIGI, [982]=CHARACTER_PEACH, [983]=CHARACTER_TOAD, [984]=CHARACTER_LINK},
                  names     = {[980]="Demo", [981]="Iris", [982]="Kood", [983]="raocow", [984]="Sheath"},
                  gfxwidth  = {[980]=34, [981]=34, [982]=32, [983]=40, [984]=32},
-                 gfxheight = {[980]=52, [981]=60, [982]=52, [983]=56, [984]=64}
+                 gfxheight = {[980]=52, [981]=60, [982]=52, [983]=56, [984]=64},
                 }
 
 
 for i = 980,984 do
 	local s = table.clone(demokrew[1]);
 	s.id = i;
+	
+	local ps = PlayerSettings.get(pm.getCharacters()[krewInfo.chars[i]].base, 2);
+	
 	s.gfxwidth = krewInfo.gfxwidth[i];
 	s.gfxheight = krewInfo.gfxheight[i];
+	s.width = ps.hitboxWidth;
+	s.height = ps.hitboxHeight;
 	table.insert(demokrew, s);
 end
 
 for _,v in ipairs(demokrew) do
 	npcManager.setNpcSettings(v);
 	npcManager.registerEvent(v.id, demokrew, "onTickNPC");
+	npcManager.registerEvent(v.id, demokrew, "onDrawNPC");
 end	
 
 
 function demokrew:onTickNPC()
 	self.friendly = true;
-	self.dontMove = true;
 
 	self.data.name = krewInfo.names[self.id];
 
-	self:mem(0x40, FIELD_BOOL, false)
+	self.isHidden = false;
 	if  self.layerObj ~= nil  then
-		self:mem(0x40, FIELD_BOOL, self.layerObj.isHidden)
+		self.isHidden = self.layerObj.isHidden;
 	end
 	if  player.character == krewInfo.chars[self.id]  then
-		self:mem(0x40, FIELD_BOOL, true)
+		self.isHidden = true;
+	end
+	
+	local x,y = self.x,self.y;
+	x = x + self.width*0.5;
+	y = y + self.height;
+	local temps = Player.getTemplates();
+	local c = krewInfo.chars[self.id];
+	local ps = PlayerSettings.get(pm.getCharacters()[c].base, temps[c].powerup);
+	self.height = ps.hitboxHeight;
+	self.width = ps.hitboxWidth;
+	
+	self.x = x-self.width*0.5;
+	self.y = y-self.height;
+end
+
+function demokrew:onDrawNPC()
+	if(not self.isHidden) then
+		local temps = Player.getTemplates();
+		local c = krewInfo.chars[self.id];
+		local ps = PlayerSettings.get(pm.getCharacters()[c].base, temps[c].powerup);
+				
+		local f = 1;
+		
+		local tx1,ty1 = 0,0;
+		
+		if(f == 0) then
+			tx1 = 4;
+			ty1 = 9;
+		elseif(self.direction == 1) then
+			tx1 = 4 + math.ceil(f/10);
+			ty1 = (f-1)%10
+		else --if(self.direction == -1) then
+			tx1 = 4 - math.floor(f/10);
+			ty1 = 9-(f%10)
+		end
+				
+		local xOffset = ps:getSpriteOffsetX(tx1, ty1);
+		local yOffset = ps:getSpriteOffsetY(tx1, ty1);--+ player:mem(0x10E,FIELD_WORD);
+		
+		tx1 = tx1*100;
+		ty1 = ty1*100;
+				
+		Graphics.drawImageToSceneWP(Graphics.sprites[pm.getCharacters()[c].name][temps[c].powerup].img, self.x+xOffset, self.y+yOffset, tx1, ty1, 100, 100, -45)
+		
+		self.animationFrame = 9999;
 	end
 end
 
