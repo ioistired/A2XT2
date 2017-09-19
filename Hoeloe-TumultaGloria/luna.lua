@@ -17,8 +17,6 @@ boss.SubTitle = "Anarchy Personified"
 
 boss.TitleDisplayTime = 380;
 
-boss.Start();
-
 local x = -199400;
 local y = -200350;
 local fogtest = particles.Emitter(x, y, Misc.resolveFile("p_pumpernick.ini"), 2);
@@ -61,6 +59,8 @@ function onStart()
 	bgShader:compileFromFile(nil, Misc.resolveFile("background2.frag"));
 	
 	Audio.MusicVolume(100);
+
+	boss.Start();
 end
 
 function onTick()
