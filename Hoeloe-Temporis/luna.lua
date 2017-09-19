@@ -26,8 +26,6 @@ local textblox = API.load("textblox");
 
 textblox.npcPresets[151] = textblox.PRESET_BUBBLE
 
-SaveData.costumes.DEMO_BOBBLE = true;
-
 sanctuary.world = 3;
 sanctuary.sections[4] = true
 
