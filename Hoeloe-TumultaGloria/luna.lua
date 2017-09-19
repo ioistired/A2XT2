@@ -48,8 +48,8 @@ function onStart()
 	makeArm{ vectr.v2(x-100, y+80), vectr.v2(x-130, y+90), vectr.v2(x-200, y+100)};
 	makeArm{ vectr.v2(x+50, y+50), vectr.v2(x+100, y+80), vectr.v2(x+160, y+120)};
 	
-	populatePlates(10);
-	bgShader:compileFromFile(Misc.resolveFile("standard.vert"), Misc.resolveFile("background2.frag"));
+	populatePlates(5);
+	bgShader:compileFromFile(nil, Misc.resolveFile("background2.frag"));
 	
 	Audio.MusicVolume(100);
 end
@@ -144,7 +144,7 @@ end
 
 
 function populatePlates(num)
-	for k,v in pairs(smokepos) do
+	for k,v in ipairs(smokepos) do
 		smokepos[k] = nil;
 	end
 	for i=1,num,1 do
