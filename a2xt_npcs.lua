@@ -471,9 +471,7 @@ demokrew[1] = table.join(
 
 local krewInfo = {
                  chars     = {[980]=CHARACTER_MARIO, [981]=CHARACTER_LUIGI, [982]=CHARACTER_PEACH, [983]=CHARACTER_TOAD, [984]=CHARACTER_LINK},
-                 names     = {[980]="Demo", [981]="Iris", [982]="Kood", [983]="raocow", [984]="Sheath"},
-                 gfxwidth  = {[980]=34, [981]=34, [982]=32, [983]=40, [984]=32},
-                 gfxheight = {[980]=52, [981]=60, [982]=52, [983]=56, [984]=64},
+                 names     = {[980]="Demo", [981]="Iris", [982]="Kood", [983]="raocow", [984]="Sheath"}
                 }
 
 
@@ -483,8 +481,6 @@ for i = 980,984 do
 	
 	local ps = PlayerSettings.get(pm.getCharacters()[krewInfo.chars[i]].base, 2);
 	
-	s.gfxwidth = krewInfo.gfxwidth[i];
-	s.gfxheight = krewInfo.gfxheight[i];
 	s.width = ps.hitboxWidth;
 	s.height = ps.hitboxHeight;
 	table.insert(demokrew, s);
@@ -495,6 +491,15 @@ for _,v in ipairs(demokrew) do
 	npcManager.registerEvent(v.id, demokrew, "onTickNPC");
 	npcManager.registerEvent(v.id, demokrew, "onDrawNPC");
 end	
+
+registerEvent(demokrew, "onStart", "onStart", false)
+
+--Force update the character hitboxes for the demo krew NPCs to use
+function demokrew.onStart()
+	for i = 1,5 do
+		pm.refreshHitbox(i)
+	end
+end
 
 
 function demokrew:onTickNPC()
@@ -545,7 +550,7 @@ function demokrew:onDrawNPC()
 		end
 				
 		local xOffset = ps:getSpriteOffsetX(tx1, ty1);
-		local yOffset = ps:getSpriteOffsetY(tx1, ty1);--+ player:mem(0x10E,FIELD_WORD);
+		local yOffset = ps:getSpriteOffsetY(tx1, ty1);
 		
 		tx1 = tx1*100;
 		ty1 = ty1*100;
