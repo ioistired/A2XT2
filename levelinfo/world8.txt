@@ -65,5 +65,5 @@ LEVEL:SAJewers-SideCrawlersClimb
 LEVEL:talkhaus-FinalLevel
 	Name=The R.E.B.O.O.T.
 	Author=talkhaus
-	Type=BOSS
+	Type=EOW
 	Exit=LEEK

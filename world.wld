@@ -1797,8 +1797,8 @@
 160
 96
 31
-"Willhart-WelcomingSeason.lvl"
-"Welcoming Season"
+""
+""
 -1
 -1
 -1
@@ -1861,8 +1861,8 @@
 544
 96
 31
-"rockythechao-town1.lvl"
-"Goopa Village"
+"Markus_E-bear-ResilientNature.lvl"
+"Resilient Nature"
 -1
 -1
 -1
@@ -1893,8 +1893,8 @@
 672
 96
 31
-"Willhart-TheSecondLongestTree.lvl"
-"The Second Longest Tree"
+"Griflion-a stroll through the forest.lvl"
+"a stroll through the forest"
 -1
 -1
 -1
@@ -2054,7 +2054,7 @@
 160
 31
 "louiejub-Castle Climb During Wintertime.lvl"
-"Mountain Descent"
+"Castle Climb During Wintertime"
 -1
 -1
 -1
@@ -2070,7 +2070,7 @@
 160
 31
 "WestonSmith-IceBlockDrop.lvl"
-"Mountain Descent"
+"Ice Block Drop"
 -1
 -1
 -1
@@ -2133,8 +2133,8 @@
 288
 224
 31
-""
-"Sturg's Level (Not Availaible)"
+"Darkonius64-Cliffship_Canyon.lvl"
+"Cliffship Canyon"
 -1
 -1
 -1
@@ -2308,7 +2308,7 @@
 #FALSE#
 416
 288
-31
+32
 "MrSecurity-Glum.lvl"
 "Glum"
 -1
@@ -2693,8 +2693,8 @@
 416
 416
 31
-"Willhart-DemosFluffyDream.lvl"
-"Demo's Fluffy Dream"
+""
+""
 -1
 -1
 -1
@@ -2788,9 +2788,9 @@
 #FALSE#
 800
 416
-31
-"Willhart-DarkPrince.lvl"
-"Dark Prince"
+32
+"platinumtriforce-thefallofdemo.lvl"
+"The Fall Of Demo"
 -1
 -1
 -1
@@ -2837,8 +2837,8 @@
 224
 480
 31
-"Willhart-Accident.lvl"
-"Accident"
+"Dusk209-FrozenShellFactory.lvl"
+"Frozen Shell Factory"
 -1
 -1
 -1
@@ -2884,9 +2884,9 @@
 #FALSE#
 416
 480
-31
-""
-"Town 7-1 (Not Availaible)"
+32
+"ztarwuff-GravityFalls.lvl"
+"Gravity Falls"
 -1
 -1
 -1
@@ -2948,7 +2948,7 @@
 #FALSE#
 672
 480
-31
+32
 "Axon-IndustrialPandemonium.lvl"
 "Industrial Pandemonium"
 -1
@@ -3206,7 +3206,7 @@
 544
 31
 "talkhaus-FinalLevel.lvl"
-"W8 Boss"
+"The R.E.B.O.O.T."
 -1
 -1
 -1
@@ -3364,9 +3364,9 @@
 #FALSE#
 800
 608
-31
-""
-"W9 Boss (Not Availaible)"
+32
+"XutaWoo-DAMNage_and_Damnation.lvl"
+"DAMNage and Damnation"
 -1
 -1
 -1
@@ -3397,8 +3397,8 @@
 416
 96
 31
-""
-"Town 1 (Not Availaible)"
+"rockythechao-town1.lvl"
+"Goopa Village"
 -1
 -1
 -1

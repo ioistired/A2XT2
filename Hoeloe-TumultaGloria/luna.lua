@@ -9,6 +9,15 @@ local imagic = API.load("imagic");
 local rng = API.load("rng");
 local eventu = API.load("eventu");
 local colliders = API.load("colliders");
+local boss = API.load("a2xt_boss");
+
+boss.Name = "Tumulta Gloria"
+boss.SuperTitle = "Chaos Pumpernickel"
+boss.SubTitle = "Anarchy Personified"
+
+boss.TitleDisplayTime = 380;
+
+boss.Start();
 
 local x = -199400;
 local y = -200350;
@@ -116,11 +125,13 @@ function HandleArmPartciles(stepSize)
 					v.handBox.x = j.x-16;
 					v.handBox.y = j.y-16;
 					
-					local b,s = colliders.bounce(player,v.handBox);
-					if(b and s) then
-						colliders.bounceResponse(player);
-					elseif(colliders.collide(v.handBox,player) and (not player:mem(0x50,FIELD_BOOL) or player.y+player.height > v.handBox.y+v.handBox.height*0.5)) then
-						player:harm();
+					if(player:mem(0x13E, FIELD_WORD) == 0) then
+						local b,s = colliders.bounce(player,v.handBox);
+						if(b and s) then
+							colliders.bounceResponse(player);
+						elseif(colliders.collide(v.handBox,player) and (not player:mem(0x50,FIELD_BOOL) or player.y+player.height > v.handBox.y+v.handBox.height*0.5)) then
+							player:harm();
+						end
 					end
 					
 					c = vectr.v2(x,y);

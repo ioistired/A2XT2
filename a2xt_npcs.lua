@@ -496,8 +496,10 @@ registerEvent(demokrew, "onStart", "onStart", false)
 
 --Force update the character hitboxes for the demo krew NPCs to use
 function demokrew.onStart()
-	for i = 1,5 do
-		pm.refreshHitbox(i)
+	if(isTownLevel()) then
+		for i = 1,5 do
+			pm.refreshHitbox(i)
+		end
 	end
 end
 
