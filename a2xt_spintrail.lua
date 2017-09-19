@@ -4,7 +4,13 @@ local trail = {};
 
 local lastPlayerPos = {};
 local spinjump_trail = particles.Ribbon(0,0,Misc.resolveFile("r_trail.ini"));
-local spinjump_colours = {0x1166FF,0x11FF66,0x11FF66,0x1166FF,0x1166FF};
+
+local col_blue = Color.fromHexRGB(0x1166FF);
+local col_green = Color.fromHexRGB(0x11FF66);
+
+local spinjump_colours = {col_blue,col_green,col_green,col_blue,col_blue};
+
+spinjump_colours[CHARACTER_UNCLEBROADSWORD] = Color.brown
 
 function trail.onInitAPI()
 	registerEvent(trail, "onStart", "onStart", false);
@@ -25,7 +31,7 @@ function trail.onTick()
 		spinjump_trail:Emit();
 		spinjump_trail:Emit();
 		spinjump_trail.enabled = true;
-		spinjump_trail:setParam("col",particles.ColFromHexRGB(spinjump_colours[player.character]));
+		spinjump_trail:setParam("col",spinjump_colours[player.character]);
 	elseif(spinjump_trail.enabled and not player:mem(0x50,FIELD_BOOL)) then
 		spinjump_trail.enabled = false;
 	end

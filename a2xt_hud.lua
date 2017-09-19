@@ -153,7 +153,7 @@ local function drawHUD(priority)
 		if(isOverworld and player:mem(0x16, FIELD_WORD) == 0) then
 			player:mem(0x16, FIELD_WORD, 1);
 		end
-		if(player.character == CHARACTER_DEMO or player.character == CHARACTER_IRIS) then
+		if(player.character == CHARACTER_DEMO or player.character == CHARACTER_IRIS or player.character == CHARACTER_UNCLEBROADSWORD) then
 			Graphics.drawImageWP(HUD_IMG.itembox,368,12,priority);
 			
 			drawNPC(player.reservePowerup,400,44,priority);
