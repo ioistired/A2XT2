@@ -4,7 +4,7 @@ uniform vec2 cameraPos;
 uniform vec3[_MAXLIGHTS] lightPos;
 uniform vec4[_MAXLIGHTS] lightCol;
 uniform sampler2D mask;
-uniform vec3 ambient;
+uniform vec4 ambient;
 uniform int lightNum;
 
 uniform vec4 bounds;
@@ -34,5 +34,5 @@ void main()
 	}
 		
 	light.rgb = clamp(light.rgb,0,1);
-	gl_FragColor = c*clamp(vec4(light,1)+vec4(ambient,1),0,1)*gl_Color;
+	gl_FragColor = c*clamp(vec4(light,1)+ambient,0,1)*gl_Color;
 }

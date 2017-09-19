@@ -112,7 +112,7 @@ local darknessSettings = {
 
 local cave_darkness = darkness.Field(table.join(darknessSettings, 
 					{
-						ambient=0xFFFFFF,
+						ambient=Color.white,
 						bounds = table.clone(default_cave_bounds),
 						boundBlendLength=600
 					}));
@@ -120,7 +120,7 @@ local cave_darkness = darkness.Field(table.join(darknessSettings,
 				
 local cave_darkness_indoors = darkness.Field(table.join(darknessSettings, 
 					{
-						ambient=ambientLight:toHexRGB();
+						ambient=ambientLight;
 					}));
 
 --Copy cave background to new section and reposition
@@ -1680,34 +1680,28 @@ function onCameraDraw()
 	elseif(player.section == 0) then
 		sandstorm:Draw(-40);
 		
-		if(cave_darkness.ambient[1] < 1 or cave_darkness.ambient[2] < 1 or cave_darkness.ambient[3] < 1) then
+		if(cave_darkness.ambient ~= Color.white) then
 			cave_darkness:Draw();
 		end
 		
-		local amb_col;
 		local boundmod = default_cave_bounds.right + math.lerp(0, 800, math.min((present_cave.x + present_cave.width - player.x)/400,1));
 		if(colliders.collide(player, present_cave)) then
 			sandstorm.enabled = false;
 			haze_blend = math.max(0, haze_blend - 0.01);
-			amb_col = ambientLight;
+			cave_darkness.ambient = ambientLight;
 			cave_darkness.bounds.right = boundmod;
 		else
 			sandstorm.enabled = true;
 			haze_blend = math.min(1, haze_blend + 0.01);
 			
 			if(player.y > present_cave.y) then
-				amb_col = math.lerp(Color.white, ambientLight, math.min((player.y - present_cave.y)/128,1));
+				cave_darkness.ambient = math.lerp(Color.white, ambientLight, math.min((player.y - present_cave.y)/128,1));
 				cave_darkness.bounds.right = boundmod;
 			else
-				amb_col = Color.white;
+				cave_darkness.ambient = Color.white;
 				cave_darkness.bounds.right = default_cave_bounds.right;
 			end
 		end
-		
-		
-		cave_darkness.ambient[1] = amb_col.r;
-		cave_darkness.ambient[2] = amb_col.g;
-		cave_darkness.ambient[3] = amb_col.b;
 		
 		if(haze_blend > 0) then
 			local haze_p = 0

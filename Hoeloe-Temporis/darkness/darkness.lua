@@ -36,13 +36,21 @@ local capture1 = Graphics.CaptureBuffer(800,600);
 
 
 local function RGBFromHex(h)
-	return {math.floor(h/(256*256))/255,(math.floor(h/256)%256)/255,(h%256)/255};
+	if(type(h) == "number") then
+		return Color.fromHexRGB(h);
+	elseif(h.__type == "Color") then
+		return h;
+	elseif(h.r) then
+		return Color(h.r, h.g, h.b);
+	else
+		return Color(h[1], h[2], h[3]);
+	end
 end
 
 
 local Light = {};
 function darkness.Light(x,y,radius,brightness,colour)
-	colour = colour or 0xFFFFFF;
+	colour = colour or Color.white;
 	brightness = brightness or 1;
 	local l = {x=x,y=y,radius=radius,brightness=brightness,colour=RGBFromHex(colour)};
 	l.SetColor = Light.SetColour;
