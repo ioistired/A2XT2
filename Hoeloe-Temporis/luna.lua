@@ -677,7 +677,7 @@ do --funky dialogue
 			a2xt_message.showMessageBox {target=talker, type="bubble", 
 			text="Hello, and welcome to the Temporis Arena!<page>Here you can compete in gladitorial combat for a chance to win big!"}
 			a2xt_message.waitMessageEnd();
-			if(not SaveData.world3.town.fireIdolReady) then
+			if(not SaveData.world3.town.fireIdolReady and not SaveData.world3.town.idol154) then
 				a2xt_message.showMessageBox {target=talker, type="bubble", text="We're currently searching for a champion to take home our grand trophy, think you're up for the task?"}
 				a2xt_message.waitMessageEnd();
 			end
