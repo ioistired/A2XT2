@@ -6,7 +6,10 @@ local audio = API.load("audioMaster")
 local textblox = API.load("textblox")
 local pm = API.load("playerManager")
 local colliders = API.load("colliders")
+local eventu = API.load("eventu");
 
+local a2xt_scene = API.load("a2xt_scene");
+local a2xt_leveldata = API.load("a2xt_leveldata")
 local a2xt_rewards = API.load("a2xt_rewards")
 local a2xt_audio = API.load("a2xt_audio")
 local a2xt_message = API.load("a2xt_message")
@@ -476,9 +479,91 @@ end
 
 for _,v in ipairs(portal) do
 	npcManager.setNpcSettings(v);
+	npcManager.registerEvent(v.id, portal, "onTickNPC");
 	--npcManager.registerEvent(v.id, portal, "onTickNPC");
 	--npcManager.registerEvent(v.id, portal, "onDrawNPC");
 end	
+
+local portalEvents = {[974]="townportal",[975]="hubportal"}
+function portal:onTickNPC()
+	self.friendly = true
+	self.data.event = portalEvents[self.id]
+end
+
+a2xt_message.presetSequences.townportal = function(args)
+	a2xt_message.promptChosen = false
+	a2xt_message.showPrompt {options = {"Return to P.O.R.T.(S.)", a2xt_message.getNoOption()}}
+	a2xt_message.waitPrompt ()
+
+	if  (a2xt_message.promptChoice == 1)  then
+		eventu.waitSeconds(1)
+
+	end
+end
+
+a2xt_message.presetSequences.hubportal = function(args)
+	local portal = args.npc
+
+	local worldOptions = {}
+	local worldPositions = {}
+	local optionWorlds = {}
+
+	-- Set up prompt
+	for  i=0,9  do
+		if  (SaveData["world"..i].unlocked)  then
+			worldOptions[#worldOptions+1] = a2xt_leveldata.GetWorldName(i)
+			optionWorlds[#worldOptions] = i
+			worldPositions[i] = worldOptions[#worldOptions]
+		end
+	end
+	worldOptions[#worldOptions+1] = a2xt_message.getNoOption()
+	a2xt_message.promptChosen = false
+
+	-- Randomize W6's name
+	if  worldPositions[6] ~= nil  then
+		eventu.run(function()
+				while (not a2xt_message.promptChosen) do
+					worldOptions[worldPositions[6]] = a2xt_leveldata.GetWorldName(6)
+					eventu.waitFrames(rng.randomInt(5,21))
+				end
+			end
+		)
+	end
+
+	-- Display prompt
+	a2xt_message.showPrompt {options=worldOptions}
+	a2xt_message.waitPrompt ()
+
+	-- If the player selected one of the worlds, either go to that map position or the SOW level
+	if(a2xt_message.promptChoice ~= #worldOptions)  then
+		eventu.waitSeconds(1)
+		a2xt_scene.endScene()
+
+		local worldNum = optionWorlds[#worldOptions]
+		local pos = a2xt_leveldata.GetWorldStartMapPos(worldNum)  or  {x=0,y=0}
+
+		local overworldDataPtr = mem(0xB2C5C8, FIELD_DWORD)
+		mem(overworldDataPtr + 0x40, FIELD_DFLOAT, pos.x)
+		mem(overworldDataPtr + 0x48, FIELD_DFLOAT, pos.y)
+
+
+		-- If the player cleared the corresponding SOW level, just go to the map
+		if  a2xt_leveldata.Cleared(worldStartLevel)  then
+			Level.exit()
+
+		else
+			-- Insert player enter effect here
+			-- Go to sow level
+			a2xt_leveldata.loadLevel(worldStartLevel,0)
+		end
+		a2xt_message.waitMessageEnd()
+	end
+
+	-- End scene
+	a2xt_scene.endScene()
+end
+
+
 
 
 -- ***********************************
@@ -510,6 +595,7 @@ for _,v in ipairs {403,404,405,489} do
 
 	npcManager.setNpcSettings(s);
 end
+
 
 
 -- ***********************
@@ -630,8 +716,6 @@ end
 -- ***********************
 -- ** TREASURE CHESTS   **
 -- ***********************
-local eventu = API.load("eventu");
-local a2xt_scene = API.load("a2xt_scene");
 
 if (SaveData.chests == nil)  then
 	SaveData.chests = {}
