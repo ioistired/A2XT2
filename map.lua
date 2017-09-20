@@ -23,9 +23,6 @@ local currentMusic = "music/A2XT Dusk Sky.ogg";
 
 
 function onStart()
-	windowDebug(tostring(mem(0xB25724, FIELD_STRING)))
-	windowDebug(tostring(mem(0xB25728, FIELD_BOOL)))
-
 	if  SaveData.changeSubmap ~= nil  then
 		-- go to the corresponding SOW level tile
 		SaveData.changeSubmap = nil
