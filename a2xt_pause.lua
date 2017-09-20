@@ -69,12 +69,21 @@ local function gameexit()
 	Misc.exitGame();
 end
 
+local function backtohub()
+	--quitting = true;
+	unpause();
+end
+
 local function option_exitlevel()
 	confirmBox(levelexit);
 end
 
 local function option_exitgame()
 	confirmBox(gameexit);
+end
+
+local function option_backtohub()
+	confirmBox(backtohub);
 end
 
 local function option_exitminigame()
@@ -108,7 +117,7 @@ local function forceResetMenu()
 
 	if(isOverworld or (not isTownLevel() and isHubLevel()) or --[[is Intro Stage]] false) then
 		if(--[[unlocked hub]] true) then
-			table.insert(options, {name = "return to P.O.R.T.(S.)", action = function() end});
+			table.insert(options, {name = "return to P.O.R.T.(S.)", action = option_backtohub});
 		end
 	else
 		if(minigame.inGame) then

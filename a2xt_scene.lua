@@ -348,7 +348,7 @@ function a2xt_scene.onInputUpdate()
 			a2xt_scene.currInputs[v] = player[v.."KeyPressing"]
 			player[v.."KeyPressing"] = false
 		end
-		if(player:mem(0x154,FIELD_WORD) == 0) then
+		if(player:mem(0x154,FIELD_WORD) == 0 and currentScene) then
 			disableGrab();
 		end
 		player.runKeyPressing = true;
