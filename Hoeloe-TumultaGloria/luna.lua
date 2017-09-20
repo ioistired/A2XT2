@@ -22,8 +22,10 @@ boss.TitleDisplayTime = 380;
 
 local bossStarted = false;
 
-local x = -199400;
-local y = -200350;
+local Zero = vectr.v2(0,0);
+
+local x = 0;
+local y = 0;
 local fogtest = particles.Emitter(x, y, Misc.resolveFile("p_pumpernick.ini"), 2);
 local eye1 = Graphics.loadImage(Misc.resolveFile("eyeball.png"));
 local eye2 = Graphics.loadImage(Misc.resolveFile("eyepupil.png"));
@@ -50,45 +52,58 @@ for k,v in ipairs(coltbl) do
 end
 local smokegrad = particles.Grad({0,0.0909,0.1818,0.2727,0.3636,0.4545,0.5455,0.6364,0.7273,0.8182,0.9091,1}, coltbl)
 
-function onStart()
-	player.character = CHARACTER_UNCLEBROADSWORD;
-	player.powerup = 2;
-	player.reserveItem = 0;
-	
-	makeArm{ vectr.v2(x-80, y-90), vectr.v2(x-140, y-120), vectr.v2(x-200, y-100)};
-	makeArm{ vectr.v2(x+50, y-50), vectr.v2(x+100, y-75), vectr.v2(x+160, y-60)};
-	makeArm{ vectr.v2(x-100, y+80), vectr.v2(x-130, y+90), vectr.v2(x-200, y+100)};
-	makeArm{ vectr.v2(x+50, y+50), vectr.v2(x+100, y+80), vectr.v2(x+160, y+120)};
-	
-	populatePlates(5);
-	bgShader:compileFromFile(nil, Misc.resolveFile("background2.frag"));
-	
-	Audio.MusicVolume(100);
+local current_phase = nil;
+local movement_loop = nil;
+local move_event = nil;
 
-	boss.Start();
-end
+local bullets = {};
 
-function onTick()
-	--Idle body anim
-	y = y + 0.5*math.sin(0.05*lunatime.tick());
-	
-	--Idle arm anim
-	IKMove(vectr.v2(x-200-64*math.sin(lunatime.tick()/100), y-100+64*math.cos(lunatime.tick()/100)), arms[1].joints);
-	IKMove(vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +14), y-60+64*math.cos(lunatime.tick()/100 + 14)), arms[2].joints);
-	IKMove(vectr.v2(x-200-64*math.sin(lunatime.tick()/100 +37), y+100+64*math.cos(lunatime.tick()/100 + 37)), arms[3].joints);
-	IKMove(vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +73), y+120+64*math.cos(lunatime.tick()/100 + 73)), arms[4].joints);
-	
-	--Prep animations for rendering
-	HandlePlates(0.025, 1);
-	HandleArmPartciles(24);
-	
-	if(not bossStarted and Audio.MusicClock() > 12 and boss.isReady()) then
-		bossStarted = true;
+local BULLET_SMALL = 0;
+local bulletImgs = {}
+bulletImgs[BULLET_SMALL] = Graphics.loadImage(Misc.resolveFile("bullet_1.png"));
+
+local function drawBullets()
+	for _,v in ipairs(bullets) do
+		Graphics.drawImageToSceneWP(bulletImgs[v.type], v.pos.x - v.gfxwidth*0.5, v.pos.y - v.gfxheight*0.5, 0, v.frame*v.gfxheight, v.gfxwidth, v.gfxheight, -50)
 	end
-	Text.print(bossStarted,0,0)
 end
 
-function makeArm(js)
+local function updateBullets()
+	for i = #bullets,1,-1 do
+		bullets[i].pos = bullets[i].pos+bullets[i].speed;
+		bullets[i].hitbox.x = bullets[i].pos.x;
+		bullets[i].hitbox.y = bullets[i].pos.y;
+		
+		bullets[i].frametimer = bullets[i].frametimer - 1;
+		if(bullets[i].frametimer < 0) then
+			bullets[i].frametimer = bullets[i].framespeed;
+			bullets[i].frame = (bullets[i].frame + 1)%bullets[i].frames;
+		end
+		
+		if(colliders.collide(player,bullets[i].hitbox)) then
+			player:harm();
+		end
+		if(bullets[i].pos.x > Zero.x + 864 or bullets[i].pos.x < Zero.x - 64 or
+		   bullets[i].pos.y > Zero.y + 664 or bullets[i].pos.y < Zero.y - 64) then
+			table.remove(bullets,i);
+		end
+	end
+end
+
+local function spawnBullet(bulletType, pos, speed)
+	local b = {pos = pos, type = bulletType, speed = speed, frame = 0}
+	if(bulletType == BULLET_SMALL) then
+		b.framespeed = 4;
+		b.frames = 6
+		b.hitbox = colliders.Circle(0,0,11);
+		b.gfxheight=22;
+		b.gfxwidth=22;
+	end
+	b.frametimer = b.framespeed;
+	table.insert(bullets, b);
+end
+
+local function makeArm(js)
 	local t =  {};
 	t.joints = js;
 	t.frame = rng.randomInt(0,15);
@@ -97,10 +112,11 @@ function makeArm(js)
 	t.handBox = colliders.Box(0,0,32,32);
 	t.rotation = 0;
 	t.target = vectr.v2(x,y);
+	t.targetobj = player;
 	table.insert(arms, t);
 end
 
-function HandleArmPartciles(stepSize)
+local function HandleArmPartciles(stepSize)
 	local c = vectr.v2(x,y);
 	for _,v in ipairs(arms) do
 		local verts = {};
@@ -145,8 +161,8 @@ function HandleArmPartciles(stepSize)
 					end
 					
 					c = vectr.v2(x,y);
-					v.target.x = player.x;
-					v.target.y = player.y;
+					v.target.x = v.targetobj.x;
+					v.target.y = v.targetobj.y;
 					
 					local rotdir = (v.target-j):normalise();
 					local angle = (math.atan2(rotdir.y, rotdir.x) - math.atan2(-0.7071068,-0.7071068)) / imagic.DEG2RAD;
@@ -164,7 +180,7 @@ function HandleArmPartciles(stepSize)
 end
 
 
-function populatePlates(num)
+local function populatePlates(num)
 	for k,v in ipairs(smokepos) do
 		smokepos[k] = nil;
 	end
@@ -174,7 +190,7 @@ function populatePlates(num)
 	numPlates = num;
 end
 
-function HandlePlates(speed, radiusScale)
+local function HandlePlates(speed, radiusScale)
 	ellipse.f1.y = ellipse.f1.y + 0.9*math.sin(0.05*lunatime.tick());
 	ellipse.f2.y = ellipse.f2.y + 0.85*math.sin(0.043*lunatime.tick());
 	
@@ -201,11 +217,7 @@ function HandlePlates(speed, radiusScale)
 	end
 end
 
-function IKUpdate(bns)
-	IKMove(bns[#bns], bns);
-end
-
-function IKMove(target, bns)
+local function IKMove(target, bns)
 	if(#bns < 2) then return; end
 	
 	local elasticLength = 75;
@@ -246,7 +258,7 @@ function IKMove(target, bns)
 	
 	--E-FABRIK length retract (shrinks arms at close ranges to ensure target is reachable)
 	if(range < lenBase) then
-		local lenSub = (range+lenBranch-lens[1])/#(lens-1);
+		local lenSub = (range+lenBranch-lens[1])/(#lens-1);
 		for k,v in ipairs(lens) do
 			lens[k] = v-lenSub;
 		end
@@ -341,10 +353,313 @@ function IKMove(target, bns)
 			bns[k] = bones[k+1];
 		end
 	end]]
-	
 end
 
-function onDraw()
+local decelDist = 64;
+
+local function computeNewPos(v,target,speed)
+	local d = (target-v);
+	local dist = d.length;
+	if(dist <= 4) then
+		return target;
+	end
+	local s = speed;
+	if(dist < decelDist) then
+		s = math.sqrt(speed*speed*dist/decelDist); --SUVAT yo
+	end
+	s = math.min(s,dist)
+	return v + d:normalise()*s;
+end
+
+local function initMoveEvent(v,target,t)
+	local timer = lunatime.toTicks(t);
+	local d = (v-target).length;
+	return (d+2*decelDist)/timer;
+end
+	
+local function MoveArm(idx, target, speed)
+	local v = vectr.v2(arms[idx].hand.x, arms[idx].hand.y);
+	local d = (v-target).length;
+	if(v.x == 0 or v.y == 0 or d <= 4) then
+		v = target;
+	end
+	IKMove(computeNewPos(v,target,speed), arms[idx].joints);
+end
+
+local function DoArmMove(idx, target, t)
+		return eventu.run(function()
+		local v = vectr.v2(arms[idx].hand.x, arms[idx].hand.y);
+		local speed = initMoveEvent(v, target, t);
+		while(true) do
+			MoveArm(idx, target, speed);
+			eventu.waitFrames(0);
+			if((vectr.v2(arms[idx].hand.x, arms[idx].hand.y)-target).length <= 4) then
+				break;
+			end
+		end
+		eventu.signal("ARM_"..idx)
+	end)
+end
+
+local function MoveBody(target, speed)
+	local v = vectr.v2(x, y);
+	local d = (v-target).length;
+	if(v.x == 0 or v.y == 0 or d <= 4) then
+		v = target;
+	end
+	v = computeNewPos(v,target,speed);
+	x = v.x;
+	y = v.y;
+	for i = 1,4 do
+		arms[i].joints[1].x = x;
+		arms[i].joints[1].y = y;
+		IKMove(arms[i].joints[#arms[i].joints], arms[i].joints);
+	end
+end
+
+local function DoBodyMove(target, t)
+	return eventu.run(function()
+		local v = vectr.v2(x, y);
+		local speed = initMoveEvent(v, target, t);
+		while(true) do
+			MoveBody(target, speed);
+			eventu.waitFrames(0);
+			if((vectr.v2(x, y)-target).length <= 4) then
+				break;
+			end
+		end
+		eventu.signal("BODY")
+	end)
+end
+
+local function waitForArm(idx)
+	if(idx == nil) then
+		return waitForArm{1,2,3,4};
+	end
+	if(type(idx) == "table") then
+		local t = {}
+		for _,v in ipairs(idx) do
+			table.insert(t, "ARM_"..v);
+		end
+		return eventu.waitSignal(t);
+	else
+		return eventu.waitSignal("ARM_"..idx);
+	end
+end
+
+local function waitForBody()
+	return eventu.waitSignal("BODY");
+end
+
+local function waitForArmAndBody(idx)
+	if(type(idx) == "table") then
+		local t = {"BODY"}
+		for _,v in ipairs(idx) do
+			table.insert(t, "ARM_"..v);
+		end
+		return eventu.waitSignal(t);
+	else
+		return eventu.waitSignal("ARM_"..idx);
+	end
+end
+
+local function waitForAll()
+	local t = {"BODY"}
+	for i = 1,4 do
+		table.insert(t, "ARM_"..i);
+	end
+	return eventu.waitSignal(t);
+end
+	
+local function IKUpdate(bns)
+	IKMove(bns[#bns], bns);
+end
+
+local function waitPhase()
+	return eventu.waitSignal("PHASE")
+end
+
+local function startMoveEvent()
+	local _,e = eventu.run(function()
+		local timer = 0;
+		while(true) do
+			if(timer <= 0) then 
+				timer = rng.random(600); 
+				local _,r = DoBodyMove(Zero+vectr.v2(rng.random(64,800-64),rng.random(64,600-128)), rng.random(2,4));
+				move_event = r;
+				waitForBody();
+				move_event = nil;
+			end
+			timer = timer - 1;
+			eventu.waitFrames(0);
+		end
+	end);
+	movement_loop = e;
+end
+
+local function stopMoveEvent()
+	if(movement_loop) then
+		if(move_event) then 
+			eventu.abort(move_event);
+			move_event = nil;
+		end
+		eventu.abort(movement_loop);
+		movement_loop = nil;
+	end
+end
+
+local function phase_idle()
+	for i = 1,4 do
+		arms[i].targetobj = player;
+	end
+	while(true) do
+		--Idle arm anim
+		--IKMove(vectr.v2(x-200-64*math.sin(lunatime.tick()/100), y-100+64*math.cos(lunatime.tick()/100)), arms[1].joints);
+		--IKMove(vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +14), y-60+64*math.cos(lunatime.tick()/100 + 14)), arms[2].joints);
+		--IKMove(vectr.v2(x-200-64*math.sin(lunatime.tick()/100 +37), y+100+64*math.cos(lunatime.tick()/100 + 37)), arms[3].joints);
+		--IKMove(vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +73), y+120+64*math.cos(lunatime.tick()/100 + 73)), arms[4].joints);
+		MoveArm(1, vectr.v2(x-200-64*math.sin(lunatime.tick()/100), y-100+64*math.cos(lunatime.tick()/100)), 5);
+		MoveArm(2, vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +14), y-60+64*math.cos(lunatime.tick()/100 + 14)), 5);
+		MoveArm(3, vectr.v2(x-200-64*math.sin(lunatime.tick()/100 +37), y+100+64*math.cos(lunatime.tick()/100 + 37)), 5);
+		MoveArm(4, vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +73), y+120+64*math.cos(lunatime.tick()/100 + 73)), 5);
+		
+		eventu.waitFrames(0);
+	end
+end
+
+local function setPhase(phase, args)
+	if(current_phase) then
+		eventu.abort(current_phase);
+	end
+	if(phase == nil) then
+		phase = phase_idle;
+		eventu.signal("PHASE")
+	end
+	
+	local _,c = eventu.run(phase, args)
+	current_phase = c;
+end
+
+local function phase_armattack1()
+	for i = 1,4 do
+		arms[1].targetobj = player;
+	end
+	stopMoveEvent();
+	local side = rng.randomInt(0,1);
+	local bodyCentre = Zero+vectr.v2(side*578 + 64,64);
+	DoBodyMove(bodyCentre, 2);
+	
+	side = 1-(2*side);
+	
+	DoArmMove(1, bodyCentre + vectr.v2(side*64,48), 2);
+	DoArmMove(2, bodyCentre + vectr.v2(side*56,64), 2);
+	DoArmMove(3, bodyCentre + vectr.v2(side*64,56), 2);
+	DoArmMove(4, bodyCentre + vectr.v2(side*48,64), 2);
+	
+	waitForAll();
+	eventu.waitFrames(16);
+	
+	for i = 1,4 do
+		local p = vectr.v2(player.x+player.width*0.5, player.y+player.height*0.5);
+		local dir = (p-vectr.v2(arms[i].hand.x,arms[i].hand.y)):normalise();
+		p = p + dir*128;
+		arms[i].targetobj = p;
+		DoArmMove(i, p, 0.5);
+		eventu.waitFrames(48);
+	end
+	
+	eventu.waitFrames(32);
+	
+	startMoveEvent();
+	setPhase();
+end
+
+local function phase_danmaku1()
+	for i = 1,4 do
+		arms[1].targetobj = player;
+	end
+	
+	DoArmMove(1, Zero + vectr.v2(32,32), 2);
+	DoArmMove(2, Zero + vectr.v2(800-32,32), 2);
+	DoArmMove(3, Zero + vectr.v2(32,600-32), 2);
+	DoArmMove(4, Zero + vectr.v2(800-32,600-32), 2);
+	
+	waitForArm{1,2,3,4};
+	eventu.waitFrames(16);
+	
+	for i = 1,4 do
+		for j = 1,10 do
+			local spawnpos = vectr.v2(arms[i].hand.x, arms[i].hand.y);
+			local dir = (vectr.v2(player.x + player.width*0.5, player.y + player.height*0.5) - spawnpos):normalise();
+			spawnBullet(BULLET_SMALL, spawnpos + dir*16, dir*3.5);
+			eventu.waitFrames(28);
+		end
+		eventu.waitFrames(48);
+	end
+	
+	eventu.waitFrames(256);
+	
+	startMoveEvent();
+	setPhase();
+end
+
+local function bossEvents()
+	eventu.waitFrames(128);
+	setPhase(phase_armattack1);
+	waitPhase();
+	eventu.waitFrames(256);
+	setPhase(phase_danmaku1);
+end
+
+local function StartBoss()
+	
+	Zero.x = Section(0).boundary.left;
+	Zero.y = Section(0).boundary.top;
+	
+	x = Zero.x+600;
+	y = Zero.y+250;
+
+	player.character = CHARACTER_UNCLEBROADSWORD;
+	player.powerup = 2;
+	player.reserveItem = 0;
+	
+	makeArm{ vectr.v2(x-80, y-90), vectr.v2(x-140, y-120), vectr.v2(x-200, y-100)};
+	makeArm{ vectr.v2(x+50, y-50), vectr.v2(x+100, y-75), vectr.v2(x+160, y-60)};
+	makeArm{ vectr.v2(x-100, y+80), vectr.v2(x-130, y+90), vectr.v2(x-200, y+100)};
+	makeArm{ vectr.v2(x+50, y+50), vectr.v2(x+100, y+80), vectr.v2(x+160, y+120)};
+	
+	populatePlates(5);
+	bgShader:compileFromFile(nil, Misc.resolveFile("background2.frag"));
+	
+	Audio.MusicVolume(100);
+
+	boss.Start();
+	
+	setPhase();
+end
+
+function onStart()
+	StartBoss();
+end
+
+function onTick()
+	--Idle body anim
+	y = y + 0.5*math.sin(0.05*lunatime.tick());
+	
+	--Prep animations for rendering
+	HandlePlates(0.025, 1);
+	HandleArmPartciles(24);
+	
+	updateBullets();
+	
+	if(not bossStarted and Audio.MusicClock() > 12 and boss.isReady()) then
+		bossStarted = true;
+		startMoveEvent();
+		eventu.run(bossEvents);
+	end
+end
+
+local function DrawBG()
 	local t = math.min(2,lunatime.time() * 0.05);
 	local gradt = math.pow(math.sin(lunatime.time()*0.05),2);
 	local gradcol = smokegrad:get(gradt);
@@ -357,7 +672,9 @@ function onDraw()
 										gColAdd = {0.3,0.4,0.6},
 										gBossPos = {x-Camera.get()[1].x,y-Camera.get()[1].y}
                                      }, priority = -65};
-	
+end
+
+local function DrawFog()
 	armemit:Draw(-52);
 	for _,v in ipairs(arms) do
 		v.hand:Draw(-50);
@@ -366,6 +683,9 @@ function onDraw()
 	fogtest.x = x;
 	fogtest.y = y;
 	fogtest:Draw(-51);
+end
+
+local function DrawEye()
 	Graphics.drawImageToSceneWP(eye1, x-28, y-28, -50);
 	
 	local toplayer = vectr.v2(player.x-x, player.y-y);
@@ -374,7 +694,9 @@ function onDraw()
 		toplayer = toplayer:normalise();
 	end
 	Graphics.drawImageToSceneWP(eye2, x-7 + toplayer.x * 10, y-7 + toplayer.y * 10, -50);
-	
+end
+
+local function DrawPlates()
 	for _,v in ipairs(smokepos) do
 		local order = -50;
 		
@@ -391,7 +713,21 @@ function onDraw()
 		v.obj.y = y + v.vec.y;
 		v.obj:Draw(order, col);
 	end
+end
+
+local function DrawBoss()
+	DrawBG();
+	
+	DrawFog();
+	DrawEye();
+	DrawPlates();
+	
+	drawBullets();
+	
 	local st = math.sin(lunatime.tick()*0.01);
 	--Graphics.glDraw{vertexCoords = {0,0,800,0,0,600,800,600}, primitive = Graphics.GL_TRIANGLE_STRIP, color={1,0,0,0.25*st*st+vectr.lerp(0.25,1,lunatime.time()/30)}}
+end
+function onDraw()
+	DrawBoss();
 end
 
