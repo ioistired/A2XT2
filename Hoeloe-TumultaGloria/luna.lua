@@ -10,12 +10,17 @@ local rng = API.load("rng");
 local eventu = API.load("eventu");
 local colliders = API.load("colliders");
 local boss = API.load("a2xt_boss");
+local pause = API.load("a2xt_pause");
+
+pause.StopMusic = true;
 
 boss.Name = "Tumulta Gloria"
 boss.SuperTitle = "Chaos Pumpernickel"
 boss.SubTitle = "Anarchy Personified"
 
 boss.TitleDisplayTime = 380;
+
+local bossStarted = false;
 
 local x = -199400;
 local y = -200350;
@@ -76,6 +81,11 @@ function onTick()
 	--Prep animations for rendering
 	HandlePlates(0.025, 1);
 	HandleArmPartciles(24);
+	
+	if(not bossStarted and Audio.MusicClock() > 12 and boss.isReady()) then
+		bossStarted = true;
+	end
+	Text.print(bossStarted,0,0)
 end
 
 function makeArm(js)

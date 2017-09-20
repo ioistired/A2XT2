@@ -7,6 +7,8 @@ local audiomaster = API.load("audiomaster")
 
 local pause = {}
 
+pause.StopMusic = false;
+
 local musicicons = Graphics.loadImage(Misc.resolveFile("graphics/HUD/musicicons.png"));
 local musicTimer = 0;
 
@@ -17,6 +19,8 @@ pause.Blocked = false;
 local game_paused = false;
 local unpausing = false;
 local pause_blend = 0;
+
+local ranOnTickEnd = false;
 
 function isGamePaused()
 	return game_paused;
@@ -155,23 +159,16 @@ local function drawMusic(p)
 		Graphics.drawImageWP(musicicons,22,y+15,p);
 	end
           
-	y = y + 15; 
+	y = y + 16; 
 	 
-	if (pause.Music.Title == nil) then
-        Text.printWP(Audio.MusicTitleTag(),50,y,p)
-	else
-        Text.printWP(pause.Music.Title,50,y,p)
-	end
-	if (pause.Music.Artist == nil) then
-        Text.printWP(Audio.MusicArtistTag(),50,y+25,p)
-	else
-        Text.printWP(pause.Music.Artist,50,y+25,p)
-	end
-	if (pause.Music.Album == nil) then
-        Text.printWP(Audio.MusicAlbumTag(),50,y+50,p)
-	else
-        Text.printWP(pause.Music.Album,50,y+50,p)
-	end
+	local text = pause.Music.Title or Audio.MusicTitleTag();
+	textblox.printExt(text, {x = 50, y = y, width=750, font = GENERIC_FONT, halign = textblox.HALIGN_LEFT, valign = textblox.VALIGN_TOP, z=p, color=0xFFFFFFFF})
+  
+    text = pause.Music.Artist or Audio.MusicArtistTag();
+	textblox.printExt(text, {x = 50, y = y+25, width=750, font = GENERIC_FONT, halign = textblox.HALIGN_LEFT, valign = textblox.VALIGN_TOP, z=p, color=0xFFFFFFFF})
+	
+    text = pause.Music.Album or Audio.MusicAlbumTag();
+	textblox.printExt(text, {x = 50, y = y+50, width=750, font = GENERIC_FONT, halign = textblox.HALIGN_LEFT, valign = textblox.VALIGN_TOP, z=p, color=0xFFFFFFFF})
 end
 
 local function formatSelected(name)
@@ -303,6 +300,7 @@ local currentChar = 1;
 function pause.onInitAPI()
 	registerEvent(pause, "onInputUpdate", "onInputUpdate", true);
 	registerEvent(pause, "onExitLevel", "onExitLevel", false);
+	registerEvent(pause, "onTickEnd", "onTickEnd", false);
 	registerEvent(pause, "onDraw", "onDraw", false);
 	registerEvent(pause, "onPause", "onPause", false);
 	
@@ -396,6 +394,39 @@ function pause.onInputUpdate()
 	presspause = player.keys.pause;
 end
 
+function pause.onTickEnd()
+	ranOnTickEnd = true;
+end
+
+local seizestream = Audio.SeizeStream;
+local releasestream = Audio.ReleaseStream;
+local seizedstreams = {};
+
+local releaseOnUnpause = nil;
+local playOnUnpause = false;
+
+function Audio.SeizeStream(id)
+	if(id >= 0) then
+		seizedstreams[id] = true;
+	else
+		for i=0,20 do
+			seizedstreams[i] = true;
+		end
+	end
+	seizestream(id);
+end
+
+function Audio.ReleaseStream(id)
+	if(id >= 0) then
+		seizedstreams[id] = false;
+	else
+		for i=0,20 do
+			seizedstreams[i] = false;
+		end
+	end
+	releasestream(id);
+end
+
 function pause.onDraw()
 	if(game_paused) then
 		drawPause(pause_priority);
@@ -406,6 +437,29 @@ function pause.onDraw()
 	if(quitting) then
 		Graphics.glDraw{vertexCoords={0,0,800,0,800,600,0,600}, primitive = Graphics.GL_TRIANGLE_FAN, color = {0,0,0,1-pause_blend}, priority=10};
 	end
+	
+	if(pause.StopMusic) then
+		if(game_paused or not ranOnTickEnd) then
+			if(seizedstreams[player.section]) then
+				releaseOnUnpause = player.section;
+			end
+			Audio.SeizeStream(player.section)
+			if(Audio.MusicIsPlaying()) then
+				Audio.MusicPause();
+				playOnUnpause = true;
+			end
+		else
+			if(releaseOnUnpause) then
+				Audio.ReleaseStream(releaseOnUnpause)
+				releaseOnUnpause = nil;
+			end
+			if(playOnUnpause) then
+				Audio.MusicPlay();
+				playOnUnpause = false;
+			end
+		end
+	end
+	ranOnTickEnd = false;
 end
  
 function pause.onExitLevel()

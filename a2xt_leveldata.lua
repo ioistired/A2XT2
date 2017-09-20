@@ -1,6 +1,6 @@
 local lunajson = API.load("ext/lunajson")
 
-for i = 0,9 do
+for i = 0,10 do
 	if(SaveData["world"..i] == nil) then
 		SaveData["world"..i] = {town = {}};
 	end

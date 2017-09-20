@@ -180117,21 +180117,6 @@
 ""
 ""
 ""
--176157
--181042
--1
-983
-#FALSE#
-"Woah. This place is neat."
-#TRUE#
-#TRUE#
-#FALSE#
-"Default"
-""
-""
-""
-""
-""
 -178555
 -180502
 -1
@@ -180258,6 +180243,21 @@
 980
 #FALSE#
 "Should we leave then?"
+#TRUE#
+#TRUE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
+-18813
+-20114
+-1
+983
+#FALSE#
+"Woah. This place is neat."
 #TRUE#
 #TRUE#
 #FALSE#
