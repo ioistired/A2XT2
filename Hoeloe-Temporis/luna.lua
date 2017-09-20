@@ -24,6 +24,17 @@ local darkness = API.load("darkness/darkness")
 
 local textblox = API.load("textblox");
 
+local overworldDataPtr = mem(0xB2C5C8, FIELD_DWORD);
+local mapPos = vectr.v2(mem(overworldDataPtr + 0x40, FIELD_DFLOAT), mem(overworldDataPtr + 0x48, FIELD_DFLOAT));
+
+local function setMapPos(x,y)
+	mem(overworldDataPtr + 0x40, FIELD_DFLOAT, x)
+	mem(overworldDataPtr + 0x48, FIELD_DFLOAT, y)
+end
+
+--TODO: Replace this with a map area and a parsing of the map file?
+local mapLocs = {[0] = vectr.v2(416,224), [1] = vectr.v2(800,224)}
+
 textblox.npcPresets[151] = textblox.PRESET_BUBBLE
 
 sanctuary.world = 3;
@@ -950,7 +961,21 @@ do --funky dialogue
 	end
 end
 
+--0=present, 1=past
+local sectionMap = {[0]=0,[1]=1,[2]=1,[3]=1,[4]=0,[5]=1,[6]=0,[7]=1,[8]=0,[9]=1,[10]=1,[11]=1,[12]=0,[13]=1,[14]=0,[15]=1,[16]=1,[17]=1,[18]=1}
+
+function onExitLevel()
+	setMapPos(mapLocs[sectionMap[player.section]].x, mapLocs[sectionMap[player.section]].y-4);
+end
+
 function onStart()
+	if((mapLocs[1]-mapPos).sqrlength < 128) then
+		player.x = player.x+20000;
+		player.y = player.y+20000;
+		player:mem(0x15A, FIELD_WORD, 1);
+		playMusic(1);
+	end
+
 	if(SaveData.world3.town.garishComplete) then
 		for _,v in ipairs(NPC.get(65)) do
 			v:kill(9)
@@ -1031,7 +1056,7 @@ function onStart()
 		table.insert(torches, p);
 	end
 	
-	for _,v in ipairs(NPC.get(405)) do
+	for _,v in ipairs(NPC.get(101)) do
 		local p = particles.Emitter(v.x+24,v.y+6,Misc.resolveFile("particles/p_flame_small.ini"));
 		audio.Create{sound="torches.ogg", x = v.x+16, y=v.y+10, falloffRadius = 500, volume = 0.5};
 		v = pnpc.wrap(v);
@@ -1150,7 +1175,7 @@ function onTick()
 	
 	--Update Bes' icon
 	if(idolDoorOpen) then
-		for _,v in ipairs(NPC.get(107,1)) do
+		for _,v in ipairs(NPC.get(405,1)) do
 			v = pnpc.wrap(v);
 			if(v.data.name == "Bes" and v.data.a2xt_message) then
 				v.data.talkIcon = 1;
@@ -1211,7 +1236,7 @@ function onTick()
 		end
 	elseif(player.section == 11) then --game grumps
 		if(not a2xt_scene.inCutscene and rng.random() < 0.02) then
-			local npc = pnpc.wrap(NPC.get(404,11)[1]);
+			local npc = pnpc.wrap(NPC.get(107,11)[1]);
 			if(npc.data.expletive == nil or npc.data.expletive:isFinished()) then
 				npc.data.expletive = a2xt_message.showMessageBox 
 				{

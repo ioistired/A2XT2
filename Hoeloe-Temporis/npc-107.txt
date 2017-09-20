@@ -1,9 +1,9 @@
-gfxwidth=32
-gfxheight=64
 width=32
 height=64
-frames=4
-framespeed=4
-framestyle=1
-name="Chronoton Red"
+gfxwidth=96
+gfxheight=64
+gfxoffsety=2
+framestyle=0
 speed=0
+frames=8
+framespeed=4

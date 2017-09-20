@@ -1,7 +1,0 @@
-gfxwidth=32
-gfxheight=64
-frames=4
-framestyle=1
-framespeed=4
-speed=0
-name="Chronoton Green"
