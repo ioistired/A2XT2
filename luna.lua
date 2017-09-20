@@ -23,10 +23,14 @@ local shops = API.load("a2xt_shops");
 
 API.load("a2xt_cheats")
 
+
 function onStart()
-	--Blue sacks are bad.
+	-- Blue sacks are bad.
     if (player:mem(0x108,FIELD_WORD) == 1 and player:mem(0x10A,FIELD_WORD) == 3) then
         player:mem(0x108,FIELD_WORD, 0)
     end
- 
+
+	-- Change this episode to a world map-based one once the intro level loads
+	mem(0xB25724, FIELD_STRING, "")
+	mem(0xB25728, FIELD_BOOL, false)
 end

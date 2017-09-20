@@ -479,9 +479,16 @@ end
 
 for _,v in ipairs(portal) do
 	npcManager.setNpcSettings(v);
+	npcManager.registerEvent(v.id, portal, "onTickNPC");
 	--npcManager.registerEvent(v.id, portal, "onTickNPC");
 	--npcManager.registerEvent(v.id, portal, "onDrawNPC");
 end	
+
+local portalEvents = {[974]="townportal",[975]="hubportal"}
+function portal:onTickNPC()
+	self.friendly = true
+	self.data.event = portalEvents[self.id]
+end
 
 a2xt_message.presetSequences.townportal = function(args)
 	a2xt_message.promptChosen = false
@@ -494,7 +501,6 @@ a2xt_message.presetSequences.townportal = function(args)
 	end
 end
 
-
 a2xt_message.presetSequences.hubportal = function(args)
 	local portal = args.npc
 
@@ -505,7 +511,7 @@ a2xt_message.presetSequences.hubportal = function(args)
 	-- Set up prompt
 	for  i=0,9  do
 		if  (SaveData["world"..i].unlocked)  then
-			worldOptions[#worldOptions+1] = a2xt_leveldata.getWorldName(i)
+			worldOptions[#worldOptions+1] = a2xt_leveldata.GetWorldName(i)
 			optionWorlds[#worldOptions] = i
 			worldPositions[i] = worldOptions[#worldOptions]
 		end
@@ -514,13 +520,15 @@ a2xt_message.presetSequences.hubportal = function(args)
 	a2xt_message.promptChosen = false
 
 	-- Randomize W6's name
-	eventu.run(function()
-			while (not a2xt_message.promptChosen) do
-				worldOptions[worldPositions[6]] = a2xt_leveldata.getWorldName(6)
-				eventu.waitFrames(rng.randomInt(5,21))
+	if  worldPositions[6] ~= nil  then
+		eventu.run(function()
+				while (not a2xt_message.promptChosen) do
+					worldOptions[worldPositions[6]] = a2xt_leveldata.GetWorldName(6)
+					eventu.waitFrames(rng.randomInt(5,21))
+				end
 			end
-		end
-	)
+		)
+	end
 
 	-- Display prompt
 	a2xt_message.showPrompt {options=worldOptions}
@@ -549,7 +557,7 @@ a2xt_message.presetSequences.hubportal = function(args)
 	end
 
 	-- End scene
-	scene.endScene()
+	a2xt_scene.endScene()
 end
 
 
@@ -578,6 +586,7 @@ for _,v in ipairs {303,304,305,489} do
 
 	npcManager.setNpcSettings(s);
 end
+
 
 
 -- ***********************

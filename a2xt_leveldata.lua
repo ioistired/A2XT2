@@ -51,6 +51,7 @@ for i = 0,10 do
 	end
 end
 
+
 local leveldata = {};
 local LEVEL = 0;
 local TOWN = 1;
@@ -444,10 +445,11 @@ end
 function leveldata.GetWorldName(index)
 	local n = worldNames[index];
 	if(n == "<corrupt>") then
-		return leveldata.getW6Name(false);
+		return leveldata.GetW6Name(false);
 	end
 	return n;
 end
+
 
 function leveldata.GetWorldStart(index)
 	return sows[index]..".lvl";
@@ -468,6 +470,22 @@ function leveldata.GetCompletion(levelFile)
 	
 	return SaveData.completion[string.sub(levelFile, 0, -5)];
 end
+
+function leveldata.GetWorldsUnlocked()
+	local top = 0
+	for  i=0,9  do
+		if  SaveData["world"..i].unlocked  then  top = i;  end;
+	end
+	return top
+end
+function leveldata.GetMapsUnlocked()
+	local top = -1
+	for  i=0,9  do
+		if  leveldata.Cleared(sows[i]..".lvl")  then  top = i;  end;
+	end
+	return top
+end
+
 
 function leveldata.Visited(levelFile)
 	return GetCompletion(levelFile) ~= nil;
@@ -538,7 +556,7 @@ local function findEpisode()
 	return hasFound, episodeIndex
 end
 
-function leveldata.loadLevel(filename, warpIdx)
+function leveldata.LoadLevel(filename, warpIdx)
 	if warpIdx == nil then
 		warpIdx = 0
 	end

@@ -1,4 +1,5 @@
 local imagic = API.load("imagic")
+local leveldata = API.load("a2xt_leveldata")
 
 local pendSpr = Graphics.loadImage("pendulum.png")
 local reflections = Graphics.CaptureBuffer(800,600);
@@ -13,14 +14,14 @@ function onDraw()
 		local pendPercent = math.sin(math.rad(lunatime.tick()))
 		imagic.Draw {primitive=imagic.TYPE_BOX, align=imagic.ALIGN_TOP,
 		             color=0xFFFFFF00 + 32 + 32*(1-math.abs(pendPercent)),
-		             x=-180000+400, y=-180600-150, priority=-95, scene=true,
+		             x=-200000+400, y=-200600-150, priority=-95, scene=true,
 		             width=pendSpr.width*2, height=pendSpr.height*2, 
 		             texture=pendSpr, rotation=55*pendPercent}
 
 		-- Reflection
 		reflections:captureAt(-2);
 		local cam = Camera.get()[1]
-		local reflectY = -180160 - cam.y;
+		local reflectY = -200160 - cam.y;
 		local th = (reflectY/600);
 		local stretchFactor = 1;
 		local brightness = 0.1;

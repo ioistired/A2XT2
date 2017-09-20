@@ -26,13 +26,6 @@ function onStart()
 	windowDebug(tostring(mem(0xB25724, FIELD_STRING)))
 	windowDebug(tostring(mem(0xB25728, FIELD_BOOL)))
 
-	-- If the hub is unlocked, go there at the start of the game
-	if  fileWasJustLoaded  and  SaveData.world10 ~= nil  then
-		if  SaveData.world10.unlocked  then
-			leveldata.loadLevel("hub.lvl",1)
-		end
-	end
-
 	if  SaveData.changeSubmap ~= nil  then
 		-- go to the corresponding SOW level tile
 		SaveData.changeSubmap = nil
