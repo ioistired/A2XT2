@@ -45,6 +45,37 @@ local worldNames =
 [10]="P.O.R.T.(S.)"
 }
 
+local worldStartPos =
+{
+[0]={x=0,y=0},
+[1]={x=0,y=0},
+[2]={x=0,y=0},
+[3]={x=0,y=0},
+[4]={x=0,y=0},
+[5]={x=0,y=0},
+[6]={x=0,y=0},
+[7]={x=0,y=0},
+[8]={x=0,y=0},
+[9]={x=0,y=0},
+[10]={x=0,y=0}
+}
+
+local worldTownPos =
+{
+[0]={x=0,y=0},
+[1]={x=0,y=0},
+[2]={x=0,y=0},
+[3]={x=0,y=0},
+[4]={x=0,y=0},
+[5]={x=0,y=0},
+[6]={x=0,y=0},
+[7]={x=0,y=0},
+[8]={x=0,y=0},
+[9]={x=0,y=0},
+[10]={x=0,y=0}
+}
+
+
 for i = 0,10 do
 	if(SaveData["world"..i] == nil) then
 		SaveData["world"..i] = {town={}, unlocked=false, superleek=false};
@@ -453,6 +484,14 @@ end
 
 function leveldata.GetWorldStart(index)
 	return sows[index]..".lvl";
+end
+
+function leveldata.GetWorldStartMapPos(index)
+	return worldStartPos[index]
+end
+
+function leveldata.GetWorldTownMapPos(index)
+	return worldTownPos[index]
 end
 
 function leveldata.WorldCleared(index)

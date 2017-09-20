@@ -23,18 +23,13 @@ local currentMusic = "music/A2XT Dusk Sky.ogg";
 
 
 function onStart()
-	if  SaveData.changeSubmap ~= nil  then
-		-- go to the corresponding SOW level tile
-		SaveData.changeSubmap = nil
-	end
-
 	Misc.saveGame();
-	
+
 	Audio.MusicStop();
 	Audio.SeizeStream(-1);
 	Audio.MusicOpen(currentMusic);
 	Audio.MusicPlay();
-	
+
 	shader_blur = Shader();
 	shader_blur:compileFromFile(vert_default, frag_blur);
 end

@@ -536,12 +536,15 @@ a2xt_message.presetSequences.hubportal = function(args)
 
 	-- If the player selected one of the worlds, either go to that map position or the SOW level
 	if(a2xt_message.promptChoice ~= #worldOptions)  then
-		a2xt_scene.endScene()
 		eventu.waitSeconds(1)
+		a2xt_scene.endScene()
 
 		local worldNum = optionWorlds[#worldOptions]
-		local worldStartLevel = a2xt_leveldata.GetWorldStart(worldNum)
-		SaveData.changeSubmap = worldNum
+		local pos = a2xt_leveldata.GetWorldStartMapPos(worldNum)  or  {x=0,y=0}
+
+		local overworldDataPtr = mem(0xB2C5C8, FIELD_DWORD)
+		mem(overworldDataPtr + 0x40, FIELD_DFLOAT, pos.x)
+		mem(overworldDataPtr + 0x48, FIELD_DFLOAT, pos.y)
 
 
 		-- If the player cleared the corresponding SOW level, just go to the map
