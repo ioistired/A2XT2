@@ -1,8 +1,38 @@
-local lunajson = API.load("ext/lunajson")
+local rng = API.load("rng")
+
+local eows = 
+{
+[0]="",
+[1]="Pyro and rockythechao-Demo vs the Goopinati",
+[2]="",
+[3]="",
+[4]="",
+[5]="",
+[6]="",
+[7]="",
+[8]="talkhaus-FinalLevel",
+[9]="",
+[10]=""
+}
+
+local worldNames =
+{
+[0]="Tutorial Area Region Place Zone",
+[1]="Autumnal Epoch",
+[2]="Glaciation Epoch",
+[3]="Permian Epoch",
+[4]="Subterranean Epoch",
+[5]="Épopée Aquatique",
+[6]="<corrupt>",
+[7]="Holocene Epoch",
+[8]="Ethereal Epoch",
+[9]="Zebraspace",
+[10]="P.O.R.T.(S.)"
+}
 
 for i = 0,10 do
 	if(SaveData["world"..i] == nil) then
-		SaveData["world"..i] = {town = {}};
+		SaveData["world"..i] = {town={}, unlocked=false, superleek=false};
 	end
 end
 
@@ -387,6 +417,22 @@ function leveldata.GetWorldInfo(index)
 		table.insert(d, lvl[v]);
 	end
 	return d;
+end
+
+function leveldata.GetWorldName(index)
+	local n = worldNames[index];
+	if(n == "<corrupt>") then
+		local s = "";
+		for i = 1,20 do
+			s = s..rng.randomChar("!","}");
+		end
+		return s;
+	end
+	return n;
+end
+
+function leveldata.WorldCleared(index)
+	return leveldata.Cleared(eows[index]..".lvl");
 end
 
 function leveldata.GetData(levelFile)
