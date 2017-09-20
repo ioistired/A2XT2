@@ -570,6 +570,7 @@ end
 -- ** GENERIC FRIENDLY NPCs         **
 -- ***********************************
 
+local chronotons = {}
 local chronoSettings = table.join(
 	{
 	 gfxwidth = 32, 
@@ -586,17 +587,26 @@ local chronoSettings = table.join(
 	},
 	defaults);
 
-for _,v in ipairs {403,404,405,489} do
+for _,v in ipairs {403,404,405,489,973} do
 	local s = table.clone(chronoSettings);
 	s.id = v;
 	if(v == 489) then
-		framespeed = 6;
+		s.framespeed = 6;
+	elseif(v == 973) then
+		s.framespeed = 8;
+		s.gfxwidth=38;
 	end
 
 	npcManager.setNpcSettings(s);
 end
 
+npcManager.registerEvent(973, chronotons, "onTickNPC");
 
+function chronotons:onTickNPC()
+	self.friendly = true;
+
+	self.data.name = "Tam";
+end
 
 -- ***********************
 -- ** DEMO KREW         **
