@@ -1,0 +1,6 @@
+gfx-width = 48
+gfx-height = 80
+gfx-offset-x = 16
+gfx-offset-y = 16
+physical-width = 32
+physical-height = 64

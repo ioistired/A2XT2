@@ -1,0 +1,6 @@
+LEVEL:Mata Hari - Totally Trollied
+	Name=Totally Trollied
+	Author=Mata Hari
+	Type=LEVEL
+	Exit=ROULETTE
+	Raocoins=true

@@ -5,5 +5,4 @@ gfxheight=64
 frames=4
 framespeed=6
 framestyle=1
-name="Dog"
 noblockcollision=false
