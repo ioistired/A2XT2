@@ -311,7 +311,7 @@ local function parseFile(f, fname)
 end
 
 local function parseFiles()
-	for i = 0,9,1 do
+	for i = 0,10,1 do
 		local p = Misc.resolveFile("levelinfo/world"..i..".txt");
 		if(p) then
 			local f = io.open(p,"r");

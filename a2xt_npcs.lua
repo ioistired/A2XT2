@@ -449,6 +449,63 @@ end
 function changebooth:onTickNPC()
 end
 
+
+-- ***********************
+-- ** PORTALS           **
+-- ***********************
+local portal = {}
+local portalSettings = table.join(
+	{
+	 gfxwidth = 128, 
+	 gfxheight = 128,
+	 gravity = 0,
+	 width = 64, 
+	 height = 64,
+	 framestyle = 0,
+	 frames = 15,
+	 framespeed = 3
+	},
+	defaults);
+
+for i = 974,975 do
+	local s = table.clone(portalSettings);
+	s.id = i;
+	
+	table.insert(portal, s);
+end
+
+for _,v in ipairs(portal) do
+	npcManager.setNpcSettings(v);
+	--npcManager.registerEvent(v.id, portal, "onTickNPC");
+	--npcManager.registerEvent(v.id, portal, "onDrawNPC");
+end	
+
+
+-- ***********************************
+-- ** GENERIC FRIENDLY NPCs         **
+-- ***********************************
+local chronotons = {}
+local chronoSettings = table.join(
+	{
+	 gfxwidth = 32, 
+	 gfxheight = 64,
+	 gravity = 0,
+	 width = 32, 
+	 height = 64,
+	 framestyle = 1,
+	 frames = 4,
+	 framespeed = 2
+	},
+	defaults);
+
+for _,v in ipairs {303,304,305,489} do
+	local s = table.clone(chronoSettings);
+	s.id = v;
+
+	npcManager.setNpcSettings(s);
+end
+
+
 -- ***********************
 -- ** DEMO KREW         **
 -- ***********************
