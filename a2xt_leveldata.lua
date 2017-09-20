@@ -95,6 +95,17 @@ function isTownLevel()
 	end
 end
 
+function isHubLevel()
+	local w = leveldata.GetWorldInfo(10);
+	local d = leveldata.GetData();
+	for _,v in ipairs(w) do
+		if(d == v) then
+			return true;
+		end
+	end
+	return false;
+end
+
 leveldata.EXIT_LEEK = LEEK;
 leveldata.EXIT_TAPE = TAPE;
 leveldata.EXIT_JAR = JAR;
