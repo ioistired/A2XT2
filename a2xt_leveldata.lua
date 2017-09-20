@@ -15,6 +15,21 @@ local eows =
 [10]=""
 }
 
+local sows = 
+{
+[0]="Mata Hari - Totally Trollied",
+[1]="Mata Hari - Totally Trollied",
+[2]="Mata Hari - Totally Trollied",
+[3]="Mata Hari - Totally Trollied",
+[4]="Mata Hari - Totally Trollied",
+[5]="Mata Hari - Totally Trollied",
+[6]="Mata Hari - Totally Trollied",
+[7]="Mata Hari - Totally Trollied",
+[8]="Mata Hari - Totally Trollied",
+[9]="Mata Hari - Totally Trollied",
+[10]="Mata Hari - Totally Trollied"
+}
+
 local worldNames =
 {
 [0]="Tutorial Area Region Place Zone",
@@ -419,16 +434,23 @@ function leveldata.GetWorldInfo(index)
 	return d;
 end
 
+function leveldata.GetW6Name(includeExtras)
+	local s = "<garbage "..tostring(rng.randomInt(12,16))..">"
+	if  rng.random(1) > 0.7  and  includeExtras == true  then
+		s = rng.ranomEntry{"ERROR","ILLUMINATI","lunaisdead","hail santa","Epochalypse","<binary "..tostring(rng.randomInt(12,16))..">"}
+	end
+	return s;
+end
 function leveldata.GetWorldName(index)
 	local n = worldNames[index];
 	if(n == "<corrupt>") then
-		local s = "";
-		for i = 1,20 do
-			s = s..rng.randomChar("!","}");
-		end
-		return s;
+		return leveldata.getW6Name(false);
 	end
 	return n;
+end
+
+function leveldata.GetWorldStart(index)
+	return sows[index]..".lvl";
 end
 
 function leveldata.WorldCleared(index)
@@ -497,5 +519,45 @@ if(not isOverworld) then
 		end
 	end
 end
+
+
+
+local function findEpisode()
+	local hasFound = false
+	local episodeIndex
+	local EP_LIST_COUNT = mem(0x00B250E8, FIELD_WORD)
+	local EP_LIST_PTR = mem(0x00B250FC, FIELD_DWORD)
+	for indexer = 1, EP_LIST_COUNT do
+		local name = tostring(mem(EP_LIST_PTR + (indexer - 1) * 0x18 + 0x0, FIELD_STRING))
+		if name == "A2XT2" then
+			episodeIndex = indexer
+			hasFound = true
+			break
+		end
+	end
+	return hasFound, episodeIndex
+end
+
+function leveldata.loadLevel(filename, warpIdx)
+	if warpIdx == nil then
+		warpIdx = 0
+	end
+
+	local hasFound, episodeIndex = findEpisode()
+	if hasFound then
+		-- Set teleport destination
+		mem(0x00B2C6DA, FIELD_WORD, warpIdx)    -- GM_NEXT_LEVEL_WARPIDX
+		mem(0x00B25720, FIELD_STRING, filename) -- GM_NEXT_LEVEL_FILENAME
+		mem(0x00B2C628, FIELD_WORD, episodeIndex) -- Index of the episode
+
+		-- Force modes such that we trigger level exit
+		mem(0x00B250B4, FIELD_WORD, 0)  -- GM_IS_EDITOR_TESTING_NON_FULLSCREEN
+		mem(0x00B25134, FIELD_WORD, 0)  -- GM_ISLEVELEDITORMODE
+		mem(0x00B2C89C, FIELD_WORD, 0)  -- GM_CREDITS_MODE
+		mem(0x00B2C620, FIELD_WORD, 0)  -- GM_INTRO_MODE
+		mem(0x00B2C5B4, FIELD_WORD, -1) -- GM_EPISODE_MODE (set to leave level)
+	end
+end
+
 
 return leveldata;

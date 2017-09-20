@@ -3,10 +3,11 @@ local imagic = API.load("imagic")
 local pendSpr = Graphics.loadImage("pendulum.png")
 local reflections = Graphics.CaptureBuffer(800,600);
 
+
 function onDraw()
 
 	-- Pendulum section
-	if  player.section == 1  then
+	if  player.section == 0  then
 
 		-- Pendulum
 		local pendPercent = math.sin(math.rad(lunatime.tick()))
