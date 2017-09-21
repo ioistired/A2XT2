@@ -425,7 +425,7 @@ local function IKMove(target, bns)
 	end]]
 end
 
-local decelDist = 64;
+local decelDist = 256;
 
 local function computeNewPos(v,target,speed)
 	local d = (target-v);
@@ -456,8 +456,27 @@ local function MoveArm(idx, target, speed)
 	IKMove(computeNewPos(v,target,speed), arms[idx].joints);
 end
 
+local armEvent = {};
+local bodyEvent = nil;
+
+local function signalChecks()
+	for i = 1,4 do
+		if(armEvent[i] == nil) then
+			eventu.signal("ARM_"..i)
+		end
+	end
+	if(bodyEvent == nil) then
+		eventu.signal("BODY");
+	end
+end
+
 local function DoArmMove(idx, target, t)
-		return eventu.run(function()
+	if(armEvent[idx]) then
+		eventu.abort(armEvent[idx]);
+		armEvent[idx] = nil;
+		eventu.signal("ARM_"..idx)
+	end
+	local a,b = eventu.run(function()
 		local v = vectr.v2(arms[idx].hand.x, arms[idx].hand.y);
 		local speed = initMoveEvent(v, target, t);
 		while(true) do
@@ -467,8 +486,11 @@ local function DoArmMove(idx, target, t)
 				break;
 			end
 		end
+		armEvent[idx] = nil;
 		eventu.signal("ARM_"..idx)
 	end)
+	armEvent[idx] = b;
+	return a,b;
 end
 
 local function MoveBody(target, speed)
@@ -488,7 +510,12 @@ local function MoveBody(target, speed)
 end
 
 local function DoBodyMove(target, t)
-	return eventu.run(function()
+	if(bodyEvent) then
+		eventu.abort(bodyEvent);
+		bodyEvent = nil;
+		eventu.signal("BODY")
+	end
+	local a,b = eventu.run(function()
 		local v = vectr.v2(x, y);
 		local speed = initMoveEvent(v, target, t);
 		while(true) do
@@ -499,7 +526,10 @@ local function DoBodyMove(target, t)
 			end
 		end
 		eventu.signal("BODY")
+		bodyEvent = nil;
 	end)
+	bodyEvent = b;
+	return a,b;
 end
 
 local function waitForArm(idx)
@@ -549,7 +579,19 @@ local function waitPhase()
 	return eventu.waitSignal("PHASE")
 end
 
+local function stopMoveEvent()
+	if(movement_loop) then
+		if(move_event) then 
+			eventu.abort(move_event);
+			move_event = nil;
+		end
+		eventu.abort(movement_loop);
+		movement_loop = nil;
+	end
+end
+
 local function startMoveEvent()
+	stopMoveEvent();
 	local _,e = eventu.run(function()
 		local timer = 0;
 		while(true) do
@@ -567,27 +609,12 @@ local function startMoveEvent()
 	movement_loop = e;
 end
 
-local function stopMoveEvent()
-	if(movement_loop) then
-		if(move_event) then 
-			eventu.abort(move_event);
-			move_event = nil;
-		end
-		eventu.abort(movement_loop);
-		movement_loop = nil;
-	end
-end
-
 local function phase_idle()
 	for i = 1,4 do
 		arms[i].targetobj = player;
 	end
 	while(true) do
 		--Idle arm anim
-		--IKMove(vectr.v2(x-200-64*math.sin(lunatime.tick()/100), y-100+64*math.cos(lunatime.tick()/100)), arms[1].joints);
-		--IKMove(vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +14), y-60+64*math.cos(lunatime.tick()/100 + 14)), arms[2].joints);
-		--IKMove(vectr.v2(x-200-64*math.sin(lunatime.tick()/100 +37), y+100+64*math.cos(lunatime.tick()/100 + 37)), arms[3].joints);
-		--IKMove(vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +73), y+120+64*math.cos(lunatime.tick()/100 + 73)), arms[4].joints);
 		MoveArm(1, vectr.v2(x-200-64*math.sin(lunatime.tick()/100), y-100+64*math.cos(lunatime.tick()/100)), 5);
 		MoveArm(2, vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +14), y-60+64*math.cos(lunatime.tick()/100 + 14)), 5);
 		MoveArm(3, vectr.v2(x-200-64*math.sin(lunatime.tick()/100 +37), y+100+64*math.cos(lunatime.tick()/100 + 37)), 5);
@@ -669,17 +696,74 @@ local function phase_danmaku1()
 	
 	eventu.waitFrames(256);
 	
-	startMoveEvent();
 	setPhase();
 end
 
+local function phase_tennis()
+	stopMoveEvent();
+	
+	local bodyPos = Zero+vectr.v2(400,400)+(vectr.v2(-300,0):rotate(rng.random(180)));
+	DoBodyMove(bodyPos, 2);
+	
+	local side = 0;
+	if(bodyPos.x - Zero.x < 300) then
+		side = -1;
+	elseif(bodyPos.x - Zero.x > 500) then
+		side = 1;
+	end
+	
+	local corners = {}
+	if(side == 0) then
+		corners[1] = bodyPos+vectr.v2(-48,48);
+		corners[2] = bodyPos+vectr.v2(48,48);
+		corners[3] = bodyPos+vectr.v2(-48,144);
+		corners[4] = bodyPos+vectr.v2(48,144);
+	else
+		corners[1] = bodyPos+vectr.v2(48*-side,-48);
+		corners[2] = bodyPos+vectr.v2(48*-side,48);
+		corners[3] = bodyPos+vectr.v2(144*-side,-48);
+		corners[4] = bodyPos+vectr.v2(144*-side,48);
+	end
+	
+	local centre = vectr.zero2;
+	for i=1,4 do
+		DoArmMove(i, corners[i], 2);
+		centre = (centre + corners[i]);
+	end
+	centre = centre/4;
+	
+	for i=1,4 do
+		arms[i].targetobj = centre;
+	end
+	
+	waitForAll();
+	eventu.waitFrames(16);
+	
+	spawnLargeBullet(centre);
+	
+	while(largeBullet.launchTimer > 0) do
+		local t = 1 - (largeBullet.launchTimer/largeBulletChargeTime);
+		for i=1,4 do
+			MoveArm(i, corners[i] + t*t*32*vectr.up2:rotate(rng.random(360)), 5);
+		end
+		eventu.waitFrames(0);
+	end
+	
+	local idling = eventu.run(phase_idle);
+	
+	DoBodyMove(Zero+vectr.v2(rng.random(64,800-64),rng.random(64,600-128)), rng.random(2,4));
+	waitForBody();
+end
+
 local function bossEvents()
-	spawnLargeBullet(Zero+200)
 	eventu.waitFrames(128);
 	setPhase(phase_armattack1);
 	waitPhase();
 	eventu.waitFrames(256);
 	setPhase(phase_danmaku1);
+	waitPhase();
+	eventu.waitFrames(256);
+	setPhase(phase_tennis);
 end
 
 local function StartBoss()
@@ -728,6 +812,10 @@ function onTick()
 		bossStarted = true;
 		startMoveEvent();
 		eventu.run(bossEvents);
+	end
+	
+	if(bossStarted) then
+		signalChecks();
 	end
 end
 
