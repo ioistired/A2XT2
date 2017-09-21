@@ -12,11 +12,17 @@ local colliders = API.load("colliders");
 local boss = API.load("a2xt_boss");
 local pause = API.load("a2xt_pause");
 
+local playerManager = API.load("playerManager")
+
+local broadsword = API.load("Characters/unclebroadsword")
+
 pause.StopMusic = true;
 
 boss.Name = "Tumulta Gloria"
 boss.SuperTitle = "Chaos Pumpernickel"
-boss.SubTitle = "Anarchy Personified"
+boss.SubTitle = "Anarchy Incarnate"
+
+boss.HP = 200;
 
 boss.TitleDisplayTime = 380;
 
@@ -56,6 +62,8 @@ local current_phase = nil;
 local movement_loop = nil;
 local move_event = nil;
 
+local eyeBox = colliders.Circle(0,0,32);
+
 local bullets = {};
 
 local BULLET_SMALL = 0;
@@ -71,6 +79,115 @@ Graphics.loadImage(Misc.resolveFile("bullet_large_3.png"));
 
 local largeBullet = nil;
 
+local hitflashes = {};
+
+local hitflashImgs = 
+{
+	Graphics.loadImage(Misc.resolveFile("hitflash_1.png"));
+	Graphics.loadImage(Misc.resolveFile("hitflash_2.png"));
+	Graphics.loadImage(Misc.resolveFile("hitflash_3.png"));
+	Graphics.loadImage(Misc.resolveFile("hitflash_4.png"));
+}
+
+local events = {};
+
+local stunned = false;
+local stunRecovery = false;
+
+local eyeAnimTimer = 0;
+local eyeFrame = 0;
+local eyeHitstun = 0;
+local eyeRecoveryAmt = 0;
+
+local plateCounts = {3,5,7,10}
+local plateIndex = 1;
+
+local subphases = {};
+
+local function spawnHitflash(flashType, pos, size, target)
+	local b = {pos = pos, size = size, type = flashType, frame = 0, framespeed = 0, frames = 1, t = 0, target = target, loop = true}
+	if(flashType == 1) then
+		b.gfxwidth = 128;
+		b.gfxheight = 128;
+		b.framespeed = 2;
+		b.frames = 10;
+		b.duration = b.frames*b.framespeed;
+	elseif(flashType == 2) then
+		b.gfxwidth = 256;
+		b.gfxheight = 256;
+		b.framespeed = 1;
+		b.frames = 15;
+		b.duration = b.frames*b.framespeed;
+	elseif(flashType == 3) then
+		b.gfxwidth = 128;
+		b.gfxheight = 128;
+		b.framespeed = 2;
+		b.frames = 18;
+		b.duration = b.frames*b.framespeed;
+	elseif(flashType == 4) then
+		b.gfxwidth = 512;
+		b.gfxheight = 512;
+		b.framespeed = 8;
+		b.frames = 3;
+		b.loop = false;
+		b.duration = 48;
+	end
+	b.frametimer = b.framespeed;
+	table.insert(hitflashes, b);
+end
+
+local function computeAdditiveFade(a)
+	local c = math.floor(a*0xFF);
+	local t = {};
+	for i=1,4 do
+		t[i] = c*256*256*256+c*256*256+c*256;
+	end
+	return t;
+end
+
+local function drawHitFlashes()
+	for i=#hitflashes,1,-1 do
+		local v = hitflashes[i];
+		
+		if(v.target) then
+			v.pos.x = v.target.x;
+			v.pos.y = v.target.y;
+		end
+		
+		local drawArgs = {x = v.pos.x, y = v.pos.y, texture = hitflashImgs[v.type], align = imagic.ALIGN_CENTRE, width = v.size.x, height = v.size.y, sourceX = 0, sourceY = v.frame*v.gfxheight, sourceWidth = v.gfxwidth, sourceHeight = v.gfxheight, scene=true}
+		local additive = {vertColors = {0xFFFFFF00, 0xFFFFFF00, 0xFFFFFF00, 0xFFFFFF00}}
+		
+		if(v.type == 1) then
+			v.size = v.size*1.05;
+			imagic.Draw(table.join(additive, drawArgs));
+		elseif(v.type == 2) then
+			imagic.Draw(table.join(additive, drawArgs));
+		elseif(v.type == 3) then
+			v.size = v.size*1.01;
+			imagic.Draw(table.join(additive, drawArgs));
+		elseif(v.type == 4) then
+			v.size = v.size*1.02;
+			imagic.Draw(table.join({vertColors = computeAdditiveFade(1- math.clamp((v.t+8-v.duration)/8))}, drawArgs));
+		end
+		
+		v.frametimer = v.frametimer-1;
+		if(v.frametimer < 0) then
+			v.frame = (v.frame + 1);
+			if(v.loop) then
+				v.frame = v.frame%v.frames;
+			else
+				v.frame = math.min(v.frame, v.frames-1);
+			end
+			v.frametimer = v.framespeed;
+		end
+		
+		v.t = v.t+1;
+		if(v.t > v.duration) then
+			table.remove(hitflashes,i);
+		end
+	end
+end
+
 local function drawBullets()
 	for _,v in ipairs(bullets) do
 		Graphics.drawImageToSceneWP(bulletImgs[v.type], v.pos.x - v.gfxwidth*0.5, v.pos.y - v.gfxheight*0.5, 0, v.frame*v.gfxheight, v.gfxwidth, v.gfxheight, -50)
@@ -79,6 +196,30 @@ end
 
 local function getPlayerPos()
 	return vectr.v2(player.x+player.width*0.5, player.y+player.height*0.5);
+end
+
+local function getSwipeHitbox()
+	return playerManager.getCollider(CHARACTER_UNCLEBROADSWORD, 1, "swipe");
+end
+
+local function getLungeHitbox()
+	return playerManager.getCollider(CHARACTER_UNCLEBROADSWORD, 1, "lunge");
+end
+
+local function getDownstabHitbox()
+	return playerManager.getCollider(CHARACTER_UNCLEBROADSWORD, 1, "downstab");
+end
+
+local function getUpstabHitbox()
+	return playerManager.getCollider(CHARACTER_UNCLEBROADSWORD, 1, "upstab");
+end
+
+local function getSwordHitbox()
+	return getDownstabHitbox() or getLungeHitbox() or getSwipeHitbox() or getUpstabHitbox();
+end
+
+local function UpdatePlates(newnum)
+	numPlates = newnum;
 end
 
 local function updateBullets()
@@ -93,10 +234,17 @@ local function updateBullets()
 			bullets[i].frame = (bullets[i].frame + 1)%bullets[i].frames;
 		end
 		
-		if(colliders.collide(player,bullets[i].hitbox)) then
+		local hb = getSwordHitbox();
+		if(bullets[i].killable and hb and colliders.collide(hb, bullets[i].hitbox)) then
+			bullets[i].dead = true;
+			spawnHitflash(1, bullets[i].pos, vectr.v2(16,16));
+		elseif(colliders.collide(player,bullets[i].hitbox)) then
 			player:harm();
 		end
-		if(bullets[i].pos.x > Zero.x + 864 or bullets[i].pos.x < Zero.x - 64 or
+		
+		
+		if(bullets[i].dead or 
+		   bullets[i].pos.x > Zero.x + 864 or bullets[i].pos.x < Zero.x - 64 or
 		   bullets[i].pos.y > Zero.y + 664 or bullets[i].pos.y < Zero.y - 64) then
 			table.remove(bullets,i);
 		end
@@ -111,15 +259,17 @@ local function spawnBullet(bulletType, pos, speed)
 		b.hitbox = colliders.Circle(0,0,11);
 		b.gfxheight=22;
 		b.gfxwidth=22;
+		b.killable = true;
 	end
 	b.frametimer = b.framespeed;
 	table.insert(bullets, b);
 end
 
-local largeBulletChargeTime = 256;
+local largeBulletChargeTime = 200;
+local largeBulletSize = 128;
 
 local function spawnLargeBullet(pos)
-	local b = {pos = pos, imgs = {}, launchTimer = largeBulletChargeTime, hitbox = colliders.Circle(0,0,4), speed=4}
+	local b = {pos = pos, imgs = {}, launchTimer = largeBulletChargeTime, hitbox = colliders.Circle(0,0,4), speed=4, target = player}
 	
 	for _,v in ipairs(largeBulletImgs) do
 		table.insert(b.imgs, imagic.Create{texture = v, primitive = imagic.TYPE_BOX, vertColors = {0xFFFFFF00,0xFFFFFF00,0xFFFFFF00,0xFFFFFF00}, x=pos.x, y = pos.y, width=8, height = 8, scene = true, align = imagic.ALIGN_CENTRE})
@@ -147,15 +297,62 @@ local function updateLargeBullet()
 			if(largeBullet.launchTimer == 0) then
 				largeBullet.velocity = (getPlayerPos() - largeBullet.pos):normalise() * largeBullet.speed;
 			end
-			local s = math.lerp(1.02,1,1 - largeBullet.launchTimer/largeBulletChargeTime);
+			--local s = math.lerp(1.02,1,1 - largeBullet.launchTimer/largeBulletChargeTime);
+			local s = math.lerp(math.pow(largeBulletSize,1/largeBulletChargeTime),1,1 - largeBullet.launchTimer/largeBulletChargeTime);
 			largeBullet.hitbox.radius = largeBullet.hitbox.radius*(s+0.001);
 			for _,v in ipairs(largeBullet.imgs) do
 				v:Scale(s);
 				s = s + 0.001;
 			end
 		end
-		if(colliders.collide(player,largeBullet.hitbox)) then
-			player:harm();
+		
+		local hb = getLungeHitbox() or getSwipeHitbox() or getUpstabHitbox();
+		
+		if(largeBullet.target == player) then
+			if(hb and colliders.collide(hb, largeBullet.hitbox)) then
+				largeBullet.target = nil;
+				largeBullet.speed = largeBullet.speed*1.05;
+				largeBullet.velocity = (vectr.v2(x,y) - largeBullet.pos):normalise() * largeBullet.speed;
+				
+				local p = vectr.v2(hb.x+hb.width*0.5, hb.y+hb.height*0.5);
+				local d = p-largeBullet.pos;
+				if(d.length > largeBullet.hitbox.radius) then
+					d = d:normalise();
+					p = largeBullet.pos + d*largeBullet.hitbox.radius;
+				end
+				
+				spawnHitflash(2, p, vectr.v2(200, 200));
+			elseif(colliders.collide(player,largeBullet.hitbox)) then
+				player:harm();
+			end
+		else
+			if(colliders.collide(eyeBox,largeBullet.hitbox)) then
+				if(numPlates >= 1) then
+					largeBullet.target = player;
+					largeBullet.speed = largeBullet.speed*1.05;
+					largeBullet.velocity = (getPlayerPos() - largeBullet.pos):normalise() * largeBullet.speed;
+					
+					local p = vectr.v2(x,y);
+					local d = (largeBullet.pos-p):normalise();
+					d = p + d*32;
+					
+					spawnHitflash(2, d, vectr.v2(200, 200));
+					spawnHitflash(3, p, vectr.v2(150, 150), eyeBox);
+				else
+					spawnHitflash(4, largeBullet.pos, vectr.v2(150, 150));
+					spawnHitflash(3, vectr.v2(x,y), vectr.v2(150, 150), eyeBox);
+					largeBullet = nil;
+					boss.Damage(10);
+					events.Stun(512);
+					return;
+				end
+				UpdatePlates(numPlates-1);
+			end
+		end
+				  
+		if(largeBullet.pos.x > Zero.x + 800 + largeBullet.hitbox.radius*2 or largeBullet.pos.x < Zero.x - largeBullet.hitbox.radius*2 or
+		   largeBullet.pos.y > Zero.y + 600 + largeBullet.hitbox.radius*2 or largeBullet.pos.y < Zero.y - largeBullet.hitbox.radius*2) then
+			largeBullet = nil;
 		end
 	end
 end
@@ -238,8 +435,14 @@ local function HandleArmPartciles(stepSize)
 					local angle = (math.atan2(rotdir.y, rotdir.x) - math.atan2(-0.7071068,-0.7071068)) / imagic.DEG2RAD;
 					angle = angle + 180;
 					
-					v.hand:Rotate(angle - v.rotation);
-					v.rotation = angle;
+					if(stunRecovery) then
+						angle = math.lerp(v.rotation, angle, 0.1)
+					end
+					
+					if(stunRecovery or not stunned) then
+						v.hand:Rotate(angle - v.rotation);
+						v.rotation = angle;
+					end
 				end
 			end
 		end
@@ -248,7 +451,6 @@ local function HandleArmPartciles(stepSize)
 	armemit.x = x;
 	armemit.y = y;
 end
-
 
 local function populatePlates(num)
 	for k,v in ipairs(smokepos) do
@@ -261,6 +463,10 @@ local function populatePlates(num)
 end
 
 local function HandlePlates(speed, radiusScale)
+	if(numPlates ~= #smokepos) then
+		populatePlates(numPlates);
+	end
+
 	ellipse.f1.y = ellipse.f1.y + 0.9*math.sin(0.05*lunatime.tick());
 	ellipse.f2.y = ellipse.f2.y + 0.85*math.sin(0.043*lunatime.tick());
 	
@@ -446,6 +652,10 @@ local function initMoveEvent(v,target,t)
 	local d = (v-target).length;
 	return (d+2*decelDist)/timer;
 end
+
+local function SetArmPos(idx, pos)
+	IKMove(pos, arms[idx].joints);
+end
 	
 local function MoveArm(idx, target, speed)
 	local v = vectr.v2(arms[idx].hand.x, arms[idx].hand.y);
@@ -453,7 +663,7 @@ local function MoveArm(idx, target, speed)
 	if(v.x == 0 or v.y == 0 or d <= 4) then
 		v = target;
 	end
-	IKMove(computeNewPos(v,target,speed), arms[idx].joints);
+	SetArmPos(idx, computeNewPos(v,target,speed));
 end
 
 local armEvent = {};
@@ -470,12 +680,15 @@ local function signalChecks()
 	end
 end
 
-local function DoArmMove(idx, target, t)
+local function abortArmMove(idx)
 	if(armEvent[idx]) then
 		eventu.abort(armEvent[idx]);
 		armEvent[idx] = nil;
 		eventu.signal("ARM_"..idx)
 	end
+end
+
+local function DoArmMove(idx, target, t)
 	local a,b = eventu.run(function()
 		local v = vectr.v2(arms[idx].hand.x, arms[idx].hand.y);
 		local speed = initMoveEvent(v, target, t);
@@ -493,13 +706,7 @@ local function DoArmMove(idx, target, t)
 	return a,b;
 end
 
-local function MoveBody(target, speed)
-	local v = vectr.v2(x, y);
-	local d = (v-target).length;
-	if(v.x == 0 or v.y == 0 or d <= 4) then
-		v = target;
-	end
-	v = computeNewPos(v,target,speed);
+local function SetBodyPos(v)
 	x = v.x;
 	y = v.y;
 	for i = 1,4 do
@@ -509,12 +716,41 @@ local function MoveBody(target, speed)
 	end
 end
 
-local function DoBodyMove(target, t)
+local function MoveBody(target, speed)
+	local v = vectr.v2(x, y);
+	local d = (v-target).length;
+	if(v.x == 0 or v.y == 0 or d <= 4) then
+		v = target;
+	end
+	v = computeNewPos(v,target,speed);
+	SetBodyPos(v);
+end
+
+local function abortBodyMove()
 	if(bodyEvent) then
 		eventu.abort(bodyEvent);
 		bodyEvent = nil;
 		eventu.signal("BODY")
 	end
+end
+
+local function abortSubphases()
+	for k,v in pairs(subphases) do
+		eventu.abort(v);
+		subphases[k] = nil;
+	end
+end
+
+local function abortAll()
+	abortBodyMove();
+	for i = 1,4 do
+		abortArmMove();
+	end
+	abortSubphases();
+end
+
+local function DoBodyMove(target, t)
+	abortBodyMove();
 	local a,b = eventu.run(function()
 		local v = vectr.v2(x, y);
 		local speed = initMoveEvent(v, target, t);
@@ -593,7 +829,7 @@ end
 local function startMoveEvent()
 	stopMoveEvent();
 	local _,e = eventu.run(function()
-		local timer = 0;
+		local timer = 1;
 		while(true) do
 			if(timer <= 0) then 
 				timer = rng.random(600); 
@@ -608,6 +844,10 @@ local function startMoveEvent()
 	end);
 	movement_loop = e;
 end
+
+--------------
+--	PHASES	--
+--------------
 
 local function phase_idle()
 	for i = 1,4 do
@@ -626,6 +866,7 @@ end
 
 local function setPhase(phase, args)
 	if(current_phase) then
+		abortAll();
 		eventu.abort(current_phase);
 	end
 	if(phase == nil) then
@@ -637,13 +878,79 @@ local function setPhase(phase, args)
 	current_phase = c;
 end
 
+function events.Stun(timer)
+	if(stunned) then
+		return;
+	end
+	stunned = true;
+	abortAll();
+	local t = timer;
+	setPhase(function()
+		stopMoveEvent();
+		local pos = vectr.v2(x,y);
+		
+		local armpos = {}
+		for i = 1,4 do
+			armpos[i] = vectr.v2(arms[i].hand.x,arms[i].hand.y);
+		end
+		local speed = 0;
+		local armspd = {0,0,0,0};
+		local flr = Zero.y+600-64;
+		
+		eventu.waitFrames(64);
+		
+		while(true) do
+			speed = speed + 1;
+			for i = 1,4 do
+				armspd[i] = armspd[i]+1;
+				armpos[i] = armpos[i]+vectr.up2*armspd[i];
+				if(armspd[i] > 0 and armpos[i].y > flr) then
+					armpos[i].y = flr;
+					armspd[i] = 0;
+				end
+				
+				SetArmPos(i, armpos[i]);
+				
+			end
+			pos = pos+vectr.up2*speed;
+			if(speed > 0 and pos.y > flr) then
+				pos.y = flr;
+				speed = -speed*0.5;
+			end
+			SetBodyPos(pos);
+			t = t-1;
+			if(t > 0 and t < 128) then
+				stunRecovery = true;
+				for i = 1,4 do
+					armpos[i] = armpos[i] + vectr.up2:rotate(rng.random(360))*rng.random(4);
+				end
+			end
+			if(t == 0) then
+				for i = 1,4 do
+					DoArmMove(i, pos, 0.5);
+				end
+				waitForArm();
+				stunned = false;
+				stunRecovery = false;
+				plateIndex = math.min(plateIndex+1, #plateCounts);
+				UpdatePlates(plateCounts[plateIndex]);
+				startMoveEvent();
+				setPhase();
+				return;
+			end
+			eventu.waitFrames(0)
+		end
+		
+	end);
+end
+
 local function phase_armattack1()
 	for i = 1,4 do
 		arms[1].targetobj = player;
 	end
 	stopMoveEvent();
 	local side = rng.randomInt(0,1);
-	local bodyCentre = Zero+vectr.v2(side*578 + 64,64);
+	local bodyCentre = Zero+vectr.v2(side*(800-128) + 64,64);
 	DoBodyMove(bodyCentre, 2);
 	
 	side = 1-(2*side);
@@ -682,19 +989,20 @@ local function phase_danmaku1()
 	DoArmMove(4, Zero + vectr.v2(800-32,600-32), 2);
 	
 	waitForArm{1,2,3,4};
-	eventu.waitFrames(16);
 	
 	for i = 1,4 do
+		local spawnpos = vectr.v2(arms[i].hand.x, arms[i].hand.y);
+		spawnHitflash(1, spawnpos, vectr.v2(32,32));
+		eventu.waitFrames(16);
 		for j = 1,10 do
-			local spawnpos = vectr.v2(arms[i].hand.x, arms[i].hand.y);
 			local dir = (getPlayerPos() - spawnpos):normalise();
 			spawnBullet(BULLET_SMALL, spawnpos + dir*16, dir*3.5);
 			eventu.waitFrames(28);
 		end
-		eventu.waitFrames(48);
+		eventu.waitFrames(32);
 	end
 	
-	eventu.waitFrames(256);
+	eventu.waitFrames(128);
 	
 	setPhase();
 end
@@ -702,57 +1010,86 @@ end
 local function phase_tennis()
 	stopMoveEvent();
 	
-	local bodyPos = Zero+vectr.v2(400,400)+(vectr.v2(-300,0):rotate(rng.random(180)));
-	DoBodyMove(bodyPos, 2);
-	
-	local side = 0;
-	if(bodyPos.x - Zero.x < 300) then
-		side = -1;
-	elseif(bodyPos.x - Zero.x > 500) then
-		side = 1;
-	end
-	
-	local corners = {}
-	if(side == 0) then
-		corners[1] = bodyPos+vectr.v2(-48,48);
-		corners[2] = bodyPos+vectr.v2(48,48);
-		corners[3] = bodyPos+vectr.v2(-48,144);
-		corners[4] = bodyPos+vectr.v2(48,144);
-	else
-		corners[1] = bodyPos+vectr.v2(48*-side,-48);
-		corners[2] = bodyPos+vectr.v2(48*-side,48);
-		corners[3] = bodyPos+vectr.v2(144*-side,-48);
-		corners[4] = bodyPos+vectr.v2(144*-side,48);
-	end
-	
-	local centre = vectr.zero2;
-	for i=1,4 do
-		DoArmMove(i, corners[i], 2);
-		centre = (centre + corners[i]);
-	end
-	centre = centre/4;
-	
-	for i=1,4 do
-		arms[i].targetobj = centre;
-	end
-	
-	waitForAll();
-	eventu.waitFrames(16);
-	
-	spawnLargeBullet(centre);
-	
-	while(largeBullet.launchTimer > 0) do
-		local t = 1 - (largeBullet.launchTimer/largeBulletChargeTime);
-		for i=1,4 do
-			MoveArm(i, corners[i] + t*t*32*vectr.up2:rotate(rng.random(360)), 5);
+	repeat
+		local bodyPos = Zero+vectr.v2(400,400)+(vectr.v2(-300,0):rotate(rng.random(180)));
+		DoBodyMove(bodyPos, 2);
+		
+		local side = 0;
+		if(bodyPos.x - Zero.x < 300) then
+			side = -1;
+		elseif(bodyPos.x - Zero.x > 500) then
+			side = 1;
 		end
-		eventu.waitFrames(0);
-	end
+		
+		local corners = {}
+		if(side == 0) then
+			corners[1] = bodyPos+vectr.v2(-48,48);
+			corners[2] = bodyPos+vectr.v2(48,48);
+			corners[3] = bodyPos+vectr.v2(-48,144);
+			corners[4] = bodyPos+vectr.v2(48,144);
+		else
+			corners[1] = bodyPos+vectr.v2(48*-side,-48);
+			corners[2] = bodyPos+vectr.v2(48*-side,48);
+			corners[3] = bodyPos+vectr.v2(144*-side,-48);
+			corners[4] = bodyPos+vectr.v2(144*-side,48);
+		end
+		
+		local centre = vectr.zero2;
+		for i=1,4 do
+			DoArmMove(i, corners[i], 2);
+			centre = (centre + corners[i]);
+		end
+		centre = centre/4;
+		
+		for i=1,4 do
+			arms[i].targetobj = centre;
+		end
+		
+		waitForAll();
 	
-	local idling = eventu.run(phase_idle);
-	
-	DoBodyMove(Zero+vectr.v2(rng.random(64,800-64),rng.random(64,600-128)), rng.random(2,4));
-	waitForBody();
+		eventu.waitFrames(16);
+		
+		spawnLargeBullet(centre);
+		
+		while(largeBullet.launchTimer > 0) do
+			local t = 1 - (largeBullet.launchTimer/largeBulletChargeTime);
+			for i=1,4 do
+				MoveArm(i, corners[i] + t*t*32*vectr.up2:rotate(rng.random(360)), 5);
+			end
+			eventu.waitFrames(0);
+		end
+		
+		local dir = (getPlayerPos()-centre):normalise();
+		for i=1,4 do
+			DoArmMove(i, corners[i] - dir*64, 1);
+		end
+		waitForArm();
+		eventu.waitFrames(4);
+		
+		local _;
+		_,subphases[1] = eventu.run(phase_idle);
+		
+		local targetIsBoss = true;
+		while(true) do
+			if(stunned) then
+				return;
+			end
+			if(largeBullet == nil) then
+				break;
+			end
+			if(not targetIsBoss and largeBullet.target == nil) then
+				targetIsBoss = true;
+			elseif(targetIsBoss and largeBullet.target == player) then
+				targetIsBoss = false;
+				DoBodyMove(Zero+vectr.v2(rng.random(64,800-64),rng.random(64,600-300)), rng.random(1,2));
+				waitForBody();
+			end
+			eventu.waitFrames(0);
+		end
+		
+		abortSubphases();
+		
+	until(false);
 end
 
 local function bossEvents()
@@ -783,7 +1120,7 @@ local function StartBoss()
 	makeArm{ vectr.v2(x-100, y+80), vectr.v2(x-130, y+90), vectr.v2(x-200, y+100)};
 	makeArm{ vectr.v2(x+50, y+50), vectr.v2(x+100, y+80), vectr.v2(x+160, y+120)};
 	
-	populatePlates(5);
+	populatePlates(plateCounts[plateIndex]);
 	bgShader:compileFromFile(nil, Misc.resolveFile("background2.frag"));
 	
 	Audio.MusicVolume(100);
@@ -798,8 +1135,10 @@ function onStart()
 end
 
 function onTick()
-	--Idle body anim
-	y = y + 0.5*math.sin(0.05*lunatime.tick());
+	if(not stunned) then
+		--Idle body anim
+		y = y + 0.5*math.sin(0.05*lunatime.tick());
+	end
 	
 	--Prep animations for rendering
 	HandlePlates(0.025, 1);
@@ -816,6 +1155,35 @@ function onTick()
 	
 	if(bossStarted) then
 		signalChecks();
+		eyeBox.x = x;
+		eyeBox.y = y;
+		
+		if(eyeHitstun > 0) then
+			eyeHitstun = eyeHitstun - 1;
+		elseif(stunned) then
+			local box = getSwipeHitbox();
+			if(box and colliders.collide(box, eyeBox)) then
+				boss.Damage(1);
+				eyeHitstun = 16;
+			else
+				box = getLungeHitbox();
+				if(box and colliders.collide(box, eyeBox)) then
+					if(broadsword.GetLungeType() == 1) then
+						boss.Damage(2);
+						eyeHitstun = 64;
+					else
+						boss.Damage(math.lerp(1,4, broadsword.GetLungeAmount()));
+						eyeHitstun = 96;
+					end
+				else
+					box = getDownstabHitbox();
+					if(box and colliders.collide(box, eyeBox)) then
+						boss.Damage(2);
+						eyeHitstun = 64;
+					end
+				end
+			end
+		end
 	end
 end
 
@@ -846,12 +1214,44 @@ local function DrawFog()
 end
 
 local function DrawEye()
-	Graphics.drawImageToSceneWP(eye1, x-28, y-28, -50);
+
+	if(stunned) then
+		eyeAnimTimer = eyeAnimTimer-1;
+		if(eyeAnimTimer < 0) then
+			eyeAnimTimer = 8;
+			eyeFrame = (eyeFrame+1)%2;
+		end
+	else
+		eyeFrame = 0;
+		eyeAnimTimer = 0;
+	end
+	
+	local frameOffset = 0;
+	if(eyeHitstun > 0) then
+		frameOffset = 2;
+	end
+	
+	Graphics.drawImageToSceneWP(eye1, x-28, y-28, 0, 56*(eyeFrame+frameOffset), 56, 56, -50);
 	
 	local toplayer = vectr.v2(player.x-x, player.y-y);
-	toplayer = toplayer*0.01;
-	if(toplayer.length > 1) then
-		toplayer = toplayer:normalise();
+	
+	if(not stunRecovery) then
+		eyeRecoveryAmt = 0;
+	else
+		eyeRecoveryAmt = math.min(eyeRecoveryAmt+0.01,1);
+	end
+		
+	if(stunned and not stunRecovery) then
+		toplayer = vectr.up2:rotate(lunatime.tick()*10);
+	else
+		toplayer = toplayer*0.01;
+		if(toplayer.length > 1) then
+			toplayer = toplayer:normalise();
+		end
+		
+		if(stunRecovery) then
+			toplayer = math.lerp(vectr.up2:rotate(lunatime.tick()*10), toplayer, eyeRecoveryAmt);
+		end
 	end
 	Graphics.drawImageToSceneWP(eye2, x-7 + toplayer.x * 10, y-7 + toplayer.y * 10, -50);
 end
@@ -884,6 +1284,8 @@ local function DrawBoss()
 	
 	drawBullets();
 	drawLargeBullet();
+	
+	drawHitFlashes();
 	
 	local st = math.sin(lunatime.tick()*0.01);
 	--Graphics.glDraw{vertexCoords = {0,0,800,0,0,600,800,600}, primitive = Graphics.GL_TRIANGLE_STRIP, color={1,0,0,0.25*st*st+vectr.lerp(0.25,1,lunatime.time()/30)}}
