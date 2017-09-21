@@ -26,7 +26,7 @@ local fgGrassImage = Graphics.loadImage("fgGrass.png")
 local fgShadowImage = Graphics.loadImage("fgShadow.png")
 
 local parallaxFg = paralx2.Background(1, 
-  {left = -200580, top = -200900, right=-194900, bottom=-200000},
+  {left = -200580, top = -200900, right=-194700, bottom=-200000},
   {img=Graphics.loadImage("fgTreesNoGrass.png"), depth = -20, priority = -2.1, alignY = paralx2.align.BOTTOM, x = -100, y = 0,  repeatX = true},
   {img=Graphics.loadImage("fgGrass.png"),        depth = -40, priority = -2,   alignY = paralx2.align.BOTTOM, x = 0,    y = 72, repeatX = true});
 parallaxFg.section = 0;
@@ -98,6 +98,8 @@ message.presetSequences.chefQuest = function(args)
 end
 
 message.presetSequences.revealBase = function(args)
+	args.npc.data.name = "Reveal the secret entrance again"
+
 	Audio.SeizeStream(-1)
 	Audio.MusicPause()
 	playSFX(28)
