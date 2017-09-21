@@ -17,17 +17,17 @@ local eows =
 
 local sows = 
 {
-[0]="Mata Hari - Totally Trollied",
+[0]="sow0",
 [1]="Mata Hari - Totally Trollied",
-[2]="Mata Hari - Totally Trollied",
-[3]="Mata Hari - Totally Trollied",
-[4]="Mata Hari - Totally Trollied",
-[5]="Mata Hari - Totally Trollied",
-[6]="Mata Hari - Totally Trollied",
-[7]="Mata Hari - Totally Trollied",
-[8]="Mata Hari - Totally Trollied",
+[2]="Hoeloe-Towards the New World",
+[3]="raekuul-Approaching the Sand Temple",
+[4]="SpoonyBard-MangroveCavern",
+[5]="raocow-rocksstickingoutofalake",
+[6]="Mikkofier-Monoland",
+[7]="SAJewers-DownDownDownToMephistosCafe",
+[8]="zmonbobbo-hillsideromp",
 [9]="Mata Hari - Totally Trollied",
-[10]="Mata Hari - Totally Trollied"
+[10]="hub"
 }
 
 local worldNames =
@@ -47,16 +47,16 @@ local worldNames =
 
 local worldStartPos =
 {
-[0]={x=0,y=0},
-[1]={x=0,y=0},
-[2]={x=0,y=0},
-[3]={x=0,y=0},
-[4]={x=0,y=0},
-[5]={x=0,y=0},
-[6]={x=0,y=0},
-[7]={x=0,y=0},
-[8]={x=0,y=0},
-[9]={x=0,y=0},
+[0]= {x=160,y=32},
+[1]= {x=160,y=96},
+[2]= {x=160,y=160},
+[3]= {x=160,y=224},
+[4]= {x=160,y=288},
+[5]= {x=160,y=352},
+[6]= {x=160,y=416},
+[7]= {x=160,y=480},
+[8]= {x=160,y=544},
+[9]= {x=160,y=608},
 [10]={x=0,y=0}
 }
 
