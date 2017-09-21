@@ -60,21 +60,6 @@ local worldStartPos =
 [10]={x=0,y=0}
 }
 
-local worldTownPos =
-{
-[0]={x=0,y=0},
-[1]={x=0,y=0},
-[2]={x=0,y=0},
-[3]={x=0,y=0},
-[4]={x=0,y=0},
-[5]={x=0,y=0},
-[6]={x=0,y=0},
-[7]={x=0,y=0},
-[8]={x=0,y=0},
-[9]={x=0,y=0},
-[10]={x=0,y=0}
-}
-
 
 for i = 0,10 do
 	if(SaveData["world"..i] == nil) then
@@ -108,6 +93,17 @@ function isTownLevel()
 	else
 		return false;
 	end
+end
+
+function isHubLevel()
+	local w = leveldata.GetWorldInfo(10);
+	local d = leveldata.GetData();
+	for _,v in ipairs(w) do
+		if(d == v) then
+			return true;
+		end
+	end
+	return false;
 end
 
 leveldata.EXIT_LEEK = LEEK;
@@ -469,7 +465,7 @@ end
 function leveldata.GetW6Name(includeExtras)
 	local s = "<garbage "..tostring(rng.randomInt(12,16))..">"
 	if  rng.random(1) > 0.7  and  includeExtras == true  then
-		s = rng.ranomEntry{"ERROR","ILLUMINATI","lunaisdead","hail santa","Epochalypse","<binary "..tostring(rng.randomInt(12,16))..">"}
+		s = rng.irandomEntry{"ERROR","ILLUMINATI","lunaisdead","hail santa","Epochalypse","<binary "..tostring(rng.randomInt(12,16))..">"}
 	end
 	return s;
 end
@@ -488,10 +484,6 @@ end
 
 function leveldata.GetWorldStartMapPos(index)
 	return worldStartPos[index]
-end
-
-function leveldata.GetWorldTownMapPos(index)
-	return worldTownPos[index]
 end
 
 function leveldata.WorldCleared(index)

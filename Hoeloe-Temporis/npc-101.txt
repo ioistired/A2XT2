@@ -1,7 +1,6 @@
+width=32
+height=54
 gfxwidth=32
-gfxheight=64
-frames=4
-framespeed=4
+gfxheight=54
 framestyle=1
-name="Chronoton Blue"
-speed=0
+frames=1
