@@ -22,7 +22,7 @@ boss.Name = "Tumulta Gloria"
 boss.SuperTitle = "Chaos Pumpernickel"
 boss.SubTitle = "Anarchy Incarnate"
 
-boss.HP = 200;
+boss.HP = 175;
 
 boss.TitleDisplayTime = 380;
 
@@ -199,22 +199,27 @@ local function getPlayerPos()
 end
 
 local function getSwipeHitbox()
+	if(player:mem(0x13E,FIELD_WORD) > 0) then return nil end;
 	return playerManager.getCollider(CHARACTER_UNCLEBROADSWORD, 1, "swipe");
 end
 
 local function getLungeHitbox()
+	if(player:mem(0x13E,FIELD_WORD) > 0) then return nil end;
 	return playerManager.getCollider(CHARACTER_UNCLEBROADSWORD, 1, "lunge");
 end
 
 local function getDownstabHitbox()
+	if(player:mem(0x13E,FIELD_WORD) > 0) then return nil end;
 	return playerManager.getCollider(CHARACTER_UNCLEBROADSWORD, 1, "downstab");
 end
 
 local function getUpstabHitbox()
+	if(player:mem(0x13E,FIELD_WORD) > 0) then return nil end;
 	return playerManager.getCollider(CHARACTER_UNCLEBROADSWORD, 1, "upstab");
 end
 
 local function getSwordHitbox()
+	if(player:mem(0x13E,FIELD_WORD) > 0) then return nil end;
 	return getDownstabHitbox() or getLungeHitbox() or getSwipeHitbox() or getUpstabHitbox();
 end
 
@@ -966,7 +971,7 @@ local function phase_armattack1()
 	for i = 1,4 do
 		local p = getPlayerPos();
 		local dir = (p-vectr.v2(arms[i].hand.x,arms[i].hand.y)):normalise();
-		p = p + dir*128;
+		p = p + (dir*128);
 		arms[i].targetobj = p;
 		DoArmMove(i, p, 0.5);
 		eventu.waitFrames(48);
@@ -1101,6 +1106,20 @@ local function bossEvents()
 	waitPhase();
 	eventu.waitFrames(256);
 	setPhase(phase_tennis);
+	waitPhase();
+	
+	while(true) do
+		local phaseOptions = {phase_armattack1, phase_danmaku1}
+		for i = 1,2 do
+			eventu.waitFrames(256);
+			local j = rng.randomInt(1,#phaseOptions);
+			setPhase(phaseOptions[j]);
+			table.remove(phaseOptions,j);
+			waitPhase();
+		end
+		setPhase(phase_tennis);
+		waitPhase();
+	end
 end
 
 local function StartBoss()
