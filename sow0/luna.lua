@@ -2,6 +2,8 @@ local leveldata = API.load("a2xt_leveldata")
 local scene = API.load("a2xt_scene")
 
 local eventu = API.load("eventu")
+local cman = API.load("cameraman")
+local animatx = API.load("animatx")
 
 
 
@@ -23,7 +25,7 @@ local hubLevel = "hub"
 function onStart()
 	mem(0xB2572A,FIELD_BOOL,false)
 
-	--[[
+
 	-- If the hub is unlocked, start there
 	if  leveldata.Visited(hubLevel)  then
 		leveldata.LoadLevel(hubLevel)
@@ -50,5 +52,4 @@ function onStart()
 	else
 		a2xt_scene.startScene{scene=cor_intro, skip=skip_intro}
 	end
-	--]]
 end
