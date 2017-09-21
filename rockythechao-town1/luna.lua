@@ -5,12 +5,18 @@ local NPCID     = API.load ("npcid")
 local npcparse  = API.load ("npcParse")
 local cman      = API.load ("cameraman")
 
+local costumes  = API.load ("a2xt_costumes")
 local scene     = API.load ("a2xt_scene")
 local message   = API.load ("a2xt_message")
 local eventu    = API.load ("eventu")
 
 -- Configure cinematX (generate actors by parsing NPC messages, activate debug features)
 --cinematX.config (true, false, true, true)
+
+
+for  _,v in pairs{"DEMO","IRIS","KOOD","RAOCOW","SHEATH"}  do
+	costumes.unlock (v.."_TEMPLATE")
+end
 
 
 --*************************
