@@ -62,10 +62,23 @@ local BULLET_SMALL = 0;
 local bulletImgs = {}
 bulletImgs[BULLET_SMALL] = Graphics.loadImage(Misc.resolveFile("bullet_1.png"));
 
+local largeBulletImgs = 
+{
+Graphics.loadImage(Misc.resolveFile("bullet_large_1.png"));
+Graphics.loadImage(Misc.resolveFile("bullet_large_2.png"));
+Graphics.loadImage(Misc.resolveFile("bullet_large_3.png"));
+}
+
+local largeBullet = nil;
+
 local function drawBullets()
 	for _,v in ipairs(bullets) do
 		Graphics.drawImageToSceneWP(bulletImgs[v.type], v.pos.x - v.gfxwidth*0.5, v.pos.y - v.gfxheight*0.5, 0, v.frame*v.gfxheight, v.gfxwidth, v.gfxheight, -50)
 	end
+end
+
+local function getPlayerPos()
+	return vectr.v2(player.x+player.width*0.5, player.y+player.height*0.5);
 end
 
 local function updateBullets()
@@ -101,6 +114,63 @@ local function spawnBullet(bulletType, pos, speed)
 	end
 	b.frametimer = b.framespeed;
 	table.insert(bullets, b);
+end
+
+local largeBulletChargeTime = 256;
+
+local function spawnLargeBullet(pos)
+	local b = {pos = pos, imgs = {}, launchTimer = largeBulletChargeTime, hitbox = colliders.Circle(0,0,4), speed=4}
+	
+	for _,v in ipairs(largeBulletImgs) do
+		table.insert(b.imgs, imagic.Create{texture = v, primitive = imagic.TYPE_BOX, vertColors = {0xFFFFFF00,0xFFFFFF00,0xFFFFFF00,0xFFFFFF00}, x=pos.x, y = pos.y, width=8, height = 8, scene = true, align = imagic.ALIGN_CENTRE})
+	end
+	
+	largeBullet = b;
+end
+
+local function updateLargeBullet()
+	if(largeBullet) then
+		if(largeBullet.velocity) then
+			largeBullet.pos = largeBullet.pos + largeBullet.velocity;
+		end
+		largeBullet.hitbox.x = largeBullet.pos.x;
+		largeBullet.hitbox.y = largeBullet.pos.y;
+		for k,v in ipairs(largeBullet.imgs) do
+			v.x = largeBullet.pos.x;
+			v.y = largeBullet.pos.y;
+			if(k == 3) then
+				v:Rotate(1);
+			end
+		end
+		if(largeBullet.launchTimer > 0) then
+			largeBullet.launchTimer = largeBullet.launchTimer - 1;
+			if(largeBullet.launchTimer == 0) then
+				largeBullet.velocity = (getPlayerPos() - largeBullet.pos):normalise() * largeBullet.speed;
+			end
+			local s = math.lerp(1.02,1,1 - largeBullet.launchTimer/largeBulletChargeTime);
+			largeBullet.hitbox.radius = largeBullet.hitbox.radius*(s+0.001);
+			for _,v in ipairs(largeBullet.imgs) do
+				v:Scale(s);
+				s = s + 0.001;
+			end
+		end
+		if(colliders.collide(player,largeBullet.hitbox)) then
+			player:harm();
+		end
+	end
+end
+
+local function drawLargeBullet()
+	if(largeBullet) then
+		for _,v in ipairs(largeBullet.imgs) do
+			for i = 1,16,4 do
+				v.vertColors[i] = 1-(largeBullet.launchTimer/largeBulletChargeTime);
+				v.vertColors[i+1] = 1-(largeBullet.launchTimer/largeBulletChargeTime);
+				v.vertColors[i+2] = 1-(largeBullet.launchTimer/largeBulletChargeTime);
+			end
+			v:Draw(-50)
+		end
+	end
 end
 
 local function makeArm(js)
@@ -560,7 +630,7 @@ local function phase_armattack1()
 	eventu.waitFrames(16);
 	
 	for i = 1,4 do
-		local p = vectr.v2(player.x+player.width*0.5, player.y+player.height*0.5);
+		local p = getPlayerPos();
 		local dir = (p-vectr.v2(arms[i].hand.x,arms[i].hand.y)):normalise();
 		p = p + dir*128;
 		arms[i].targetobj = p;
@@ -590,7 +660,7 @@ local function phase_danmaku1()
 	for i = 1,4 do
 		for j = 1,10 do
 			local spawnpos = vectr.v2(arms[i].hand.x, arms[i].hand.y);
-			local dir = (vectr.v2(player.x + player.width*0.5, player.y + player.height*0.5) - spawnpos):normalise();
+			local dir = (getPlayerPos() - spawnpos):normalise();
 			spawnBullet(BULLET_SMALL, spawnpos + dir*16, dir*3.5);
 			eventu.waitFrames(28);
 		end
@@ -604,6 +674,7 @@ local function phase_danmaku1()
 end
 
 local function bossEvents()
+	spawnLargeBullet(Zero+200)
 	eventu.waitFrames(128);
 	setPhase(phase_armattack1);
 	waitPhase();
@@ -651,6 +722,7 @@ function onTick()
 	HandleArmPartciles(24);
 	
 	updateBullets();
+	updateLargeBullet();
 	
 	if(not bossStarted and Audio.MusicClock() > 12 and boss.isReady()) then
 		bossStarted = true;
@@ -723,6 +795,7 @@ local function DrawBoss()
 	DrawPlates();
 	
 	drawBullets();
+	drawLargeBullet();
 	
 	local st = math.sin(lunatime.tick()*0.01);
 	--Graphics.glDraw{vertexCoords = {0,0,800,0,0,600,800,600}, primitive = Graphics.GL_TRIANGLE_STRIP, color={1,0,0,0.25*st*st+vectr.lerp(0.25,1,lunatime.time()/30)}}
