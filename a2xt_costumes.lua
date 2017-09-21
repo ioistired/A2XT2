@@ -12,6 +12,12 @@ costumes.charLists = {}
 --Fill this in
 costumes.data = 
 {
+	DEMO_TEMPLATE = {path = "Demo-Centered", name = "Template Demo"},
+	IRIS_TEMPLATE = {path = "Iris-Centered", name = "Template Iris"},
+	KOOD_TEMPLATE = {path = "Kood-Centered", name = "Template Kood"},
+	RAOCOW_TEMPLATE = {path = "Raocow-Centered", name = "Template Raocow"},
+	SHEATH_TEMPLATE = {path = "Sheath-Centered", name = "Template Sheath"},
+
 	DEMO_BOBBLE = {path = "Demo-BobbleHat", name = "Bobble Hat Demo"};
 }
 
@@ -98,6 +104,9 @@ end
 function costumes.wear (id)
 	local info = costumes.info[id]
 	Player.setCostume(info.character, info.costume)
+end
+
+function onStart()
 end
 
 
