@@ -17,7 +17,13 @@ local function skip_intro()
 	
 end
 
+local function cor_picnic()
+	
+end
 
+local function skip_picnic()
+	
+end
 
 
 

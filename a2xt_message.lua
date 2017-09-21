@@ -877,8 +877,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 					if(v.data.event and v.msg.str == "") then
 						v.msg = " ";
 					end
-					if  v.friendly  and  v.msg ~= nil  and  not v.isHidden  and  not v:mem(0x64, FIELD_BOOL)  then
-						
+					if  v.friendly  and  v.msg ~= nil and v.msg.str ~= "" and  not v.isHidden  and  not v:mem(0x64, FIELD_BOOL) and v:mem (0x12A, FIELD_WORD) > 0  then
 
 						--A2XT quick-parse
 						if(v.data.name == nil and isTownLevel()) then
@@ -943,6 +942,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 							end
 						end
 						
+						Text.print(tostring(v.friendly), data.iconSpr.x,data.iconSpr.y)
 						data.iconSpr:Draw();
 					end
 				end
