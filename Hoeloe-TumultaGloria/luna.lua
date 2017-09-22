@@ -67,8 +67,10 @@ local eyeBox = colliders.Circle(0,0,32);
 local bullets = {};
 
 local BULLET_SMALL = 0;
+local BULLET_MED = 1;
 local bulletImgs = {}
 bulletImgs[BULLET_SMALL] = Graphics.loadImage(Misc.resolveFile("bullet_1.png"));
+bulletImgs[BULLET_MED] = Graphics.loadImage(Misc.resolveFile("bullet_2.png"));
 
 local largeBulletImgs = 
 {
@@ -227,6 +229,30 @@ local function UpdatePlates(newnum)
 	numPlates = newnum;
 end
 
+local function spawnBullet(bulletType, pos, speed)
+	local b = {pos = pos, type = bulletType, speed = speed, frame = 0}
+	if(bulletType == BULLET_SMALL) then
+		b.framespeed = 4;
+		b.frames = 6
+		b.hitbox = colliders.Circle(0,0,11);
+		b.gfxheight=22;
+		b.gfxwidth=22;
+		b.killable = true;
+	elseif(bulletType == BULLET_MED) then
+		b.framespeed = 4;
+		b.frames = 6
+		b.duration = 128;
+		b.timer = b.duration;
+		b.initSpd = speed;
+		b.hitbox = colliders.Circle(0,0,18);
+		b.gfxheight=36;
+		b.gfxwidth=36;
+		b.killable = true;
+	end
+	b.frametimer = b.framespeed;
+	table.insert(bullets, b);
+end
+
 local function updateBullets()
 	for i = #bullets,1,-1 do
 		bullets[i].pos = bullets[i].pos+bullets[i].speed;
@@ -242,9 +268,24 @@ local function updateBullets()
 		local hb = getSwordHitbox();
 		if(bullets[i].killable and hb and colliders.collide(hb, bullets[i].hitbox)) then
 			bullets[i].dead = true;
-			spawnHitflash(1, bullets[i].pos, vectr.v2(16,16));
+			spawnHitflash(1, bullets[i].pos, vectr.v2(1,1)*bullets[i].hitbox.radius+5);
 		elseif(colliders.collide(player,bullets[i].hitbox)) then
 			player:harm();
+		end
+		
+		if(bullets[i].type == BULLET_MED) then
+			bullets[i].speed = bullets[i].initSpd * math.clamp((bullets[i].timer - 32)/(bullets[i].duration - 32));
+			bullets[i].timer = bullets[i].timer - 1;
+			
+			if(bullets[i].timer == 0) then
+				bullets[i].dead = true;
+				spawnHitflash(1, bullets[i].pos, vectr.v2(1,1)*40);
+				local s = vectr.up2;
+				for j = 1,8 do
+					spawnBullet(BULLET_SMALL, bullets[i].pos, s*2);
+					s = s:rotate(45);
+				end
+			end
 		end
 		
 		
@@ -254,20 +295,6 @@ local function updateBullets()
 			table.remove(bullets,i);
 		end
 	end
-end
-
-local function spawnBullet(bulletType, pos, speed)
-	local b = {pos = pos, type = bulletType, speed = speed, frame = 0}
-	if(bulletType == BULLET_SMALL) then
-		b.framespeed = 4;
-		b.frames = 6
-		b.hitbox = colliders.Circle(0,0,11);
-		b.gfxheight=22;
-		b.gfxwidth=22;
-		b.killable = true;
-	end
-	b.frametimer = b.framespeed;
-	table.insert(bullets, b);
 end
 
 local largeBulletChargeTime = 200;
@@ -1109,6 +1136,46 @@ local function phase_danmaku1()
 	setPhase();
 end
 
+local function phase_danmaku2()
+
+	stopMoveEvent();
+	
+	local side = rng.randomInt(0,1);
+	
+	local bodyCentre = Zero+vectr.v2(side*(800-128) + 64,64);
+	
+	DoBodyMove(bodyCentre, 2);
+	
+	side = 1-(2*side);
+	
+	local baseangle = 5;
+	local armpos = 128 * vectr.right2:rotate(baseangle);
+	
+	local armlocs = {}
+	
+	for i = 1,4 do
+		armlocs[i] = vectr.v2(side*armpos.x, armpos.y);
+		DoArmMove(i, bodyCentre + armlocs[i], 2);
+		
+		arms[i].targetobj = bodyCentre + armlocs[i]*1.1;
+		
+		armpos = armpos:rotate((90-(2*baseangle))/3);
+	end
+	
+	waitForAll();
+	
+	for i = 1,5 do
+		for j = 1,4 do
+			eventu.waitFrames(32);
+			spawnBullet(BULLET_MED, bodyCentre + armlocs[j], armlocs[j]:normalise():rotate(rng.random(-10,10))*(getPlayerPos() - bodyCentre).length/rng.random(65,85));
+		end
+	end
+	
+	eventu.waitFrames(256);
+	
+	setPhase();
+end
+
 local function phase_tennis()
 	stopMoveEvent();
 	
@@ -1157,7 +1224,7 @@ local function phase_tennis()
 		while(largeBullet.launchTimer > 0) do
 			local t = 1 - (largeBullet.launchTimer/largeBulletChargeTime);
 			for i=1,4 do
-				MoveArm(i, corners[i] + t*t*32*vectr.up2:rotate(rng.random(360)), 5);
+				MoveArm(i, ((corners[i]-centre):rotate(t*t*720))*math.lerp(1,0.75,t) + centre + t*t*32*vectr.up2:rotate(rng.random(360)), 12);
 			end
 			eventu.waitFrames(0);
 		end
@@ -1210,14 +1277,14 @@ local function bossEvents()
 	setPhase(phase_armattack2);
 	waitPhase();
 	eventu.waitFrames(256);
-	setPhase(phase_danmaku1);
+	setPhase(phase_danmaku2);
 	waitPhase();
 	eventu.waitFrames(256);
 	setPhase(phase_tennis);
 	waitPhase();
 	
 	while(true) do
-		local phaseOptions = {phase_armattack1, phase_armattack2, phase_danmaku1}
+		local phaseOptions = {phase_armattack1, phase_armattack2, phase_danmaku1, phase_danmaku2}
 		for i = 1,2 do
 			eventu.waitFrames(256);
 			local j = rng.randomInt(1,#phaseOptions);
@@ -1393,7 +1460,7 @@ local function DrawPlates()
 		local col = smokegrad:get(v.col);
 		if(math.sin(v.t) < 0) then
 			order = -50.5;
-			col = col * vectr.lerp(1, 0.4, math.min(1,-2*math.sin(v.t)));
+			col = col * math.lerp(1, 0.4, math.min(1,-2*math.sin(v.t)));
 		end
 		col = 255 + math.floor(col.b * 255) * 256 + math.floor(col.g * 255) * 256 * 256 + math.floor(col.r * 255) * 256 * 256 * 256;
 		v.obj.width = vectr.lerp(2,32,1-math.abs(math.cos(v.t)));
