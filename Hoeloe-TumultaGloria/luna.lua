@@ -983,6 +983,103 @@ local function phase_armattack1()
 	setPhase();
 end
 
+local function phase_armattack2()
+	for i = 1,4 do
+		arms[1].targetobj = player;
+	end
+	stopMoveEvent();
+	
+	local bodyCentre = Zero+vectr.v2(rng.random(64,800-64), rng.random(64,256));
+	
+	DoBodyMove(bodyCentre,2);
+	
+	
+	local r = 128;
+	local spd = 0;
+	
+	local armpos = {(-vectr.up2)}
+	for i = 2,4 do
+		armpos[i] = armpos[i-1]:rotate(90);
+	end
+	
+	do
+		local t = armpos[3];
+		armpos[3] = armpos[4];
+		armpos[4] = t;
+	end
+	
+	for i = 1,4 do
+		DoArmMove(i, bodyCentre + r*armpos[i], 2);
+	end
+	
+	waitForAll();
+	eventu.waitFrames(16);
+	
+	local t = 720;
+	while(t > 0) do
+		t = t-1;
+		bodyCentre = vectr.v2(x,y);
+		local d = (getPlayerPos()-bodyCentre)
+		local dist = d.length;
+		if(dist > 1) then
+			d = d:normalise();
+		end
+		
+		bodyCentre = bodyCentre + d;
+		
+		SetBodyPos(bodyCentre);
+		
+		if(dist > r) then
+			r = r+0.5;
+		else
+			r = r-0.5;
+		end
+		
+		r=math.max(r,64);
+		
+		for i = 1,4 do
+			armpos[i] = armpos[i]:rotate(spd);
+			SetArmPos(i, bodyCentre+r*armpos[i]);
+		end
+		
+		if(t > math.abs(spd*100)) then
+			if(d.x < 0) then
+				spd = spd - 0.01;
+			elseif(d.x > 0) then
+				spd = spd + 0.01;
+			end
+		elseif(spd > 0) then
+			spd = spd - 0.01;
+		elseif(spd < 0) then
+			spd = spd + 0.01;
+		end
+		spd = math.clamp(spd,-3,3);
+		eventu.waitFrames(0);
+		
+	end
+	t=32
+	spd = 1;
+	while(t > 0) do
+		t = t-1;
+		
+		spd = spd-1/32;
+		
+		bodyCentre = vectr.v2(x,y);
+		local d = (getPlayerPos()-bodyCentre)
+		local dist = d.length;
+		if(dist > 1) then
+			d = d:normalise();
+		end
+		
+		bodyCentre = bodyCentre + d * spd;
+	end
+	
+	eventu.waitFrames(32);
+	
+	startMoveEvent();
+	setPhase();
+end
+
 local function phase_danmaku1()
 	for i = 1,4 do
 		arms[1].targetobj = player;
@@ -1018,6 +1115,7 @@ local function phase_tennis()
 	repeat
 		local bodyPos = Zero+vectr.v2(400,400)+(vectr.v2(-300,0):rotate(rng.random(180)));
 		DoBodyMove(bodyPos, 2);
+		
 		
 		local side = 0;
 		if(bodyPos.x - Zero.x < 300) then
@@ -1108,8 +1206,18 @@ local function bossEvents()
 	setPhase(phase_tennis);
 	waitPhase();
 	
+	eventu.waitFrames(256);
+	setPhase(phase_armattack2);
+	waitPhase();
+	eventu.waitFrames(256);
+	setPhase(phase_danmaku1);
+	waitPhase();
+	eventu.waitFrames(256);
+	setPhase(phase_tennis);
+	waitPhase();
+	
 	while(true) do
-		local phaseOptions = {phase_armattack1, phase_danmaku1}
+		local phaseOptions = {phase_armattack1, phase_armattack2, phase_danmaku1}
 		for i = 1,2 do
 			eventu.waitFrames(256);
 			local j = rng.randomInt(1,#phaseOptions);
@@ -1117,6 +1225,7 @@ local function bossEvents()
 			table.remove(phaseOptions,j);
 			waitPhase();
 		end
+		eventu.waitFrames(256);
 		setPhase(phase_tennis);
 		waitPhase();
 	end
@@ -1246,11 +1355,13 @@ local function DrawEye()
 	end
 	
 	local frameOffset = 0;
+	local offset = vectr.zero2;
 	if(eyeHitstun > 0) then
 		frameOffset = 2;
+		offset = vectr.up2:rotate(rng.random(360))*rng.random(4*math.min(1,eyeHitstun/16));
 	end
 	
-	Graphics.drawImageToSceneWP(eye1, x-28, y-28, 0, 56*(eyeFrame+frameOffset), 56, 56, -50);
+	Graphics.drawImageToSceneWP(eye1, x-28+offset.x, y-28+offset.y, 0, 56*(eyeFrame+frameOffset), 56, 56, -50);
 	
 	local toplayer = vectr.v2(player.x-x, player.y-y);
 	

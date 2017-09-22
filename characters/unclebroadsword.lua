@@ -203,6 +203,11 @@ local running_duration_index = 1	-- Current frame duration to use when running
 ---------------------------------------------------------------------------------------------- INPUT MANAGEMENT --------------------------------
 local function BlockMovement() -------------------------------------------------------------------- Block arrow movement and jumping
 	--player.upKeyPressing = false
+	
+	if(isGamePaused()) then
+		return;
+	end
+	
 	if is_hurt or not ducking() then player.downKeyPressing = false end
 	player.leftKeyPressing = false
 	player.rightKeyPressing = false
