@@ -274,7 +274,13 @@ local function updateBullets()
 		end
 		
 		if(bullets[i].type == BULLET_MED) then
+		
+			if(bullets[i].timer > 32 and bullets[i].pos.y + (bullets[i].speed.y*bullets[i].speed.y/2) > Zero.y+600-32) then
+				bullets[i].timer = 32;
+			end
+		
 			bullets[i].speed = bullets[i].initSpd * math.clamp((bullets[i].timer - 32)/(bullets[i].duration - 32));
+			
 			bullets[i].timer = bullets[i].timer - 1;
 			
 			if(bullets[i].timer == 0) then
@@ -1164,10 +1170,10 @@ local function phase_danmaku2()
 	
 	waitForAll();
 	
-	for i = 1,5 do
+	for i = 1,4 do
 		for j = 1,4 do
-			eventu.waitFrames(32);
-			spawnBullet(BULLET_MED, bodyCentre + armlocs[j], armlocs[j]:normalise():rotate(rng.random(-10,10))*(getPlayerPos() - bodyCentre).length/rng.random(65,85));
+			eventu.waitFrames(64);
+			spawnBullet(BULLET_MED, bodyCentre + armlocs[j], armlocs[j]:normalise():rotate(rng.random(-5,5))*(getPlayerPos() - bodyCentre).length/rng.random(65,85));
 		end
 	end
 	
