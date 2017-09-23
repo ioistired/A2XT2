@@ -25,7 +25,7 @@ boss.Name = "Tumulta Gloria"
 boss.SuperTitle = "Chaos Pumpernickel"
 boss.SubTitle = "Anarchy Incarnate"
 
-boss.HP = 175;
+boss.HP = 140;
 
 boss.TitleDisplayTime = 380;
 
@@ -1242,7 +1242,7 @@ end
 
 local function phase_armattack3()
 
-	local armpos = {-vectr.up2:rotate(45)}
+	local armpos = {-vectr.up2:rotate(-45)}
 	local r = 300;
 	local maxr = r;
 
@@ -1260,14 +1260,21 @@ local function phase_armattack3()
 		end
 	end
 	
-	local t = choose(512,256);
+	DoArmMove(1, Zero + vectr.v2(128,128), 2);
+	DoArmMove(2, Zero + vectr.v2(800-128,128), 2);
+	DoArmMove(3, Zero + vectr.v2(128,600-128), 2);
+	DoArmMove(4, Zero + vectr.v2(800-128,600-128), 2);
+	
+	waitForArm();
+	
+	local t = choose(350,200);
 	local maxt = t;
 	while(t > 0) do
 		t = t-1;
 		r = math.lerp(maxr, 96, 1-(t/maxt));
 		
 		for i = 1,4 do
-			MoveArm(i, getPlayerPos() + r*armpos[i], 8);
+			MoveArm(i, getPlayerPos() + r*armpos[i], math.lerp(4,8,t/maxt));
 		end
 		eventu.waitFrames(0);
 	end
@@ -1276,7 +1283,7 @@ local function phase_armattack3()
 	for i = 1,4 do
 		arms[i].targetobj = p;
 	end
-	eventu.waitFrames(choose(32,64));
+	eventu.waitFrames(choose(48,96));
 	
 	for i = 1,4 do
 		DoArmMove(i, p, 0.2);
@@ -1308,7 +1315,7 @@ local function phase_danmaku1()
 		local spawnpos = vectr.v2(arms[i].hand.x, arms[i].hand.y);
 		spawnHitflash(1, spawnpos, vectr.v2(32,32));
 		eventu.waitFrames(choose(16,8));
-		for j = 1,choose(10,5) do
+		for j = 1,choose(8,5) do
 			local dir = (getPlayerPos() - spawnpos):normalise();
 			spawnBullet(BULLET_SMALL, spawnpos + dir*16, dir*3.5);
 			Sound(audio.bullet_small);
@@ -1354,7 +1361,7 @@ local function phase_danmaku2()
 		for j = 1,4 do
 			eventu.waitFrames(choose(64,8));
 			Sound(audio.bullet_med);
-			spawnBullet(BULLET_MED, bodyCentre + armlocs[j], armlocs[j]:normalise():rotate(choose(rng.random(-5,5),0))*choose((getPlayerPos() - bodyCentre).length/rng.random(65,85), 5));
+			spawnBullet(BULLET_MED, bodyCentre + armlocs[j], armlocs[j]:normalise():rotate(choose(rng.random(-5,5),0))*choose((getPlayerPos() - bodyCentre).length/rng.random(70,80), 5));
 		end
 		if(intensifies) then
 			eventu.waitFrames(56);
@@ -1380,6 +1387,7 @@ local function getRectEdgeFromAngle(angle, w, h)
 end
 
 local function phase_danmaku3()
+	stopMoveEvent();
 	
 	if(intensifies) then
 		eventu.waitFrames(32);
@@ -1393,6 +1401,8 @@ local function phase_danmaku3()
 	angles[4] = -angles[3];
 	
 	angles[1],angles[4] = angles[4],angles[1]
+	
+	DoBodyMove(Zero + vectr.v2(400,300), 2);
 	
 	for i = 1,4 do
 		DoArmMove(i, Zero + vectr.v2(400,300) + getRectEdgeFromAngle(angles[i], w, h), 2);
@@ -1410,9 +1420,9 @@ local function phase_danmaku3()
 		for i = 1,4 do
 			angles[i] = (angles[i]+choose(0.4,0.2))%360;
 			MoveArm(i, Zero + vectr.v2(400,300) + getRectEdgeFromAngle(angles[i], w, h), 50);
-			if((t+((math.ceil(i*0.5)-1)*shootTime/2))%shootTime == 0) then
+			if((t--[[+((math.ceil(i*0.5)-1)*shootTime/2)]])%shootTime == 0) then
 				local p = vectr.v2(arms[i].hand.x,arms[i].hand.y)
-				spawnBullet(BULLET_SMALL, p, (arms[i].target-p):normalise()*3);
+				spawnBullet(BULLET_SMALL, p, (arms[i].target-p):normalise()*3.5);
 				shoot = true;
 			end
 		end
@@ -1424,6 +1434,20 @@ local function phase_danmaku3()
 	
 	eventu.waitFrames(128);
 	
+	local c = Zero + vectr.v2(400,300);
+	for i = 1,4 do
+		DoArmMove(i, c + (vectr.v2(arms[i].hand.x, arms[i].hand.y)-c):normalise()*96, 3);
+	end
+	
+	waitForArm();
+	
+	eventu.waitFrames(32);
+	
+	for i = 1,4 do
+		arms[i].targetobj = player;
+	end
+	
+	startMoveEvent();
 	setPhase();
 end
 
@@ -1593,7 +1617,7 @@ local function InitBoss()
 
 	player.character = CHARACTER_UNCLEBROADSWORD;
 	player.powerup = 2;
-	player.reserveItem = 0;
+	player.reservePowerup = 9;
 	
 	makeArm{ vectr.v2(x-80, y-90), vectr.v2(x-140, y-120), vectr.v2(x-200, y-100)};
 	makeArm{ vectr.v2(x+50, y-50), vectr.v2(x+100, y-75), vectr.v2(x+160, y-60)};
