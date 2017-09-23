@@ -16,6 +16,8 @@ local playerManager = API.load("playerManager")
 
 local broadsword = API.load("Characters/unclebroadsword")
 
+local audioMaster = API.load("audioMaster");
+
 pause.StopMusic = true;
 
 boss.Name = "Tumulta Gloria"
@@ -91,6 +93,26 @@ local hitflashImgs =
 	Graphics.loadImage(Misc.resolveFile("hitflash_4.png"));
 }
 
+local audio = {}
+audio.sunball_charge = Misc.resolveFile("charge_sunball.ogg")
+audio.sunball_fire = Misc.resolveFile("fire_sunball.ogg")
+audio.sunball_reflect = Misc.resolveFile("reflect_sunball.ogg")
+audio.sunball_die = Misc.resolveFile("explode_sunball.ogg")
+audio.plate_break = Misc.resolveFile("break_plate.ogg")
+audio.stun = Misc.resolveFile("stun.ogg")
+audio.thud = Misc.resolveFile("thud.ogg")
+audio.hurt = Misc.resolveFile("hurt.ogg")
+audio.whoosh = Misc.resolveFile("whoosh.ogg")
+audio.bullet_small = Misc.resolveFile("bullet_1.ogg")
+audio.bullet_hit = Misc.resolveFile("bullet_2.ogg")
+audio.bullet_med = Misc.resolveFile("bullet_3.ogg")
+audio.bullet_split = Misc.resolveFile("bullet_4.ogg")
+
+audio.voice = {}
+
+audio.voice.hurt = {Misc.resolveFile("voice_hurt_1.ogg"), Misc.resolveFile("voice_hurt_2.ogg")}
+audio.voice.stun = {Misc.resolveFile("voice_stun_1.ogg"), Misc.resolveFile("voice_stun_2.ogg")}
+
 local events = {};
 
 local stunned = false;
@@ -105,6 +127,14 @@ local plateCounts = {3,5,7,10}
 local plateIndex = 1;
 
 local subphases = {};
+
+local function Sound(name, volume, tags)
+	audioMaster.PlaySound{sound = name, loops = 1, volume = volume, tags = tags}
+end
+
+local function Voice(name, volume, tags)
+	audioMaster.PlaySound{sound = rng.irandomEntry(name), loops = 1, volume = volume, tags = tags}
+end
 
 local function spawnHitflash(flashType, pos, size, target)
 	local b = {pos = pos, size = size, type = flashType, frame = 0, framespeed = 0, frames = 1, t = 0, target = target, loop = true}
@@ -268,6 +298,7 @@ local function updateBullets()
 		local hb = getSwordHitbox();
 		if(bullets[i].killable and hb and colliders.collide(hb, bullets[i].hitbox)) then
 			bullets[i].dead = true;
+			Sound(audio.bullet_hit);
 			spawnHitflash(1, bullets[i].pos, vectr.v2(1,1)*bullets[i].hitbox.radius+5);
 		elseif(colliders.collide(player,bullets[i].hitbox)) then
 			player:harm();
@@ -287,6 +318,7 @@ local function updateBullets()
 				bullets[i].dead = true;
 				spawnHitflash(1, bullets[i].pos, vectr.v2(1,1)*40);
 				local s = vectr.up2;
+				Sound(audio.bullet_split);
 				for j = 1,8 do
 					spawnBullet(BULLET_SMALL, bullets[i].pos, s*2);
 					s = s:rotate(45);
@@ -313,6 +345,8 @@ local function spawnLargeBullet(pos)
 		table.insert(b.imgs, imagic.Create{texture = v, primitive = imagic.TYPE_BOX, vertColors = {0xFFFFFF00,0xFFFFFF00,0xFFFFFF00,0xFFFFFF00}, x=pos.x, y = pos.y, width=8, height = 8, scene = true, align = imagic.ALIGN_CENTRE})
 	end
 	
+	Sound(audio.sunball_charge);
+	
 	largeBullet = b;
 end
 
@@ -332,7 +366,9 @@ local function updateLargeBullet()
 		end
 		if(largeBullet.launchTimer > 0) then
 			largeBullet.launchTimer = largeBullet.launchTimer - 1;
-			if(largeBullet.launchTimer == 0) then
+			if(largeBullet.launchTimer == 20) then
+				Sound(audio.sunball_fire);
+			elseif(largeBullet.launchTimer == 0) then
 				largeBullet.velocity = (getPlayerPos() - largeBullet.pos):normalise() * largeBullet.speed;
 			end
 			--local s = math.lerp(1.02,1,1 - largeBullet.launchTimer/largeBulletChargeTime);
@@ -351,6 +387,8 @@ local function updateLargeBullet()
 				largeBullet.target = nil;
 				largeBullet.speed = largeBullet.speed*1.05;
 				largeBullet.velocity = (vectr.v2(x,y) - largeBullet.pos):normalise() * largeBullet.speed;
+				
+				Sound(audio.sunball_reflect);
 				
 				local p = vectr.v2(hb.x+hb.width*0.5, hb.y+hb.height*0.5);
 				local d = p-largeBullet.pos;
@@ -374,9 +412,14 @@ local function updateLargeBullet()
 					local d = (largeBullet.pos-p):normalise();
 					d = p + d*32;
 					
+					Sound(audio.sunball_reflect);
+					Sound(audio.plate_break, 0.5);
+				
 					spawnHitflash(2, d, vectr.v2(200, 200));
 					spawnHitflash(3, p, vectr.v2(150, 150), eyeBox);
 				else
+					Sound(audio.sunball_die);
+					
 					spawnHitflash(4, largeBullet.pos, vectr.v2(150, 150));
 					spawnHitflash(3, vectr.v2(x,y), vectr.v2(150, 150), eyeBox);
 					largeBullet = nil;
@@ -415,6 +458,7 @@ local function makeArm(js)
 	t.frameTime = 0.2;
 	t.hand = imagic.Create{texture = hand, primitive=imagic.TYPE_BOX, x = 0, y = 0, width = 36, height = 36, scene = true, align = imagic.ALIGN_CENTRE};
 	t.handBox = colliders.Box(0,0,32,32);
+	t.speed = vectr.v2(0,0);
 	t.rotation = 0;
 	t.target = vectr.v2(x,y);
 	t.targetobj = player;
@@ -451,6 +495,8 @@ local function HandleArmPartciles(stepSize)
 					c = j;
 					joint = v.joints[k+1] - c;
 				else
+					v.speed.x = j.x - v.hand.x;
+					v.speed.y = j.y - v.hand.y;
 					v.hand.x = j.x;
 					v.hand.y = j.y;
 					v.handBox.x = j.x-16;
@@ -460,6 +506,9 @@ local function HandleArmPartciles(stepSize)
 						local b,s = colliders.bounce(player,v.handBox);
 						if(b and s) then
 							colliders.bounceResponse(player);
+							if(v.speed.y < 0) then
+								player.speedY = player.speedY + v.speed.y;
+							end
 						elseif(colliders.collide(v.handBox,player) and (not player:mem(0x50,FIELD_BOOL) or player.y+player.height > v.handBox.y+v.handBox.height*0.5)) then
 							player:harm();
 						end
@@ -920,6 +969,10 @@ function events.Stun(timer)
 	if(stunned) then
 		return;
 	end
+	
+	Sound(audio.stun);
+	Voice(audio.voice.stun);
+	
 	stunned = true;
 	abortAll();
 	local t = timer;
@@ -953,6 +1006,9 @@ function events.Stun(timer)
 			pos = pos+vectr.up2*speed;
 			if(speed > 0 and pos.y > flr) then
 				pos.y = flr;
+				if(speed > 1) then
+					Sound(audio.thud, math.clamp(speed/10));
+				end
 				speed = -speed*0.5;
 			end
 			SetBodyPos(pos);
@@ -967,6 +1023,9 @@ function events.Stun(timer)
 				for i = 1,4 do
 					DoArmMove(i, pos, 0.5);
 				end
+				Sound(audio.whoosh);
+				eventu.waitFrames(8);
+				Sound(audio.whoosh);
 				waitForArm();
 				stunned = false;
 				stunRecovery = false;
@@ -1005,7 +1064,8 @@ local function phase_armattack1()
 		local p = getPlayerPos();
 		local dir = (p-vectr.v2(arms[i].hand.x,arms[i].hand.y)):normalise();
 		p = p + (dir*128);
-		arms[i].targetobj = p;
+		arms[i].targetobj = p + dir;
+		Sound(audio.whoosh);
 		DoArmMove(i, p, 0.5);
 		eventu.waitFrames(48);
 	end
@@ -1070,10 +1130,19 @@ local function phase_armattack2()
 		
 		r=math.max(r,64);
 		
+		local armx = armpos[1].x;
+		local army = armpos[1].y;
+		
 		for i = 1,4 do
 			armpos[i] = armpos[i]:rotate(spd);
 			SetArmPos(i, bodyCentre+r*armpos[i]);
 		end
+		
+		if((armx >= 0 and armpos[1].x < 0) or (armx <= 0 and armpos[1].x > 0) or
+		   (army >= 0 and armpos[1].y < 0) or (army <= 0 and armpos[1].y > 0)) then
+			Sound(audio.whoosh, math.clamp(math.abs(spd)/3));
+		end
+		
 		
 		if(t > math.abs(spd*100)) then
 			if(d.x < 0) then
@@ -1132,6 +1201,7 @@ local function phase_danmaku1()
 		for j = 1,10 do
 			local dir = (getPlayerPos() - spawnpos):normalise();
 			spawnBullet(BULLET_SMALL, spawnpos + dir*16, dir*3.5);
+			Sound(audio.bullet_small);
 			eventu.waitFrames(28);
 		end
 		eventu.waitFrames(32);
@@ -1173,6 +1243,7 @@ local function phase_danmaku2()
 	for i = 1,4 do
 		for j = 1,4 do
 			eventu.waitFrames(64);
+			Sound(audio.bullet_med);
 			spawnBullet(BULLET_MED, bodyCentre + armlocs[j], armlocs[j]:normalise():rotate(rng.random(-5,5))*(getPlayerPos() - bodyCentre).length/rng.random(65,85));
 		end
 	end
@@ -1257,7 +1328,16 @@ local function phase_tennis()
 				targetIsBoss = true;
 			elseif(targetIsBoss and largeBullet.target == player) then
 				targetIsBoss = false;
-				DoBodyMove(Zero+vectr.v2(rng.random(64,800-64),rng.random(64,600-300)), rng.random(1,2));
+				local px = (getPlayerPos().x - Zero.x);
+				
+				local n = vectr.v2(rng.random(64,800-64),0);
+				if(math.abs(px-n.x) > 256) then
+					n.y = rng.random(64,600-300)
+				else
+					n.y = rng.random(64,600-450)
+				end
+				
+				DoBodyMove(Zero+n, rng.random(1,2));
 				waitForBody();
 			end
 			eventu.waitFrames(0);
@@ -1322,7 +1402,7 @@ local function StartBoss()
 	makeArm{ vectr.v2(x+50, y+50), vectr.v2(x+100, y+80), vectr.v2(x+160, y+120)};
 	
 	populatePlates(plateCounts[plateIndex]);
-	bgShader:compileFromFile(nil, Misc.resolveFile("background2.frag"));
+	bgShader:compileFromFile(nil, Misc.resolveFile("background.frag"));
 	
 	Audio.MusicVolume(100);
 
@@ -1333,6 +1413,13 @@ end
 
 function onStart()
 	StartBoss();
+end
+
+local function damage(damage, stun)
+	boss.Damage(damage);
+	eyeHitstun = stun;
+	Sound(audio.hurt);
+	Voice(audio.voice.hurt, 0.75);
 end
 
 function onTick()
@@ -1364,23 +1451,19 @@ function onTick()
 		elseif(stunned) then
 			local box = getSwipeHitbox();
 			if(box and colliders.collide(box, eyeBox)) then
-				boss.Damage(1);
-				eyeHitstun = 16;
+				damage(1, 16);
 			else
 				box = getLungeHitbox();
 				if(box and colliders.collide(box, eyeBox)) then
 					if(broadsword.GetLungeType() == 1) then
-						boss.Damage(2);
-						eyeHitstun = 64;
+						damage(2, 64);
 					else
-						boss.Damage(math.lerp(1,4, broadsword.GetLungeAmount()));
-						eyeHitstun = 96;
+						damage(math.lerp(1,4, broadsword.GetLungeAmount()), 96);
 					end
 				else
 					box = getDownstabHitbox();
 					if(box and colliders.collide(box, eyeBox)) then
-						boss.Damage(2);
-						eyeHitstun = 64;
+						damage(2, 64);
 					end
 				end
 			end
