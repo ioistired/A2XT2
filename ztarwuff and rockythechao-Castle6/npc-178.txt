@@ -1,0 +1,3 @@
+height=96
+gfxheight=96
+nogravity=1

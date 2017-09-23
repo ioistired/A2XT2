@@ -1,0 +1,13 @@
+gfxoffsety=0
+gfxwidth=32
+gfxheight=54
+width=32
+height=54
+npcblock=1
+jumphurt=0
+noyoshi=0
+nofireball=0
+noiceball=0
+framestyle=1
+nohammer=0
+noshell=0

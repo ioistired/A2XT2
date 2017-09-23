@@ -1,0 +1,14 @@
+gfxwidth=128
+gfxheight=128
+width=128
+height=128
+nohurt=1
+noblockcollision=1
+noyoshi=1
+nofireball=1
+noiceball=1
+frames=1
+nohammer=1
+noshell=1
+foreground=1
+speed=2

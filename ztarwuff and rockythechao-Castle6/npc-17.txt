@@ -1,0 +1,2 @@
+npcblocktop=1
+playerblocktop=1
