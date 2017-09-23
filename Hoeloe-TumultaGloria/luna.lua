@@ -11,6 +11,7 @@ local eventu = API.load("eventu");
 local colliders = API.load("colliders");
 local boss = API.load("a2xt_boss");
 local pause = API.load("a2xt_pause");
+local textblox = API.load("textblox");
 
 local playerManager = API.load("playerManager")
 
@@ -29,6 +30,15 @@ boss.HP = 175;
 boss.TitleDisplayTime = 380;
 
 local bossStarted = false;
+local starttime = 0;
+local drawBG = false;
+
+local bossSection = 0;
+
+local intensifies = false;
+local intensifiesTimeMult = 1.3;
+local intensifiesTime = lunatime.toTicks(90)/intensifiesTimeMult;
+local intensifiesTimer = 0;
 
 local Zero = vectr.v2(0,0);
 
@@ -46,6 +56,7 @@ local noise = Graphics.loadImage(Misc.resolveFile("noise.png"));
 local armemit  = particles.Emitter(x, y, Misc.resolveFile("p_armfog.ini"));
 
 local arms = {};
+local useStraightArms = false;
 
 local ellipse = {f1 = vectr.v2(-32,0), f2 = vectr.v2(32,0), Rm = 24};
 
@@ -134,6 +145,11 @@ end
 
 local function Voice(name, volume, tags)
 	audioMaster.PlaySound{sound = rng.irandomEntry(name), loops = 1, volume = volume, tags = tags}
+end
+
+local function choose(a, b, bool)
+	if(bool == nil) then bool = not intensifies; end
+	if(bool) then return a else return b end
 end
 
 local function spawnHitflash(flashType, pos, size, target)
@@ -271,7 +287,7 @@ local function spawnBullet(bulletType, pos, speed)
 	elseif(bulletType == BULLET_MED) then
 		b.framespeed = 4;
 		b.frames = 6
-		b.duration = 128;
+		b.duration = choose(128,192);
 		b.timer = b.duration;
 		b.initSpd = speed;
 		b.hitbox = colliders.Circle(0,0,18);
@@ -306,7 +322,7 @@ local function updateBullets()
 		
 		if(bullets[i].type == BULLET_MED) then
 		
-			if(bullets[i].timer > 32 and bullets[i].pos.y + (bullets[i].speed.y*bullets[i].speed.y/2) > Zero.y+600-32) then
+			if(bullets[i].timer > 32 and bullets[i].pos.y + (bullets[i].speed.y*bullets[i].speed.y/2) > Zero.y+600-choose(32,128)) then
 				bullets[i].timer = 32;
 			end
 		
@@ -319,9 +335,12 @@ local function updateBullets()
 				spawnHitflash(1, bullets[i].pos, vectr.v2(1,1)*40);
 				local s = vectr.up2;
 				Sound(audio.bullet_split);
+				local ioffset = rng.randomInt(0,1);
 				for j = 1,8 do
-					spawnBullet(BULLET_SMALL, bullets[i].pos, s*2);
-					s = s:rotate(45);
+					if(not intensifies or (j+ioffset)%2 == 0) then
+						spawnBullet(BULLET_SMALL, bullets[i].pos, s*2);
+					end
+						s = s:rotate(45);
 				end
 			end
 		end
@@ -614,24 +633,30 @@ local function IKMove(target, bns)
 	
 	local range = (target - bones[1]).length;
 	
-	--E-FABRIK length elasticity
-	for k,v in ipairs(lens) do
-		lens[k] = vectr.lerp(v,elasticLength,0.01);
-	end
-	
-	--E-FABRIK length retract (shrinks arms at close ranges to ensure target is reachable)
-	if(range < lenBase) then
-		local lenSub = (range+lenBranch-lens[1])/(#lens-1);
+	if(useStraightArms) then
 		for k,v in ipairs(lens) do
-			lens[k] = v-lenSub;
+			lens[k] = vectr.lerp(v,range/#lens,0.5);
 		end
-	end
-	
-	--E-FABRIK length extend (extends arms at far ranges to ensure target is reachable)
-	if(range > lenTot) then
-		local lenAdd = (range-lenTot)/#lens;
+	else
+		--E-FABRIK length elasticity
 		for k,v in ipairs(lens) do
-			lens[k] = v+lenAdd;
+			lens[k] = vectr.lerp(v,elasticLength,0.01);
+		end
+		
+		--E-FABRIK length retract (shrinks arms at close ranges to ensure target is reachable)
+		if(range < lenBase) then
+			local lenSub = (range+lenBranch-lens[1])/(#lens-1);
+			for k,v in ipairs(lens) do
+				lens[k] = v-lenSub;
+			end
+		end
+		
+		--E-FABRIK length extend (extends arms at far ranges to ensure target is reachable)
+		if(range > lenTot) then
+			local lenAdd = (range-lenTot)/#lens;
+			for k,v in ipairs(lens) do
+				lens[k] = v+lenAdd;
+			end
 		end
 	end
 	
@@ -932,6 +957,33 @@ local function startMoveEvent()
 	movement_loop = e;
 end
 
+local function orientArms()
+	local angles = {};
+	local base = -vectr.right2;
+	
+	for i = 1,4 do
+		local v = vectr.v2(arms[i].hand.x - x, arms[i].hand.y - y);
+		
+		local cs = (base..v)/v.length;
+		local sn = (vectr.forward3^base:tov3()):tov2()..v/v.length;
+		
+		local t = math.acos(cs);
+		if(sn < 0) then
+			t = 2*math.pi - t;
+		end
+		
+		angles[i] = {v = arms[i], ang = t};
+	end
+	
+	table.sort(angles, function(a,b) return a.ang < b.ang end);
+	
+	for i = 1,4 do
+		arms[i] = angles[i].v;
+	end
+	
+	arms[3],arms[4] = arms[4],arms[3];
+end
+
 --------------
 --	PHASES	--
 --------------
@@ -940,6 +992,7 @@ local function phase_idle()
 	for i = 1,4 do
 		arms[i].targetobj = player;
 	end
+	--orientArms();
 	while(true) do
 		--Idle arm anim
 		MoveArm(1, vectr.v2(x-200-64*math.sin(lunatime.tick()/100), y-100+64*math.cos(lunatime.tick()/100)), 5);
@@ -961,7 +1014,7 @@ local function setPhase(phase, args)
 		eventu.signal("PHASE")
 	end
 	
-	local _,c = eventu.run(phase, args)
+	local _,c = eventu.run(phase, table.join({intensifies = intensifies}, args))
 	current_phase = c;
 end
 
@@ -1043,7 +1096,7 @@ end
 
 local function phase_armattack1()
 	for i = 1,4 do
-		arms[1].targetobj = player;
+		arms[i].targetobj = player;
 	end
 	stopMoveEvent();
 	local side = rng.randomInt(0,1);
@@ -1063,11 +1116,11 @@ local function phase_armattack1()
 	for i = 1,4 do
 		local p = getPlayerPos();
 		local dir = (p-vectr.v2(arms[i].hand.x,arms[i].hand.y)):normalise();
-		p = p + (dir*128);
+		p = p + (dir*256);
 		arms[i].targetobj = p + dir;
 		Sound(audio.whoosh);
-		DoArmMove(i, p, 0.5);
-		eventu.waitFrames(48);
+		DoArmMove(i, p, 0.6);
+		eventu.waitFrames(choose(48,12));
 	end
 	
 	eventu.waitFrames(32);
@@ -1078,8 +1131,9 @@ end
 
 local function phase_armattack2()
 	for i = 1,4 do
-		arms[1].targetobj = player;
+		arms[i].targetobj = player;
 	end
+	useStraightArms = true;
 	stopMoveEvent();
 	
 	local bodyCentre = Zero+vectr.v2(rng.random(64,800-64), rng.random(64,256));
@@ -1108,11 +1162,12 @@ local function phase_armattack2()
 	waitForAll();
 	eventu.waitFrames(16);
 	
-	local t = 720;
+	local t = choose(720,500);
 	while(t > 0) do
 		t = t-1;
 		bodyCentre = vectr.v2(x,y);
 		local d = (getPlayerPos()-bodyCentre)
+		
 		local dist = d.length;
 		if(dist > 1) then
 			d = d:normalise();
@@ -1122,13 +1177,14 @@ local function phase_armattack2()
 		
 		SetBodyPos(bodyCentre);
 		
+		local radchange = choose(0.5,0.3);
 		if(dist > r) then
-			r = r+0.5;
+			r = r+radchange;
 		else
-			r = r-0.5;
+			r = r-radchange;
 		end
 		
-		r=math.max(r,64);
+		r=math.max(r,choose(64,128));
 		
 		local armx = armpos[1].x;
 		local army = armpos[1].y;
@@ -1145,8 +1201,8 @@ local function phase_armattack2()
 		
 		
 		if(t > math.abs(spd*100)) then
-			if(d.x < 0) then
-				spd = spd - 0.01;
+			if(d.x < 0 or intensifies) then
+				spd = spd - choose(0.01,0.02);
 			elseif(d.x > 0) then
 				spd = spd + 0.01;
 			end
@@ -1178,13 +1234,67 @@ local function phase_armattack2()
 	
 	eventu.waitFrames(32);
 	
+	useStraightArms = false;
+	
 	startMoveEvent();
+	setPhase();
+end
+
+local function phase_armattack3()
+
+	local armpos = {-vectr.up2:rotate(45)}
+	local r = 300;
+	local maxr = r;
+
+	for i = 1,4 do
+		arms[i].targetobj = player;
+		
+		if(i > 1) then
+			if(i == 3) then
+				armpos[i] = armpos[i-1]:rotate(180);
+			elseif(i == 4) then
+				armpos[i] = armpos[i-1]:rotate(-90);
+			else
+				armpos[i] = armpos[i-1]:rotate(90);
+			end
+		end
+	end
+	
+	local t = choose(512,256);
+	local maxt = t;
+	while(t > 0) do
+		t = t-1;
+		r = math.lerp(maxr, 96, 1-(t/maxt));
+		
+		for i = 1,4 do
+			MoveArm(i, getPlayerPos() + r*armpos[i], 8);
+		end
+		eventu.waitFrames(0);
+	end
+	
+	local p = getPlayerPos();
+	for i = 1,4 do
+		arms[i].targetobj = p;
+	end
+	eventu.waitFrames(choose(32,64));
+	
+	for i = 1,4 do
+		DoArmMove(i, p, 0.2);
+	end
+	Sound(audio.whoosh);
+	
+	eventu.waitFrames(32);
+
 	setPhase();
 end
 
 local function phase_danmaku1()
 	for i = 1,4 do
 		arms[1].targetobj = player;
+	end
+	
+	if(intensifies) then
+		eventu.waitFrames(32);
 	end
 	
 	DoArmMove(1, Zero + vectr.v2(32,32), 2);
@@ -1197,17 +1307,17 @@ local function phase_danmaku1()
 	for i = 1,4 do
 		local spawnpos = vectr.v2(arms[i].hand.x, arms[i].hand.y);
 		spawnHitflash(1, spawnpos, vectr.v2(32,32));
-		eventu.waitFrames(16);
-		for j = 1,10 do
+		eventu.waitFrames(choose(16,8));
+		for j = 1,choose(10,5) do
 			local dir = (getPlayerPos() - spawnpos):normalise();
 			spawnBullet(BULLET_SMALL, spawnpos + dir*16, dir*3.5);
 			Sound(audio.bullet_small);
-			eventu.waitFrames(28);
+			eventu.waitFrames(choose(28,14));
 		end
-		eventu.waitFrames(32);
+		eventu.waitFrames(choose(32,16));
 	end
 	
-	eventu.waitFrames(128);
+	eventu.waitFrames(choose(128,86));
 	
 	setPhase();
 end
@@ -1240,15 +1350,79 @@ local function phase_danmaku2()
 	
 	waitForAll();
 	
-	for i = 1,4 do
+	for i = 1,choose(4,3) do
 		for j = 1,4 do
-			eventu.waitFrames(64);
+			eventu.waitFrames(choose(64,8));
 			Sound(audio.bullet_med);
-			spawnBullet(BULLET_MED, bodyCentre + armlocs[j], armlocs[j]:normalise():rotate(rng.random(-5,5))*(getPlayerPos() - bodyCentre).length/rng.random(65,85));
+			spawnBullet(BULLET_MED, bodyCentre + armlocs[j], armlocs[j]:normalise():rotate(choose(rng.random(-5,5),0))*choose((getPlayerPos() - bodyCentre).length/rng.random(65,85), 5));
+		end
+		if(intensifies) then
+			eventu.waitFrames(56);
 		end
 	end
 	
 	eventu.waitFrames(256);
+	
+	startMoveEvent();
+	setPhase();
+end
+
+local function getRectEdgeFromAngle(angle, w, h)
+	
+	w=w*0.5;
+	h=h*0.5;
+	
+	local v = vectr.v2(math.cos(math.rad(angle)), math.sin(math.rad(angle)));
+	
+	local t = math.min(math.abs(w/v.x), math.abs(h/v.y));
+	
+	return v*t;
+end
+
+local function phase_danmaku3()
+	
+	if(intensifies) then
+		eventu.waitFrames(32);
+	end
+	
+	local w,h = 800-64, 600-64
+	local angles = { math.deg(math.atan(h/w)) };
+	
+	angles[2] = -angles[1];
+	angles[3] = angles[2]+180;
+	angles[4] = -angles[3];
+	
+	angles[1],angles[4] = angles[4],angles[1]
+	
+	for i = 1,4 do
+		DoArmMove(i, Zero + vectr.v2(400,300) + getRectEdgeFromAngle(angles[i], w, h), 2);
+		arms[i].targetobj = Zero + vectr.v2(400,300);
+	end
+	
+	waitForAll();
+	eventu.waitFrames(64);
+	
+	local t = choose(720,400);
+	local shootTime = choose(48,32);
+	while(t > 0) do
+		t = t-1;
+		local shoot = false;
+		for i = 1,4 do
+			angles[i] = (angles[i]+choose(0.4,0.2))%360;
+			MoveArm(i, Zero + vectr.v2(400,300) + getRectEdgeFromAngle(angles[i], w, h), 50);
+			if((t+((math.ceil(i*0.5)-1)*shootTime/2))%shootTime == 0) then
+				local p = vectr.v2(arms[i].hand.x,arms[i].hand.y)
+				spawnBullet(BULLET_SMALL, p, (arms[i].target-p):normalise()*3);
+				shoot = true;
+			end
+		end
+		if(shoot) then
+			Sound(audio.bullet_small);
+		end
+		eventu.waitFrames(0);
+	end
+	
+	eventu.waitFrames(128);
 	
 	setPhase();
 end
@@ -1348,7 +1522,7 @@ local function phase_tennis()
 	until(false);
 end
 
-local function bossEvents()
+local function bossEvents()	
 	eventu.waitFrames(128);
 	setPhase(phase_armattack1);
 	waitPhase();
@@ -1369,8 +1543,18 @@ local function bossEvents()
 	setPhase(phase_tennis);
 	waitPhase();
 	
+	eventu.waitFrames(256);
+	setPhase(phase_armattack3);
+	waitPhase();
+	eventu.waitFrames(256);
+	setPhase(phase_danmaku3);
+	waitPhase();
+	eventu.waitFrames(256);
+	setPhase(phase_tennis);
+	waitPhase();
+	
 	while(true) do
-		local phaseOptions = {phase_armattack1, phase_armattack2, phase_danmaku1, phase_danmaku2}
+		local phaseOptions = {phase_armattack1, phase_armattack2, phase_armattack3, phase_danmaku1, phase_danmaku2, phase_danmaku3}
 		for i = 1,2 do
 			eventu.waitFrames(256);
 			local j = rng.randomInt(1,#phaseOptions);
@@ -1384,10 +1568,25 @@ local function bossEvents()
 	end
 end
 
-local function StartBoss()
-	
-	Zero.x = Section(0).boundary.left;
-	Zero.y = Section(0).boundary.top;
+local function intensifiesEvents()
+	intensifies = true;
+	intensifiesTimer = intensifiesTime;
+	boss.Active = false;
+	while(true) do
+		local phaseOptions = {phase_armattack1, phase_armattack2, phase_danmaku1, phase_danmaku2, phase_danmaku3}
+		while(#phaseOptions > 0) do
+			eventu.waitFrames(64);
+			local j = rng.randomInt(1,#phaseOptions);
+			setPhase(phaseOptions[j]);
+			table.remove(phaseOptions,j);
+			waitPhase();
+		end
+	end
+end
+
+local function InitBoss()
+	Zero.x = Section(bossSection).boundary.left;
+	Zero.y = Section(bossSection).boundary.top;
 	
 	x = Zero.x+600;
 	y = Zero.y+250;
@@ -1404,15 +1603,24 @@ local function StartBoss()
 	populatePlates(plateCounts[plateIndex]);
 	bgShader:compileFromFile(nil, Misc.resolveFile("background.frag"));
 	
-	Audio.MusicVolume(100);
-
-	boss.Start();
-	
 	setPhase();
 end
 
+local function StartBoss()
+	Audio.MusicVolume(100);
+	Audio.SeizeStream(bossSection);
+	Audio.MusicOpen(Misc.resolveFile("Au Revoir, Mes Anges.ogg"));
+	Audio.MusicPlay();
+	
+	drawBG = true;
+	starttime = lunatime.time();
+	boss.Start();
+end
+
 function onStart()
-	StartBoss();
+	InitBoss();
+	eventu.setTimer(2,StartBoss)
+	--StartBoss();
 end
 
 local function damage(damage, stun)
@@ -1423,47 +1631,61 @@ local function damage(damage, stun)
 end
 
 function onTick()
-	if(not stunned) then
-		--Idle body anim
-		y = y + 0.5*math.sin(0.05*lunatime.tick());
-	end
-	
-	--Prep animations for rendering
-	HandlePlates(0.025, 1);
-	HandleArmPartciles(24);
-	
-	updateBullets();
-	updateLargeBullet();
-	
-	if(not bossStarted and Audio.MusicClock() > 12 and boss.isReady()) then
-		bossStarted = true;
-		startMoveEvent();
-		eventu.run(bossEvents);
-	end
-	
-	if(bossStarted) then
-		signalChecks();
-		eyeBox.x = x;
-		eyeBox.y = y;
+	if(not intensifies or intensifiesTimer > 0) then
+		if(not stunned) then
+			--Idle body anim
+			y = y + 0.5*math.sin(0.05*lunatime.tick());
+		end
 		
-		if(eyeHitstun > 0) then
-			eyeHitstun = eyeHitstun - 1;
-		elseif(stunned) then
-			local box = getSwipeHitbox();
-			if(box and colliders.collide(box, eyeBox)) then
-				damage(1, 16);
-			else
-				box = getLungeHitbox();
+		--Prep animations for rendering
+		HandlePlates(0.025, 1);
+		HandleArmPartciles(24);
+		
+		updateBullets();
+		updateLargeBullet();
+		
+		if(not bossStarted and Audio.MusicClock() > 12 and boss.isReady()) then
+			bossStarted = true;
+			startMoveEvent();
+			eventu.run(bossEvents);
+			--eventu.run(intensifiesEvents);
+		end
+		
+		if((boss.Active or intensifies) and player:mem(0x13E, FIELD_WORD) > 0) then
+				Audio.MusicStopFadeOut(500);
+		end
+		
+		if(bossStarted) then
+			if(intensifies) then
+				Defines.earthquake = 2;
+				if(intensifiesTimer > 0) then
+					intensifiesTimer = intensifiesTimer - 1;
+				end
+			end
+			
+			signalChecks();
+			eyeBox.x = x;
+			eyeBox.y = y;
+			
+			if(eyeHitstun > 0) then
+				eyeHitstun = eyeHitstun - 1;
+			elseif(stunned) then
+				local box = getSwipeHitbox();
 				if(box and colliders.collide(box, eyeBox)) then
-					if(broadsword.GetLungeType() == 1) then
-						damage(2, 64);
-					else
-						damage(math.lerp(1,4, broadsword.GetLungeAmount()), 96);
-					end
+					damage(1, 16);
 				else
-					box = getDownstabHitbox();
+					box = getLungeHitbox();
 					if(box and colliders.collide(box, eyeBox)) then
-						damage(2, 64);
+						if(broadsword.GetLungeType() == 1) then
+							damage(2, 64);
+						else
+							damage(math.lerp(1,4, broadsword.GetLungeAmount()), 96);
+						end
+					else
+						box = getDownstabHitbox();
+						if(box and colliders.collide(box, eyeBox)) then
+							damage(2, 64);
+						end
 					end
 				end
 			end
@@ -1472,13 +1694,14 @@ function onTick()
 end
 
 local function DrawBG()
-	local t = math.min(2,lunatime.time() * 0.05);
-	local gradt = math.pow(math.sin(lunatime.time()*0.05),2);
+	local gametime = lunatime.time() - starttime;
+	local t = math.min(2,gametime * 0.05);
+	local gradt = math.pow(math.sin(gametime*0.05),2);
 	local gradcol = smokegrad:get(gradt);
-	Graphics.glDraw{vertexCoords={0,0,800,0,800,600,0,600}, primitive = Graphics.GL_TRIANGLE_FAN, textureCoords = {0,0,1,0,1,1,0,1}, texture = noise, shader = bgShader, color = {1,1,1,lunatime.time()},
+	Graphics.glDraw{vertexCoords={0,0,800,0,800,600,0,600}, primitive = Graphics.GL_TRIANGLE_FAN, textureCoords = {0,0,1,0,1,1,0,1}, texture = noise, shader = bgShader, color = {1,1,1,gametime},
 									uniforms =  {
                                         iResolution = {800,600,1},
-                                        iGlobalTime = lunatime.time(),
+                                        iGlobalTime = gametime,
 										gSpeedMult = t,
 										gColBase = {gradcol.r,gradcol.g,gradcol.b},
 										gColAdd = {0.3,0.4,0.6},
@@ -1560,18 +1783,64 @@ local function DrawPlates()
 		v.obj:Draw(order, col);
 	end
 end
+local function pad0(val, num)
+	val = tostring(val)
+	return string.rep("0", num - #val)..val;
+end
+
+local function DrawIntensifies()
+	local s = lunatime.toSeconds(intensifiesTimer)*intensifiesTimeMult;
+	textblox.printExt(pad0(math.floor(s/60),2)..":"..pad0(math.floor(s%60),2)..":"..pad0(math.floor((s*100)%100),2), 
+	{x=400,y=120,z=1,scale=4, color=0xFF000099, font=textblox.FONT_SPRITEDEFAULT1X2, halign=textblox.ALIGN_MID, valign=textblox.ALIGN_MID});
+	
+	local t = 1 - intensifiesTimer/intensifiesTime;
+	
+	local a = math.lerp(0.5,0.9, t*t);
+	
+	local alpha = math.cos(t*150);
+	alpha = alpha*alpha*a;
+	
+	if(intensifiesTimer < 128) then
+		alpha = math.lerp(1, alpha, intensifiesTimer/128);
+		player:mem(0x140, FIELD_WORD, 2);
+	end
+	
+	Graphics.drawScreen{color=math.lerp(Color.transparent, Color.red, alpha)}
+	
+	if(intensifiesTimer == 0) then
+		intensifiesTimer = -1;
+		eventu.run(function()
+			local fade = 0;
+			while(true) do
+				if(fade < 1) then
+					fade = fade + 0.01;
+				end
+				Graphics.drawScreen{color=math.lerp(Color.transparent, Color.white, fade), priority = 10}
+				eventu.waitFrames(0);
+			end
+		end);
+	end
+end
 
 local function DrawBoss()
-	DrawBG();
+	if(not intensifies or intensifiesTimer > 0) then
+		if(drawBG) then
+			DrawBG();
+		end
 	
-	DrawFog();
-	DrawEye();
-	DrawPlates();
+		DrawFog();
+		DrawEye();
+		DrawPlates();
+		
+		drawBullets();
+		drawLargeBullet();
+		
+		drawHitFlashes();
+	end
 	
-	drawBullets();
-	drawLargeBullet();
-	
-	drawHitFlashes();
+	if(intensifies) then
+		DrawIntensifies();
+	end
 	
 	local st = math.sin(lunatime.tick()*0.01);
 	--Graphics.glDraw{vertexCoords = {0,0,800,0,0,600,800,600}, primitive = Graphics.GL_TRIANGLE_STRIP, color={1,0,0,0.25*st*st+vectr.lerp(0.25,1,lunatime.time()/30)}}

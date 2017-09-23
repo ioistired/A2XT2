@@ -71,26 +71,28 @@ function boss.Damage(amount)
 end
 
 function boss.onTick()
-	if(lerpHP > boss.HP) then
-		lerpHP = lerpHP - boss.LerpSpeed;
-	elseif(lerpHP < boss.HP) then
-		lerpHP = lerpHP + boss.LerpSpeed;
-	end
-	if(math.abs(lerpHP - boss.HP) < boss.LerpSpeed) then
-		lerpHP = boss.HP;
-	end
-	
-	if(introTimer > -1) then
-		introTimer = introTimer + 1;
-		barPos1 = (introTimer - boss.TitleDisplayTime)/barAppearTime;
-		barPos2 = barPos1;
-	else
-		barPos1 = math.max(lerpHP, boss.HP)/boss.MaxHP;
-		barPos2 = math.min(lerpHP, boss.HP)/boss.MaxHP
-	end
-	
-	if(introTimer > boss.TitleDisplayTime + barAppearTime) then
-		introTimer = -1;
+	if(boss.Active) then
+		if(lerpHP > boss.HP) then
+			lerpHP = lerpHP - boss.LerpSpeed;
+		elseif(lerpHP < boss.HP) then
+			lerpHP = lerpHP + boss.LerpSpeed;
+		end
+		if(math.abs(lerpHP - boss.HP) < boss.LerpSpeed) then
+			lerpHP = boss.HP;
+		end
+		
+		if(introTimer > -1) then
+			introTimer = introTimer + 1;
+			barPos1 = (introTimer - boss.TitleDisplayTime)/barAppearTime;
+			barPos2 = barPos1;
+		else
+			barPos1 = math.max(lerpHP, boss.HP)/boss.MaxHP;
+			barPos2 = math.min(lerpHP, boss.HP)/boss.MaxHP
+		end
+		
+		if(introTimer > boss.TitleDisplayTime + barAppearTime) then
+			introTimer = -1;
+		end
 	end
 end
 
