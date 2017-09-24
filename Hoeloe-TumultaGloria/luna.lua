@@ -1567,6 +1567,8 @@ local function phase_armattack3()
 	moveBoundsY.x = 128;
 	moveBoundsY.y = 256;
 	
+	DoBodyMove(Zero + vectr.v2(400,300), 2)
+	
 	DoArmMove(1, Zero + vectr.v2(-32,-32), 2);
 	DoArmMove(2, Zero + vectr.v2(800+32,-32), 2);
 	DoArmMove(3, Zero + vectr.v2(-32,600+32), 2);
