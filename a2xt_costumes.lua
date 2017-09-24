@@ -51,7 +51,8 @@ for  _,v1 in ipairs(Misc.listDirectories(Misc.episodePath().."graphics/costumes"
 				character = cid
 				-- any other properties defined in a text document maybe?
 			}
-			
+			info.animatx = Graphics.loadImage(info.path.."/"..v1.."_anmx.png")
+
 			costumes.info[costume_id] = info
 		end
 

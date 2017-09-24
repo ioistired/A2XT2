@@ -1636,7 +1636,7 @@ local function StartBoss()
 	Audio.MusicOpen(Misc.resolveFile("Au Revoir, Mes Anges.ogg"));
 	Audio.MusicPlay();
 	
-	drawBG = true;
+	--drawBG = true;
 	starttime = lunatime.time();
 	boss.Start();
 end

@@ -1,9 +1,17 @@
 -- STILL SUPER WIP
-
+local costumes = API.load("a2xt_costumes")
+local message  = API.load("a2xt_message")
 
 local animatx = API.load("animatx")
 local rng = API.load("rng")
+
 local a2xt_actor = {}
+
+
+function a2xt_actor.onInitAPI()
+	registerEvent (a2xt_actor, "onTick")
+	registerEvent (a2xt_actor, "onDraw")
+end
 
 
 
@@ -25,7 +33,7 @@ a2xt_actor.EMOTE = {
 --** Actor class           **
 --***************************
 local Actor = {}
-a2xt_actor.allActors = {}
+local allActors = {}
 
 
 function Actor.__index(obj,key)
@@ -146,6 +154,8 @@ function Actor.create(args, preset)
 	p._direction = 1
 	p.mirrored   = false
 
+	p.floatAmount = args.floatAmount  or  0
+
 
 	-- Animation state/frame presets (standardized for the player character sheets)
 	p.moveAnims   = {}
@@ -196,7 +206,7 @@ function Actor.create(args, preset)
 
 	-- Assign metatable, save in and return
 	setmetatable(p, Actor)
-	table.insert(a2xt_actor.allActors, p)
+	table.insert(allActors, p)
 	return p;
 end
 
@@ -323,10 +333,22 @@ function Actor:Update()
 	end
 end
 
-
 function Actor:Draw()
 	for  k,v in ipairs(self.sprites)  do
 		v:render()
+	end
+end
+
+
+function a2xt_actor.onTick()
+	for  k,v in pairs(allActors)  do
+		v:Update()
+	end
+end
+
+function a2xt_actor.onDraw()
+	for  k,v in pairs(allActors)  do
+		v:Draw()
 	end
 end
 
@@ -346,8 +368,7 @@ function Actor:UnfreezeAnim()
 	end
 end
 
---[[
-	:StillFrame args:
+--[[StillFrame args:
 	- state     (int)
 	- frame     (int)
 --]]
@@ -479,6 +500,46 @@ end
 --***************************
 --** Preset actors         **
 --***************************
+local playerSeqs = {
+                    [1]="3,4,5",
+                    [2]="3,4,5",
+                    [3]="-1",
+                    [4]="-1",
+                    [5]="-1"
+                   }
+local threeWalkSeq = animatx.Sequence ("3,4,5,4")
+local fourWalkSeq = animatx.Sequence ("3,4,5,6")
+
+local playerSet    = animatx.Set {sheet=Graphics.loadImage("actors/anmx_player.png"), states=6, frames=6, sequences=playerSeqs}
+
+-- Still figuring out how to structure things, thinking of defining the properties in ini files
+local charData = {
+                  demo      = {},
+                  iris      = {},
+                  kood      = {},
+                  raocow    = {},
+                  sheath    = {},
+
+                  science   = {},
+                  garish    = {},
+                  mishi     = {},
+                  pandamona = {},
+                  calleoca  = {},
+                  pily      = {},
+                  nevada    = {},
+                 }
+
+
+--[[ PlaceCharacter args:
+	- char           (string)   the name of the character
+	- x              (number)   the x coordinate to place them at
+	- y              (number)   the y coordinate to place them at
+--]]
+function a2xt_actor.PlaceCharacter(args)
+	
+end
+
+
 a2xt_actor.CHARS = {}
 a2xt_actor.NAMES = {-- Players
                     "DEMO","IRIS","KOOD","RAOCOW","SHEATH",
