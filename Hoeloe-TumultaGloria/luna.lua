@@ -1173,6 +1173,11 @@ function events.Stun(timer)
 			end
 			SetBodyPos(pos);
 			t = t-1;
+			
+			for i = 1,4 do
+				arms[i].targetobj = pos;
+			end
+			
 			if(t > 0 and t < 128) then
 				stunRecovery = true;
 				for i = 1,4 do
@@ -1187,6 +1192,9 @@ function events.Stun(timer)
 				eventu.waitFrames(8);
 				Sound(audio.whoosh);
 				waitForArm();
+				for i = 1,4 do
+					arms[i].targetobj = player;
+				end
 				stunned = false;
 				stunRecovery = false;
 				plateIndex = math.min(plateIndex+1, #plateCounts);
