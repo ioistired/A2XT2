@@ -11,6 +11,7 @@ local eventu = API.load("eventu");
 local colliders = API.load("colliders");
 local boss = API.load("a2xt_boss");
 local pause = API.load("a2xt_pause");
+local message = API.load("a2xt_message");
 local textblox = API.load("textblox");
 
 local playerManager = API.load("playerManager")
@@ -56,6 +57,8 @@ local hand = Graphics.loadImage(Misc.resolveFile("hand.png"));
 
 local noise = Graphics.loadImage(Misc.resolveFile("noise.png"));
 
+local anges = Graphics.loadImage(Misc.resolveFile("anges.png"));
+
 local armemit  = particles.Emitter(x, y, Misc.resolveFile("p_armfog.ini"));
 
 local cornerfog = particles.Emitter(x, y, Misc.resolveFile("p_cornerfog.ini"));
@@ -81,6 +84,7 @@ local smokegrad = particles.Grad({0,0.0909,0.1818,0.2727,0.3636,0.4545,0.5455,0.
 local current_phase = nil;
 local movement_loop = nil;
 local move_event = nil;
+local player_pos = {x=0, y=0, width=0, height = 0};
 
 local eyeBox = colliders.Circle(0,0,32);
 
@@ -116,6 +120,7 @@ audio.sunball_charge = Misc.resolveFile("charge_sunball.ogg")
 audio.sunball_fire = Misc.resolveFile("fire_sunball.ogg")
 audio.sunball_reflect = Misc.resolveFile("reflect_sunball.ogg")
 audio.sunball_die = Misc.resolveFile("explode_sunball.ogg")
+audio.sunball_charge_final = Misc.resolveFile("charge_sunball_final.ogg")
 audio.plate_break = Misc.resolveFile("break_plate.ogg")
 audio.stun = Misc.resolveFile("stun.ogg")
 audio.thud = Misc.resolveFile("thud.ogg")
@@ -127,6 +132,7 @@ audio.bullet_small = Misc.resolveFile("bullet_1.ogg")
 audio.bullet_hit = Misc.resolveFile("bullet_2.ogg")
 audio.bullet_med = Misc.resolveFile("bullet_3.ogg")
 audio.bullet_split = Misc.resolveFile("bullet_4.ogg")
+audio.fog = Misc.resolveFile("fog.ogg")
 
 audio.voice = {}
 
@@ -368,16 +374,24 @@ local function updateBullets()
 end
 
 local largeBulletChargeTime = 200;
+local largeBulletEndTime = 600;
 local largeBulletSize = 128;
+local largeBulletEndSize = 400;
 
-local function spawnLargeBullet(pos)
-	local b = {pos = pos, imgs = {}, launchTimer = largeBulletChargeTime, hitbox = colliders.Circle(0,0,4), dmghitbox = colliders.Circle(0,0,3), speed=4, target = player}
+local isEnding = false;
+
+local function spawnLargeBullet(pos, isend)
+	local b = {pos = pos, imgs = {}, launchTimer = largeBulletChargeTime, hitbox = colliders.Circle(0,0,4), dmghitbox = colliders.Circle(0,0,3), speed=4, target = player, isend = isend}
 	
 	for _,v in ipairs(largeBulletImgs) do
 		table.insert(b.imgs, imagic.Create{texture = v, primitive = imagic.TYPE_BOX, vertColors = {0xFFFFFF00,0xFFFFFF00,0xFFFFFF00,0xFFFFFF00}, x=pos.x, y = pos.y, width=8, height = 8, scene = true, align = imagic.ALIGN_CENTRE})
 	end
 	
-	Sound(audio.sunball_charge);
+	if(isend) then
+		Sound(audio.sunball_charge_final);
+	else
+		Sound(audio.sunball_charge);
+	end
 	
 	largeBullet = b;
 end
@@ -398,15 +412,23 @@ local function updateLargeBullet()
 				v:Rotate(1);
 			end
 		end
-		if(largeBullet.launchTimer > 0) then
+		if(largeBullet.launchTimer > 0 or largeBullet.isend) then
 			largeBullet.launchTimer = largeBullet.launchTimer - 1;
-			if(largeBullet.launchTimer == 20) then
-				Sound(audio.sunball_fire);
-			elseif(largeBullet.launchTimer == 0) then
-				largeBullet.velocity = (getPlayerPos() - largeBullet.pos):normalise() * largeBullet.speed;
+			
+			if(not largeBullet.isend) then
+				if(largeBullet.launchTimer == 20) then
+					Sound(audio.sunball_fire);
+				elseif(largeBullet.launchTimer == 0) then
+					largeBullet.velocity = (getPlayerPos() - largeBullet.pos):normalise() * largeBullet.speed;
+				end
 			end
 			--local s = math.lerp(1.02,1,1 - largeBullet.launchTimer/largeBulletChargeTime);
-			local s = math.lerp(math.pow(largeBulletSize,1/largeBulletChargeTime),1,1 - largeBullet.launchTimer/largeBulletChargeTime);
+			local s = 1;
+			if(largeBullet.isend) then
+				s = math.lerp(math.pow(largeBulletEndSize,1/largeBulletChargeTime),1.001,math.clamp(1-(intensifiesTimer/largeBulletEndTime)));
+			else
+				s = math.lerp(math.pow(largeBulletSize,1/largeBulletChargeTime),1,1 - largeBullet.launchTimer/largeBulletChargeTime);
+			end
 			largeBullet.hitbox.radius = largeBullet.hitbox.radius*(s+0.001);
 			largeBullet.dmghitbox.radius = math.max(largeBullet.hitbox.radius-8,1);
 			for _,v in ipairs(largeBullet.imgs) do
@@ -415,54 +437,56 @@ local function updateLargeBullet()
 			end
 		end
 		
-		local hb = getLungeHitbox() or getSwipeHitbox() or getUpstabHitbox();
-		
-		if(largeBullet.target == player) then
-			if(hb and colliders.collide(hb, largeBullet.hitbox)) then
-				largeBullet.target = nil;
-				largeBullet.speed = largeBullet.speed*1.05;
-				largeBullet.velocity = (vectr.v2(x,y) - largeBullet.pos):normalise() * largeBullet.speed;
-				
-				Sound(audio.sunball_reflect);
-				
-				local p = vectr.v2(hb.x+hb.width*0.5, hb.y+hb.height*0.5);
-				local d = p-largeBullet.pos;
-				if(d.length > largeBullet.hitbox.radius) then
-					d = d:normalise();
-					p = largeBullet.pos + d*largeBullet.hitbox.radius;
-				end
-				
-				spawnHitflash(2, p, vectr.v2(200, 200));
-			elseif(colliders.collide(player,largeBullet.dmghitbox)) then
-				player:harm();
-			end
-		else
-			if(colliders.collide(eyeBox,largeBullet.hitbox)) then
-				if(numPlates >= 1) then
-					largeBullet.target = player;
+		if(not largeBullet.isend) then
+			local hb = getLungeHitbox() or getSwipeHitbox() or getUpstabHitbox();
+			
+			if(largeBullet.target == player) then
+				if(largeBullet.launchTimer <= 0 and hb and colliders.collide(hb, largeBullet.hitbox)) then
+					largeBullet.target = nil;
 					largeBullet.speed = largeBullet.speed*1.05;
-					largeBullet.velocity = (getPlayerPos() - largeBullet.pos):normalise() * largeBullet.speed;
-					
-					local p = vectr.v2(x,y);
-					local d = (largeBullet.pos-p):normalise();
-					d = p + d*32;
+					largeBullet.velocity = (vectr.v2(x,y) - largeBullet.pos):normalise() * largeBullet.speed;
 					
 					Sound(audio.sunball_reflect);
-					Sound(audio.plate_break, 0.5);
-				
-					spawnHitflash(2, d, vectr.v2(200, 200));
-					spawnHitflash(3, p, vectr.v2(150, 150), eyeBox);
-				else
-					Sound(audio.sunball_die);
 					
-					spawnHitflash(4, largeBullet.pos, vectr.v2(150, 150));
-					spawnHitflash(3, vectr.v2(x,y), vectr.v2(150, 150), eyeBox);
-					largeBullet = nil;
-					boss.Damage(10);
-					events.Stun(512);
-					return;
+					local p = vectr.v2(hb.x+hb.width*0.5, hb.y+hb.height*0.5);
+					local d = p-largeBullet.pos;
+					if(d.length > largeBullet.hitbox.radius) then
+						d = d:normalise();
+						p = largeBullet.pos + d*largeBullet.hitbox.radius;
+					end
+					
+					spawnHitflash(2, p, vectr.v2(200, 200));
+				elseif(colliders.collide(player,largeBullet.dmghitbox)) then
+					player:harm();
 				end
-				UpdatePlates(numPlates-1);
+			else
+				if(colliders.collide(eyeBox,largeBullet.hitbox)) then
+					if(numPlates >= 1) then
+						largeBullet.target = player;
+						largeBullet.speed = largeBullet.speed*1.05;
+						largeBullet.velocity = (getPlayerPos() - largeBullet.pos):normalise() * largeBullet.speed;
+						
+						local p = vectr.v2(x,y);
+						local d = (largeBullet.pos-p):normalise();
+						d = p + d*32;
+						
+						Sound(audio.sunball_reflect);
+						Sound(audio.plate_break, 0.5);
+					
+						spawnHitflash(2, d, vectr.v2(200, 200));
+						spawnHitflash(3, p, vectr.v2(150, 150), eyeBox);
+					else
+						Sound(audio.sunball_die);
+						
+						spawnHitflash(4, largeBullet.pos, vectr.v2(150, 150));
+						spawnHitflash(3, vectr.v2(x,y), vectr.v2(150, 150), eyeBox);
+						largeBullet = nil;
+						boss.Damage(10);
+						events.Stun(512);
+						return;
+					end
+					UpdatePlates(numPlates-1);
+				end
 			end
 		end
 				  
@@ -1354,19 +1378,23 @@ local function phase_armattack2()
 	end
 	
 	waitForAll();
-	eventu.waitFrames(16);
 	
-	local accel = choose(0.01,0.02);
-	if(getPlayerPos().x < bodyCentre.x) then
-		accel = -accel;
+	if(not intensifies) then
+		eventu.waitFrames(16);
 	end
 	
-	local t = choose(720,500);
-	local vel = vectr.v2(0,0);
-	
+	local accel = choose(0.01,0.02);
 	local target = vectr.v2(800-64, 600-32-r);
 	
-	local movspd = choose(2.5,1.5);
+	if(getPlayerPos().x < bodyCentre.x) then
+		accel = -accel;
+		target.x = 800-target.x;
+	end
+	
+	local t = choose(720,400);
+	local vel = vectr.v2(0,0);
+	
+	local movspd = 2.5;
 	while(t > 0) do
 		t = t-1;
 		bodyCentre = vectr.v2(x,y);
@@ -1395,7 +1423,7 @@ local function phase_armattack2()
 		
 		if((armx >= 0 and armpos[1].x < 0) or (armx <= 0 and armpos[1].x > 0) or
 		   (army >= 0 and armpos[1].y < 0) or (army <= 0 and armpos[1].y > 0)) then
-			Sound(audio.whoosh, math.clamp(math.abs(spd)/3));
+			Sound(audio.whoosh);
 		end
 		
 		if(t > 64) then
@@ -1420,7 +1448,9 @@ local function phase_armattack2()
 		eventu.waitFrames(0);
 	end
 	
-	eventu.waitFrames(32);
+	if(not intensifies) then
+		eventu.waitFrames(32);
+	end
 	
 	useStraightArms = false;
 	
@@ -1509,6 +1539,8 @@ local function phase_armattack3()
 	DoArmMove(2, Zero + vectr.v2(800+32,-32), 2);
 	DoArmMove(3, Zero + vectr.v2(-32,600+32), 2);
 	DoArmMove(4, Zero + vectr.v2(800+32,600+32), 2);
+	
+	Sound(audio.fog);
 	
 	while(t < maxt) do
 		globalfog = t/maxt;
@@ -1679,10 +1711,6 @@ end
 local function phase_danmaku3()
 	stopMoveEvent();
 	
-	if(intensifies) then
-		eventu.waitFrames(32);
-	end
-	
 	local w,h = 800-64, 600-64
 	local angles = { math.deg(math.atan(h/w)) };
 	
@@ -1700,15 +1728,15 @@ local function phase_danmaku3()
 	end
 	
 	waitForAll();
-	eventu.waitFrames(64);
+	eventu.waitFrames(choose(64,16));
 	
-	local t = choose(720,400);
-	local shootTime = choose(42,32);
+	local t = choose(720,300);
+	local shootTime = choose(42,26);
 	while(t > 0) do
 		t = t-1;
 		local shoot = false;
 		for i = 1,4 do
-			angles[i] = (angles[i]+choose(0.4,0.2))%360;
+			angles[i] = (angles[i]+choose(0.4,0.3))%360;
 			MoveArm(i, Zero + vectr.v2(400,300) + getRectEdgeFromAngle(angles[i], w, h), 50);
 			if((t--[[+((math.ceil(i*0.5)-1)*shootTime/2)]])%shootTime == 0 and arms[i].stuntimer == 0) then
 				local p = vectr.v2(arms[i].hand.x,arms[i].hand.y)
@@ -1836,9 +1864,55 @@ local function phase_tennis()
 	until(false);
 end
 
+
+local function phase_supertennis()
+	stopMoveEvent();
+	
+	local bodyPos = Zero+vectr.v2(400,400)+(vectr.v2(-300,0):rotate(120));
+	DoBodyMove(bodyPos, 2);
+		
+		
+	local side = 1;
+		
+	local corners = {}
+	corners[1] = bodyPos+vectr.v2(48*-side,-48);
+	corners[2] = bodyPos+vectr.v2(48*-side,48);
+	corners[3] = bodyPos+vectr.v2(144*-side,-48);
+	corners[4] = bodyPos+vectr.v2(144*-side,48);
+		
+	local centre = vectr.zero2;
+	for i=1,4 do
+		DoArmMove(i, corners[i], 2);
+		centre = (centre + corners[i]);
+	end
+	centre = centre/4;
+		
+	for i=1,4 do
+		arms[i].targetobj = centre;
+	end
+		
+	waitForAll();
+	
+	eventu.waitFrames(16);
+	spawnLargeBullet(centre, true);
+					
+	local tim = 0;
+	while(intensifiesTimer > 0) do
+		local t = 1 - (largeBullet.launchTimer/largeBulletChargeTime);
+		tim = tim + 1;
+		
+		if(tim == 64) then
+			message.showMessageBox {target=player_pos, text="Together, I know you'll succeed where we failed.<pause 90>", closeWith = "auto", keepOnscreen = true}
+		end
+		
+		for i=1,4 do
+			MoveArm(i, ((corners[i]-centre):rotate(t*t*720))*math.lerp(1,0.75,t) + centre + t*t*32*vectr.up2:rotate(rng.random(360)), 12);
+		end
+		eventu.waitFrames(0);
+	end
+end
+
 local function bossEvents()	
-	setPhase(phase_danmaku3);
-	waitPhase();
 	eventu.waitFrames(128);
 	setPhase(phase_armattack1);
 	waitPhase();
@@ -1884,18 +1958,37 @@ local function bossEvents()
 	end
 end
 
+local intensifiesMonologue = {
+[2] = "I'm sorry I couldn't stick around longer, girls, but I have no regrets.",
+[4] = "Knowing that your story continues, I'm content with mine ending here.",
+[5] = "Demo...",
+[6] = "and Iris..."
+}
+
 local function intensifiesEvents()
 	intensifies = true;
 	intensifiesTimer = intensifiesTime;
 	boss.Active = false;
+	local t = 0;
 	while(true) do
 		local phaseOptions = {phase_armattack1, phase_armattack2, phase_danmaku1, phase_danmaku2, phase_danmaku3}
 		while(#phaseOptions > 0) do
-			eventu.waitFrames(64);
-			local j = rng.randomInt(1,#phaseOptions);
-			setPhase(phaseOptions[j]);
-			table.remove(phaseOptions,j);
-			waitPhase();
+			eventu.waitFrames(32);
+			if(intensifiesTimer > largeBulletEndTime) then
+				local j = rng.randomInt(1,#phaseOptions);
+				setPhase(phaseOptions[j]);
+				table.remove(phaseOptions,j);
+				waitPhase();
+				t = t + 1;
+				if(intensifiesMonologue[t]) then
+					message.showMessageBox {target=player_pos, text=intensifiesMonologue[t].."<pause 90>", closeWith = "auto", keepOnscreen = true}
+					eventu.waitFrames(64);
+				end
+			else
+				isEnding = true;
+				setPhase(phase_supertennis);
+				return;
+			end
 		end
 	end
 end
@@ -1928,7 +2021,7 @@ local function StartBoss()
 	Audio.MusicOpen(Misc.resolveFile("Au Revoir, Mes Anges.ogg"));
 	Audio.MusicPlay();
 	
-	--drawBG = true;
+	drawBG = true;
 	starttime = lunatime.time();
 	boss.Start();
 end
@@ -1946,8 +2039,16 @@ local function damage(damage, stun)
 	Voice(audio.voice.hurt, 0.75);
 end
 
+local mainloop;
+
 function onTick()
 	if(not intensifies or intensifiesTimer > 0) then
+		
+		player_pos.x = player.x;
+		player_pos.y = player.y;
+		player_pos.width = player.width;
+		player_pos.height = player.height;
+	
 		if(not stunned) then
 			--Idle body anim
 			y = y + 0.5*math.sin(0.05*lunatime.tick());
@@ -1963,8 +2064,8 @@ function onTick()
 		if(not bossStarted and Audio.MusicClock() > 12 and boss.isReady()) then
 			bossStarted = true;
 			startMoveEvent(true);
-			eventu.run(bossEvents);
-			--eventu.run(intensifiesEvents);
+			_,mainloop = eventu.run(bossEvents);
+			--_,mainloop = eventu.run(intensifiesEvents);
 		end
 		
 		if((boss.Active or intensifies) and player:mem(0x13E, FIELD_WORD) > 0) then
@@ -2005,6 +2106,23 @@ function onTick()
 					end
 				end
 			end
+		end
+	end
+	
+	if(intensifies) then
+		player.powerup = 2;
+		if(player:mem(0x140,FIELD_WORD) > 32 and player:isGroundTouching()) then
+			player.downKeyPressing = true;
+		end
+		
+		if(intensifiesTimer < largeBulletEndTime - 128 and not isEnding) then
+			setPhase(phase_supertennis);
+			eventu.abort(mainloop);
+			isEnding = true;
+		end
+		
+		if(math.floor(intensifiesTimer) == 100) then
+			Audio.MusicStopFadeOut(3000);
 		end
 	end
 end
@@ -2170,15 +2288,29 @@ local function DrawIntensifies()
 	
 	Graphics.drawScreen{color=math.lerp(Color.transparent, Color.red, alpha)}
 	
-	if(intensifiesTimer == 0) then
+	if(math.floor(intensifiesTimer) == 0) then
 		intensifiesTimer = -1;
+		local angesTime = 300;
+		local angesDelay = lunatime.toTicks(5);
+		pause.Block();
 		eventu.run(function()
 			local fade = 0;
+			local timer = 0;
 			while(true) do
 				if(fade < 1) then
 					fade = fade + 0.01;
 				end
-				Graphics.drawScreen{color=math.lerp(Color.transparent, Color.white, fade), priority = 10}
+				Graphics.drawScreen{color=math.lerp(Color.transparent, Color.white, fade), priority = 9}
+				
+				timer = timer + 1;
+				if(timer > angesTime) then
+					Graphics.drawImageWP(anges, 0, 0, (timer-angesTime)/100, 9.5);
+				end
+				
+				if(timer > angesTime + angesDelay) then
+					Graphics.drawScreen{color=math.lerp(Color.transparent, Color.black, math.clamp((timer-angesTime-angesDelay)/100)), priority = 10}
+				end
+				
 				eventu.waitFrames(0);
 			end
 		end);
