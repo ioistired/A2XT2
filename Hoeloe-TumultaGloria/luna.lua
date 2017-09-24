@@ -26,13 +26,15 @@ boss.Name = "Tumulta Gloria"
 boss.SuperTitle = "Chaos Pumpernickel"
 boss.SubTitle = "Anarchy Incarnate"
 
-boss.HP = 140;
+boss.MaxHP = 100;
 
 boss.TitleDisplayTime = 380;
 
 local bossStarted = false;
 local starttime = 0;
 local drawBG = false;
+
+local flashTimer = 0;
 
 local bossSection = 0;
 
@@ -42,6 +44,9 @@ local intensifiesTime = lunatime.toTicks(90)/intensifiesTimeMult;
 local intensifiesTimer = 0;
 
 local Zero = vectr.v2(0,0);
+
+local eyeTarget = nil;
+local lastEyePos = nil;
 
 local globalfog = 0;
 local emitfgfog = false;
@@ -85,6 +90,7 @@ local current_phase = nil;
 local movement_loop = nil;
 local move_event = nil;
 local player_pos = {x=0, y=0, width=0, height = 0};
+local eye_pos = {x=0, y=0, width=0, height = 0};
 
 local eyeBox = colliders.Circle(0,0,32);
 
@@ -151,6 +157,16 @@ local eyeRecoveryAmt = 0;
 
 local plateCounts = {3,5,7,10}
 local plateIndex = 1;
+
+local moveBoundsX;
+local moveBoundsY;
+
+local function resetMoveBounds()
+	moveBoundsX = vectr.v2(64,64);
+	moveBoundsY = vectr.v2(64,128);
+end
+
+resetMoveBounds();
 
 local subphases = {};
 
@@ -255,6 +271,10 @@ local function drawBullets()
 	for _,v in ipairs(bullets) do
 		Graphics.drawImageToSceneWP(bulletImgs[v.type], v.pos.x - v.gfxwidth*0.5, v.pos.y - v.gfxheight*0.5, 0, v.frame*v.gfxheight, v.gfxwidth, v.gfxheight, -50)
 	end
+end
+
+local function flashScreen(val)
+	flashTimer = val or 100;
 end
 
 local function getPlayerPos()
@@ -426,6 +446,9 @@ local function updateLargeBullet()
 			local s = 1;
 			if(largeBullet.isend) then
 				s = math.lerp(math.pow(largeBulletEndSize,1/largeBulletChargeTime),1.001,math.clamp(1-(intensifiesTimer/largeBulletEndTime)));
+				if(largeBullet.hitbox.radius > 400) then
+					s = 1;
+				end
 			else
 				s = math.lerp(math.pow(largeBulletSize,1/largeBulletChargeTime),1,1 - largeBullet.launchTimer/largeBulletChargeTime);
 			end
@@ -516,6 +539,7 @@ local function makeArm(js)
 	t.frame = rng.randomInt(0,15);
 	t.frameTime = 0.2;
 	t.hand = imagic.Create{texture = hand, primitive=imagic.TYPE_BOX, x = 0, y = 0, width = 36, height = 36, scene = true, align = imagic.ALIGN_CENTRE};
+	t.initPos = nil;
 	t.handBox = colliders.Box(0,0,32,32);
 	t.speed = vectr.v2(0,0);
 	t.rotation = 0;
@@ -560,6 +584,9 @@ local function HandleArmPartciles(stepSize)
 					v.speed.y = j.y - v.hand.y;
 					v.hand.x = j.x;
 					v.hand.y = j.y;
+					if(v.initPos == nil) then
+						v.initPos = vectr.v2(v.hand.x, v.hand.y);
+					end
 					v.handBox.x = j.x-16;
 					v.handBox.y = j.y-16;
 					
@@ -1025,7 +1052,7 @@ local function startMoveEvent(instant)
 		while(true) do
 			if(timer <= 0) then 
 				timer = rng.random(600); 
-				local _,r = DoBodyMove(Zero+vectr.v2(rng.random(64,800-64),rng.random(64,600-128)), rng.random(2,4));
+				local _,r = DoBodyMove(Zero+vectr.v2(rng.random(moveBoundsX.x,800-moveBoundsX.y),rng.random(moveBoundsY.x,600-moveBoundsY.y)), rng.random(2,4));
 				move_event = r;
 				waitForBody();
 				move_event = nil;
@@ -1535,6 +1562,11 @@ local function phase_armattack3()
 	local t = 0;
 	local maxt = 128;
 	
+	moveBoundsX.x = 128;
+	moveBoundsX.y = 128;
+	moveBoundsY.x = 128;
+	moveBoundsY.y = 256;
+	
 	DoArmMove(1, Zero + vectr.v2(-32,-32), 2);
 	DoArmMove(2, Zero + vectr.v2(800+32,-32), 2);
 	DoArmMove(3, Zero + vectr.v2(-32,600+32), 2);
@@ -1551,10 +1583,16 @@ local function phase_armattack3()
 		eventu.waitFrames(0);
 	end
 	
-	local function launchHand(i)
-		local c = Zero+getCoordOffscreen(choose(400,300));
+	local handPos = {};
+	
+	local function prepareHand(i,h)
+		local c = Zero+getCoordOffscreen(h);
 		SetArmPos(i, c);
-		eventu.waitFrames(0);
+		table.insert(handPos, c);
+		return c;
+	end
+	
+	local function launchHand(i, c)
 		local d = (getPlayerPos() - c):normalise();
 		arms[i].targetobj = c+(d*1400);
 		DoArmMove(i, c+(d*1400), choose(2,3));
@@ -1562,9 +1600,13 @@ local function phase_armattack3()
 	
 	if(not intensifies) then
 		for i = 1,4 do
+			local c = prepareHand(i,choose(400,300));
+			eyeTarget = handPos[1];
 			eventu.waitFrames(32);
+			eyeTarget = nil;
 			Sound(audio.whoosh);
-			launchHand(i);
+			launchHand(i, c);
+			handPos = {};
 			eventu.waitFrames(64);
 		end
 	
@@ -1572,10 +1614,18 @@ local function phase_armattack3()
 	end
 	
 	for i = 1,4,2 do
-		eventu.waitFrames(32);
+		local c1 = prepareHand(i,choose(400,300));
+		eventu.waitFrames(0);
+		local c2 = prepareHand(i+1,choose(400,300));
+		eyeTarget = handPos[1];
+		eventu.waitFrames(16);
+		eyeTarget = handPos[2];
+		eventu.waitFrames(16);
+		eyeTarget = nil;
 		Sound(audio.whoosh);
-		launchHand(i);
-		launchHand(i+1);
+		launchHand(i, c1);
+		launchHand(i+1, c2);
+		handPos = {};
 		eventu.waitFrames(choose(64,48));
 	end
 	
@@ -1583,11 +1633,12 @@ local function phase_armattack3()
 	
 	waitForArm();
 	
+	resetMoveBounds();
+	
 	for i = 1,4 do
-		local c = Zero+getCoordOffscreen(300);
-		SetArmPos(i, c);
+		prepareHand(i,100);
+		eventu.waitFrames(0);
 	end
-	eventu.waitFrames(0);
 	
 	Sound(audio.whoosh);
 	Sound(audio.whoosh);
@@ -1970,6 +2021,10 @@ local function intensifiesEvents()
 	intensifiesTimer = intensifiesTime;
 	boss.Active = false;
 	local t = 0;
+	
+	message.showMessageBox {target=eye_pos, text="SAYONARA CAUSALITY!<pause 60>", closeWith="auto"}
+	message.waitMessageEnd();
+	
 	while(true) do
 		local phaseOptions = {phase_armattack1, phase_armattack2, phase_danmaku1, phase_danmaku2, phase_danmaku3}
 		while(#phaseOptions > 0) do
@@ -1993,12 +2048,21 @@ local function intensifiesEvents()
 	end
 end
 
+local initPos = vectr.v2(0,0);
+local initPlayerPos = vectr.v2(0,0);
+
 local function InitBoss()
 	Zero.x = Section(bossSection).boundary.left;
 	Zero.y = Section(bossSection).boundary.top;
 	
 	x = Zero.x+600;
 	y = Zero.y+250;
+	
+	initPos.x = x;
+	initPos.y = y;
+	
+	initPlayerPos.x = player.x+player.width*0.5;
+	initPlayerPos.y = player.y+player.height;
 
 	player.character = CHARACTER_UNCLEBROADSWORD;
 	player.powerup = 2;
@@ -2040,6 +2104,47 @@ local function damage(damage, stun)
 end
 
 local mainloop;
+local intensifyReady = false;
+
+local function cutscene_mid()
+	--Broadsword in ready pose
+	
+	eventu.waitFrames(200);
+	
+	boss.Heal(boss.MaxHP);
+	
+	eventu.waitFrames(64);
+	
+	message.showMessageBox {target=eye_pos, text="Give it up, Augustus!  You can't kill me!"}
+	message.waitMessageEnd();
+	
+	--Broadsword walk to centre
+	eventu.waitFrames(32);
+	message.showMessageBox {target=player_pos, text="That may be, but..."}
+	message.waitMessageEnd();
+	message.showMessageBox {target=player_pos, text="I don't need to kill you."}
+	message.waitMessageEnd();
+	--Broadsword press button
+	message.showMessageBox {x=400, y=300, text="CORE REBOOT INITIATED.<br>BEGINNING GARBAGE DISPOSAL IN T-MINUS 1 MINUTE.<page>GIVE OR TAKE.", screenSpace = true}
+	message.waitMessageEnd();
+	
+	message.showMessageBox {target=player_pos, text="I only need to keep you busy!"}
+	message.waitMessageEnd();
+	message.showMessageBox {target=eye_pos, text="You cheeky brand!"}
+	message.waitMessageEnd();
+	
+	
+	Audio.MusicOpen(Misc.resolveFile("Au Revoir Intensifies.ogg"));
+	Audio.MusicPlay();
+	
+	message.showMessageBox {target=player_pos, text="This is the end, Pumpernickel! Neither of us escape this room! <pause 20>", closeWith="auto"}
+	message.waitMessageEnd();
+	
+	message.showMessageBox {target=eye_pos, text="Yeeaah, no. Here's how this is going to work.<pause 20><page>One: I erase you right here and now.<pause 20><page>Two: I step outside until they're done with this purging nonsense.<pause 20><page>And finally, C:<pause 20>", closeWith="auto"}
+	message.waitMessageEnd();
+	
+	intensifyReady = 1;
+end
 
 function onTick()
 	if(not intensifies or intensifiesTimer > 0) then
@@ -2065,7 +2170,6 @@ function onTick()
 			bossStarted = true;
 			startMoveEvent(true);
 			_,mainloop = eventu.run(bossEvents);
-			--_,mainloop = eventu.run(intensifiesEvents);
 		end
 		
 		if((boss.Active or intensifies) and player:mem(0x13E, FIELD_WORD) > 0) then
@@ -2074,15 +2178,52 @@ function onTick()
 		
 		if(bossStarted) then
 			if(intensifies) then
-				Defines.earthquake = 2;
+				if(intensifiesTimer < largeBulletEndTime) then
+					Defines.earthquake = math.lerp(4,2,intensifiesTimer/largeBulletEndTime);
+				else
+					Defines.earthquake = 2;
+				end
 				if(intensifiesTimer > 0) then
 					intensifiesTimer = intensifiesTimer - 1;
 				end
+			elseif(drawBG and boss.HP <= 10) then
+				stopMoveEvent();
+				setPhase();
+				eventu.abort(mainloop);
+				boss.HP = math.max(boss.HP,1);
+				flashScreen(150);
+				drawBG = false;
+				stunned = false;
+				SetBodyPos(initPos);
+				for i=1,4 do
+					SetArmPos(i, arms[i].initPos);
+				end
+				Audio.MusicStop();
+				Voice(audio.voice.hurt);
+				Sound(audio.sunball_die);
+				player.powerup = 2;
+				player.x = initPlayerPos.x-player.width*0.5;
+				player.y = initPlayerPos.y-player.height;
+				player.speedX = 0;
+				player.speedY = 0;
+				player.FacingDirection = 1;
+				intensifyReady = true;
+				eventu.run(cutscene_mid);
+			elseif(not intensifies and intensifyReady == 1 and Audio.MusicIsPlaying() and Audio.MusicClock() > 11.4) then
+				flashScreen();
+				drawBG = true;
+				_,mainloop = eventu.run(intensifiesEvents);
 			end
 			
 			signalChecks();
 			eyeBox.x = x;
 			eyeBox.y = y;
+			
+			eye_pos.x = x-32;
+			eye_pos.y = y-32;
+			eye_pos.width = 64;
+			eye_pos.height = 64;
+			
 			
 			if(eyeHitstun > 0) then
 				eyeHitstun = eyeHitstun - 1;
@@ -2234,6 +2375,9 @@ local function DrawEye()
 	if(stunned and not stunRecovery) then
 		toplayer = vectr.up2:rotate(lunatime.tick()*10);
 	else
+		if(eyeTarget ~= nil) then
+			toplayer = vectr.v2(eyeTarget.x-x, eyeTarget.y-y);
+		end
 		toplayer = toplayer*0.01;
 		if(toplayer.length > 1) then
 			toplayer = toplayer:normalise();
@@ -2242,6 +2386,11 @@ local function DrawEye()
 		if(stunRecovery) then
 			toplayer = math.lerp(vectr.up2:rotate(lunatime.tick()*10), toplayer, eyeRecoveryAmt);
 		end
+		
+		if(lastEyePos ~= nil) then
+			toplayer = math.lerp(lastEyePos, toplayer, 0.2);
+		end
+		lastEyePos = toplayer;
 	end
 	Graphics.drawImageToSceneWP(eye2, x-7 + toplayer.x * 10, y-7 + toplayer.y * 10, -50);
 end
@@ -2271,15 +2420,18 @@ end
 
 local function DrawIntensifies()
 	local s = lunatime.toSeconds(intensifiesTimer)*intensifiesTimeMult;
-	textblox.printExt(pad0(math.floor(s/60),2)..":"..pad0(math.floor(s%60),2)..":"..pad0(math.floor((s*100)%100),2), 
-	{x=400,y=120,z=1,scale=4, color=0xFF000099, font=textblox.FONT_SPRITEDEFAULT1X2, halign=textblox.ALIGN_MID, valign=textblox.ALIGN_MID});
 	
 	local t = 1 - intensifiesTimer/intensifiesTime;
-	
 	local a = math.lerp(0.5,0.9, t*t);
-	
 	local alpha = math.cos(t*150);
 	alpha = alpha*alpha*a;
+	
+	local a2 = math.cos(t*100);
+	a2 = math.clamp(a2*a2*t + 0.5*t);
+	s = math.max(0,s);
+	textblox.printExt(pad0(math.floor(s/60),2)..":"..pad0(math.floor(s%60),2)..":"..pad0(math.floor((s*100)%100),2), 
+	{x=400,y=120,z=1,scale=4, color=math.lerp(Color.fromHex(0xFF000099), Color.fromHex(0xFFFFFFFF), a2):toHex(), 
+	font=textblox.FONT_SPRITEDEFAULT1X2, halign=textblox.ALIGN_MID, z = 5, valign=textblox.ALIGN_MID});
 	
 	if(intensifiesTimer < 128) then
 		alpha = math.lerp(1, alpha, intensifiesTimer/128);
@@ -2332,6 +2484,11 @@ local function DrawBoss()
 		drawLargeBullet();
 		
 		drawHitFlashes();
+	end
+	
+	if(flashTimer > 0) then
+		Graphics.drawScreen{color=math.lerp(Color.transparent, Color.white, math.clamp(flashTimer/100)), priority = -5}
+		flashTimer = flashTimer - 1;
 	end
 	
 	if(intensifies) then
