@@ -938,10 +938,16 @@ local function stopMoveEvent()
 	end
 end
 
-local function startMoveEvent()
+local function startMoveEvent(instant)
+	if(instant == nil) then
+		instant = false;
+	end
 	stopMoveEvent();
 	local _,e = eventu.run(function()
 		local timer = 1;
+		if(not instant) then
+			timer = rng.random(600); 
+		end
 		while(true) do
 			if(timer <= 0) then 
 				timer = rng.random(600); 
@@ -1123,7 +1129,17 @@ local function phase_armattack1()
 		eventu.waitFrames(choose(48,12));
 	end
 	
+	DoBodyMove(Zero+vectr.v2(rng.random(64,800-64), rng.random(64, 300-64)), 2);
 	eventu.waitFrames(32);
+	
+	local _;
+	_,subphases[1] = eventu.run(phase_idle);
+	
+	waitForBody();
+	
+	eventu.waitFrames(32);
+	
+	abortSubphases();
 	
 	startMoveEvent();
 	setPhase();
@@ -1321,7 +1337,7 @@ local function phase_danmaku1()
 			Sound(audio.bullet_small);
 			eventu.waitFrames(choose(28,14));
 		end
-		eventu.waitFrames(choose(32,16));
+		eventu.waitFrames(choose(24,12));
 	end
 	
 	eventu.waitFrames(choose(128,86));
@@ -1357,9 +1373,9 @@ local function phase_danmaku2()
 	
 	waitForAll();
 	
-	for i = 1,choose(4,3) do
+	for i = 1,3 do
 		for j = 1,4 do
-			eventu.waitFrames(choose(64,8));
+			eventu.waitFrames(choose(48,8));
 			Sound(audio.bullet_med);
 			spawnBullet(BULLET_MED, bodyCentre + armlocs[j], armlocs[j]:normalise():rotate(choose(rng.random(-5,5),0))*choose((getPlayerPos() - bodyCentre).length/rng.random(70,80), 5));
 		end
@@ -1550,43 +1566,43 @@ local function bossEvents()
 	eventu.waitFrames(128);
 	setPhase(phase_armattack1);
 	waitPhase();
-	eventu.waitFrames(256);
+	eventu.waitFrames(128);
 	setPhase(phase_danmaku1);
 	waitPhase();
-	eventu.waitFrames(256);
+	eventu.waitFrames(128);
 	setPhase(phase_tennis);
 	waitPhase();
 	
-	eventu.waitFrames(256);
+	eventu.waitFrames(128);
 	setPhase(phase_armattack2);
 	waitPhase();
-	eventu.waitFrames(256);
+	eventu.waitFrames(128);
 	setPhase(phase_danmaku2);
 	waitPhase();
-	eventu.waitFrames(256);
+	eventu.waitFrames(128);
 	setPhase(phase_tennis);
 	waitPhase();
 	
-	eventu.waitFrames(256);
+	eventu.waitFrames(128);
 	setPhase(phase_armattack3);
 	waitPhase();
-	eventu.waitFrames(256);
+	eventu.waitFrames(128);
 	setPhase(phase_danmaku3);
 	waitPhase();
-	eventu.waitFrames(256);
+	eventu.waitFrames(128);
 	setPhase(phase_tennis);
 	waitPhase();
 	
 	while(true) do
 		local phaseOptions = {phase_armattack1, phase_armattack2, phase_armattack3, phase_danmaku1, phase_danmaku2, phase_danmaku3}
 		for i = 1,2 do
-			eventu.waitFrames(256);
+			eventu.waitFrames(128);
 			local j = rng.randomInt(1,#phaseOptions);
 			setPhase(phaseOptions[j]);
 			table.remove(phaseOptions,j);
 			waitPhase();
 		end
-		eventu.waitFrames(256);
+		eventu.waitFrames(128);
 		setPhase(phase_tennis);
 		waitPhase();
 	end
@@ -1670,7 +1686,7 @@ function onTick()
 		
 		if(not bossStarted and Audio.MusicClock() > 12 and boss.isReady()) then
 			bossStarted = true;
-			startMoveEvent();
+			startMoveEvent(true);
 			eventu.run(bossEvents);
 			--eventu.run(intensifiesEvents);
 		end
