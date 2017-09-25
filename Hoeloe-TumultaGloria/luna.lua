@@ -54,6 +54,8 @@ local emitfgfog = false;
 local x = 0;
 local y = 0;
 local bodyfog = particles.Emitter(x, y, Misc.resolveFile("p_pumpernick.ini"), 2);
+local bodyfog2 = particles.Emitter(x, y, Misc.resolveFile("p_pumpernick.ini"));
+bodyfog2:setParam("space","world");
 local eye1 = Graphics.loadImage(Misc.resolveFile("eyeball.png"));
 local eye2 = Graphics.loadImage(Misc.resolveFile("eyepupil.png"));
 local smoke = Graphics.loadImage(Misc.resolveFile("puff.png"));
@@ -560,15 +562,19 @@ local function HandleArmPartciles(stepSize)
 				local jointlen = joint.length;
 				local dir = joint:normalise();
 				local rgt = (dir:tov3()^vectr.forward3):tov2();
-				for i=1,jointlen,stepSize do
-					local p = c + dir*i;
-					armemit.x = p.x;
-					armemit.y = p.y;
-					if(rng.randomInt(0,2) == 0) then
-						armemit:Emit(1);
+				
+				--uncomment for vanishing smoke during stun
+				--if(not(stunned and not stunRecovery)) then
+					for i=1,jointlen,stepSize do
+						local p = c + dir*i;
+						armemit.x = p.x;
+						armemit.y = p.y;
+						if(rng.randomInt(0,2) == 0) then
+							armemit:Emit(1);
+						end
+						
 					end
-					
-				end
+				--end
 				
 				table.insert(verts, c.x)
 				table.insert(verts, c.y)
@@ -2295,12 +2301,25 @@ local function DrawBG()
 end
 
 local function DrawFog()
+	
+	--uncomment for vanishing smoke during stun
+	--bodyfog.enabled = not(stunned and not stunRecovery);
+
 	if(globalfog < 1) then
 		armemit:Draw(-52);
 		
-		bodyfog.x = x;
-		bodyfog.y = y;
+		bodyfog.enabled = not stunned or stunRecovery;
+		bodyfog2.enabled = stunned and not stunRecovery;
+		
+		if(stunned) then
+			bodyfog2.x = x;
+			bodyfog2.y = y;
+		else
+			bodyfog.x = x;
+			bodyfog.y = y;
+		end
 		bodyfog:Draw(-51);
+		bodyfog2:Draw(-51);
 	end
 	
 	if(globalfog > 0) then
@@ -2487,8 +2506,8 @@ local function DrawBoss()
 	
 		DrawFog();
 		DrawEye();
-		DrawHands();
 		DrawPlates();
+		DrawHands();
 		
 		drawBullets();
 		drawLargeBullet();
