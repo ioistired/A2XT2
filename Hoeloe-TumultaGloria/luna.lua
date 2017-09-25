@@ -12,6 +12,7 @@ local colliders = API.load("colliders");
 local boss = API.load("a2xt_boss");
 local pause = API.load("a2xt_pause");
 local message = API.load("a2xt_message");
+local scene = API.load("a2xt_scene");
 local textblox = API.load("textblox");
 
 local playerManager = API.load("playerManager")
@@ -19,6 +20,8 @@ local playerManager = API.load("playerManager")
 local broadsword = API.load("Characters/unclebroadsword")
 
 local audioMaster = API.load("audioMaster");
+
+local panim = API.load("playerAnim");
 
 pause.StopMusic = true;
 
@@ -2122,22 +2125,53 @@ end
 local mainloop;
 local intensifyReady = false;
 
+local function waitAndDo(t, func)
+	while(t > 0) do
+		t = t-1;
+		func();
+		eventu.waitFrames(0);
+	end
+end
+
 local function cutscene_mid()
 	--Broadsword in ready pose
 	
-	eventu.waitFrames(200);
+	local function SetReady()
+		panim.setFrame(player, 45);
+	end
+	
+	SetReady();
+	
+	player.speedX = 0.1;
+	eventu.waitFrames(0);
+	player.speedX = 0;
+	
+	waitAndDo(200, SetReady);
 	
 	boss.Heal(boss.MaxHP);
 	
-	eventu.waitFrames(64);
+	waitAndDo(64, SetReady);
 	
 	message.showMessageBox {target=eye_pos, text="Give it up, Augustus!  You can't kill me!"}
+	
+	waitAndDo(32, SetReady);
+	
 	message.waitMessageEnd();
 	
 	--Broadsword walk to centre
 	eventu.waitFrames(32);
-	message.showMessageBox {target=player_pos, text="That may be, but..."}
-	message.waitMessageEnd();
+	local m = message.showMessageBox {target=player_pos, text="That may be, but..."}
+	
+	while(true) do
+		if(player.x < Zero.x+380) then
+			player.speedX = 2;
+		elseif(m == nil or m.deleteMe) then
+			break;
+		end
+		eventu.waitFrames(0);
+	end
+	
+	
 	message.showMessageBox {target=player_pos, text="I don't need to kill you."}
 	message.waitMessageEnd();
 	--Broadsword press button
@@ -2153,13 +2187,28 @@ local function cutscene_mid()
 	Audio.MusicOpen(Misc.resolveFile("Au Revoir Intensifies.ogg"));
 	Audio.MusicPlay();
 	
-	message.showMessageBox {target=player_pos, text="This is the end, Pumpernickel! Neither of us escape this room! <pause 20>", closeWith="auto"}
-	message.waitMessageEnd();
+	local function waitMsgWhileReady(msg)
+		while(msg ~= nil and not msg.deleteMe) do
+			SetReady();
+			eventu.waitFrames(0);
+		end
+	end
 	
-	message.showMessageBox {target=eye_pos, text="Yeeaah, no. Here's how this is going to work.<pause 20><page>One: I erase you right here and now.<pause 20><page>Two: I step outside until they're done with this purging nonsense.<pause 20><page>And finally, C:<pause 20>", closeWith="auto"}
-	message.waitMessageEnd();
+	Audio.SfxPlayCh(-1, Audio.SfxOpen(playerManager.getSound(CHARACTER_UNCLEBROADSWORD, 2)), 0)
+	m = message.showMessageBox {target=player_pos, text="This is the end, Pumpernickel! Neither of us escape this room! <pause 20>", closeWith="auto"}
+	waitMsgWhileReady(m);
+	
+	m = message.showMessageBox {target=eye_pos, text="Yeeaah, no. Here's how this is going to work.<pause 20><page>One: I erase you right here and now.<pause 20><page>Two: I step outside until they're done with this purging nonsense.<pause 20><page>And finally, C:<pause 20>", closeWith="auto"}
+	waitMsgWhileReady(m);
 	
 	intensifyReady = 1;
+	
+	while(not drawBG) do
+		SetReady();
+		eventu.waitFrames(0);
+	end
+	
+	scene.endScene();
 end
 
 function onTick()
@@ -2224,7 +2273,7 @@ function onTick()
 				player.speedY = 0;
 				player.FacingDirection = 1;
 				intensifyReady = true;
-				eventu.run(cutscene_mid);
+				scene.startScene{scene=cutscene_mid, noletterbox=true}
 			elseif(not intensifies and intensifyReady == 1 and Audio.MusicIsPlaying() and Audio.MusicClock() > 11.4) then
 				flashScreen();
 				drawBG = true;

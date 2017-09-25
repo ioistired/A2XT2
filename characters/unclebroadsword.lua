@@ -15,6 +15,8 @@ local npcconfig = API.load("npcconfig")
 local pnpc = API.load("pnpc")
 local classExpander = API.load("classExpander")
 
+local a2xt_scene = API.load("a2xt_scene")
+
 local unclebroadsword = {}
 local debugmode = false
 
@@ -407,7 +409,7 @@ local function UpdateAttackState() ---------------------------------------------
 		end
 		
 		-- Check if charging
-		if player.powerup > PLAYER_SMALL and standing() then
+		if player.powerup > PLAYER_SMALL and standing() and not a2xt_scene.inCutscene then
 			-- Holding charge button and don't move
 			if player.runKeyPressing then
 				if attack_state == ATKSTATE.COOLDOWN then attack_state = ATKSTATE.CHARGING
