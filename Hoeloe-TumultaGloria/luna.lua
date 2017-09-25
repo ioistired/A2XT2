@@ -2115,7 +2115,7 @@ end
 
 local function cutscene_intro()
 	Audio.SeizeStream(bossSection);
-	Audio.MusicOpen(Misc.resolveFile("Discord Unleashed.ogg"));
+	Audio.MusicOpen(Misc.resolveFile("music/a2xt-smokingisbadforyou.ogg"));
 	Audio.MusicPlay();
 
 	local b = Section(bossSection).boundary;
