@@ -9,8 +9,7 @@ local rc = {};
 rc.local_counter = 0;
 local raocoinCount = 0;
 
-local localraocoin = Graphics.loadImage(Misc.resolveFile("raocoin.png"));
-local raocoin_taken = Graphics.loadImage(Misc.resolveFile("raocoin_taken.png"));
+local raocoin_taken = Graphics.loadImage(Misc.resolveFile("raocoin_taken.png") or Misc.resolveFile("graphics/extra/raocoin_taken.png"));
 
 local raocoinnpcs = {};
 local raocoin_empty = {};
