@@ -179,7 +179,7 @@ function leeks.onStart()
 			table.insert(leeks.sectionParticles[k],p3)
 			
 			sobj.musicID = 24;
-			setSectionCustomMusic(k, "music/A2XT Allium Ampeloprasum.ogg");
+			setSectionCustomMusic(k, "music/a2xt-alliumampeloprasum.ogg");
 		end
 		
 		eventu.setFrameTimer(8, function() leekAnimFrame = (leekAnimFrame+1)%8 end, true);

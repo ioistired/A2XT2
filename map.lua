@@ -18,7 +18,7 @@ local buffer = Graphics.CaptureBuffer(800,600);
 
 Audio.sounds[28].muted = true;
 
-local currentMusic = "music/A2XT Dusk Sky.ogg";
+local currentMusic = "music/a2xt-dusksky.ogg";
 
 
 

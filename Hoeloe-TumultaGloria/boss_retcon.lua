@@ -2162,7 +2162,7 @@ local initPlayerPos = vectr.v2(0,0);
 
 local function StartBoss()
 	Audio.MusicVolume(100);
-	Audio.MusicOpen(Misc.resolveFile("Au Revoir, Mes Anges.ogg"));
+	Audio.MusicOpen(Misc.resolveFile("music/a2xt-aurevoir.ogg"));
 	Audio.MusicPlay();
 	
 	drawBG = true;
@@ -2418,7 +2418,7 @@ local function cutscene_mid()
 	message.waitMessageEnd();
 	
 	
-	Audio.MusicOpen(Misc.resolveFile("Au Revoir Intensifies.ogg"));
+	Audio.MusicOpen(Misc.resolveFile("music/a2xt-aurevoir2.ogg"));
 	Audio.MusicPlay();
 	
 	local function waitMsgWhileReady(msg)
