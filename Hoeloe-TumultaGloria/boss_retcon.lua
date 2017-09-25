@@ -1494,7 +1494,7 @@ local function phase_armattack2()
 		eventu.waitFrames(16);
 	end
 	
-	local accel = choose(0.01,0.02);
+	local accel = choose(0.015,0.03);
 	local target = vectr.v2(800-64, 600-32-r);
 	
 	if(getPlayerPos().x < bodyCentre.x) then
@@ -1537,13 +1537,13 @@ local function phase_armattack2()
 			Sound(audio.whoosh);
 		end
 		
-		if(t > 64) then
+		if(t > 128) then
 			spd = spd + accel;
 		else
-			spd = math.lerp(0, spd, t/64);
+			spd = spin*(spd/math.abs(spd)) * (t/128);
 		end
 		
-		spd = math.clamp(spd,-1,1)*spin;
+		spd = math.clamp(spd,-spin,spin);
 		
 		eventu.waitFrames(0);
 		
@@ -1653,10 +1653,16 @@ local function phase_armattack3()
 	
 	DoBodyMove(Zero + vectr.v2(400,300), 2)
 	
+	--[[
 	DoArmMove(1, Zero + vectr.v2(-32,-32), 2);
 	DoArmMove(2, Zero + vectr.v2(800+32,-32), 2);
 	DoArmMove(3, Zero + vectr.v2(-32,600+32), 2);
 	DoArmMove(4, Zero + vectr.v2(800+32,600+32), 2);
+	]]
+	DoArmMove(1, Zero + vectr.v2(267,-32), 2);
+	DoArmMove(2, Zero + vectr.v2(533,-32), 2);
+	DoArmMove(3, Zero + vectr.v2(-32,-32), 2);
+	DoArmMove(4, Zero + vectr.v2(800+32,-32), 2);
 	
 	Sound(audio.fog);
 	
@@ -2048,6 +2054,10 @@ local function phase_supertennis()
 		eventu.waitFrames(0);
 	end
 end
+
+-------------------
+--	MAIN EVENTS  --
+-------------------
 
 local function bossEvents()	
 	eventu.waitFrames(128);
