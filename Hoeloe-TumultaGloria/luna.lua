@@ -2311,7 +2311,7 @@ local function DrawFog()
 		bodyfog.enabled = not stunned or stunRecovery;
 		bodyfog2.enabled = stunned and not stunRecovery;
 		
-		if(stunned) then
+		if(stunned and not stunRecovery) then
 			bodyfog2.x = x;
 			bodyfog2.y = y;
 		else
