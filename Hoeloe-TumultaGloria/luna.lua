@@ -61,6 +61,10 @@ local bodyfog2 = particles.Emitter(x, y, Misc.resolveFile("p_pumpernick.ini"));
 bodyfog2:setParam("space","world");
 local eye1 = Graphics.loadImage(Misc.resolveFile("eyeball.png"));
 local eye2 = Graphics.loadImage(Misc.resolveFile("eyepupil.png"));
+local eyelid = Graphics.loadImage(Misc.resolveFile("eyelid.png"));
+
+local eyelidFrame = 0;
+
 local smoke = Graphics.loadImage(Misc.resolveFile("puff.png"));
 
 local hand = Graphics.loadImage(Misc.resolveFile("hand.png"));
@@ -70,6 +74,8 @@ local noise = Graphics.loadImage(Misc.resolveFile("noise.png"));
 local anges = Graphics.loadImage(Misc.resolveFile("anges.png"));
 
 local armemit  = particles.Emitter(x, y, Misc.resolveFile("p_armfog.ini"));
+
+local ceilfog = particles.Emitter(x, y, Misc.resolveFile("p_ceilfog.ini"));
 
 local cornerfog = particles.Emitter(x, y, Misc.resolveFile("p_cornerfog.ini"));
 local cornerFogRange=vectr.v2(192,96);
@@ -98,6 +104,8 @@ local player_pos = {x=0, y=0, width=0, height = 0};
 local eye_pos = {x=0, y=0, width=0, height = 0};
 
 local eyeBox = colliders.Circle(0,0,32);
+
+local armInitTimer = 0;
 
 local bullets = {};
 
@@ -186,6 +194,14 @@ end
 local function choose(a, b, bool)
 	if(bool == nil) then bool = not intensifies; end
 	if(bool) then return a else return b end
+end
+
+local function waitAndDo(t, func)
+	while(t > 0) do
+		t = t-1;
+		func();
+		eventu.waitFrames(0);
+	end
 end
 
 local function spawnHitflash(flashType, pos, size, target)
@@ -582,8 +598,8 @@ local function HandleArmPartciles(stepSize)
 				table.insert(verts, c.x)
 				table.insert(verts, c.y)
 					
-					table.insert(verts, j.x)
-					table.insert(verts, j.y)
+				table.insert(verts, j.x)
+				table.insert(verts, j.y)
 				
 				if(v.joints[k+1]) then
 					c = j;
@@ -1105,16 +1121,20 @@ end
 --------------
 
 local function phase_idle()
-	for i = 1,4 do
-		arms[i].targetobj = player;
+	if(arms[1] ~= nil) then 
+		for i = 1,4 do
+			arms[i].targetobj = player;
+		end
 	end
 	--orientArms();
 	while(true) do
-		--Idle arm anim
-		MoveArm(1, vectr.v2(x-200-64*math.sin(lunatime.tick()/100), y-100+64*math.cos(lunatime.tick()/100)), 5);
-		MoveArm(2, vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +14), y-60+64*math.cos(lunatime.tick()/100 + 14)), 5);
-		MoveArm(3, vectr.v2(x-200-64*math.sin(lunatime.tick()/100 +37), y+100+64*math.cos(lunatime.tick()/100 + 37)), 5);
-		MoveArm(4, vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +73), y+120+64*math.cos(lunatime.tick()/100 + 73)), 5);
+		if(arms[1] ~= nil) then
+			--Idle arm anim
+			MoveArm(1, vectr.v2(x-200-64*math.sin(lunatime.tick()/100), y-100+64*math.cos(lunatime.tick()/100)), 5);
+			MoveArm(2, vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +14), y-60+64*math.cos(lunatime.tick()/100 + 14)), 5);
+			MoveArm(3, vectr.v2(x-200-64*math.sin(lunatime.tick()/100 +37), y+100+64*math.cos(lunatime.tick()/100 + 37)), 5);
+			MoveArm(4, vectr.v2(x+160-64*math.sin(lunatime.tick()/100 +73), y+120+64*math.cos(lunatime.tick()/100 + 73)), 5);
+		end
 		
 		eventu.waitFrames(0);
 	end
@@ -1972,7 +1992,7 @@ local function phase_supertennis()
 		tim = tim + 1;
 		
 		if(tim == 64) then
-			message.showMessageBox {target=player_pos, text="Together, I know you'll succeed where we failed.<pause 90>", closeWith = "auto", keepOnscreen = true}
+			message.showMessageBox {target=player_pos, text="Together, I know you'll do us all proud.<pause 90>", closeWith = "auto", keepOnscreen = true}
 		end
 		
 		for i=1,4 do
@@ -2028,6 +2048,18 @@ local function bossEvents()
 	end
 end
 
+local function showPumpMsg(args)
+	local boxcol = {boxColor=0x292c4aFF};
+	if(args.bloxProps) then
+		args.bloxProps = table.join(args.bloxProps, boxcol);
+	else
+		args.bloxProps = boxcol;
+	end
+	
+	args.text = "<color rainbow>"..string.gsub(args.text, "<page>", "<page><color rainbow>");
+	return message.showMessageBox(args);
+end
+
 local intensifiesMonologue = {
 [2] = "I'm sorry I couldn't stick around longer, girls, but I have no regrets.",
 [4] = "Knowing that your story continues, I'm content with mine ending here.",
@@ -2041,7 +2073,7 @@ local function intensifiesEvents()
 	boss.Active = false;
 	local t = 0;
 	
-	message.showMessageBox {target=eye_pos, text="SAYONARA CAUSALITY!<pause 60>", closeWith="auto"}
+	showPumpMsg {target=eye_pos, text="SAYONARA CAUSALITY!<pause 60>", closeWith="auto"}
 	message.waitMessageEnd();
 	
 	while(true) do
@@ -2070,37 +2102,9 @@ end
 local initPos = vectr.v2(0,0);
 local initPlayerPos = vectr.v2(0,0);
 
-local function InitBoss()
-	Zero.x = Section(bossSection).boundary.left;
-	Zero.y = Section(bossSection).boundary.top;
-	
-	x = Zero.x+600;
-	y = Zero.y+250;
-	
-	initPos.x = x;
-	initPos.y = y;
-	
-	initPlayerPos.x = player.x+player.width*0.5;
-	initPlayerPos.y = player.y+player.height;
-
-	player.character = CHARACTER_UNCLEBROADSWORD;
-	player.powerup = 2;
-	player.reservePowerup = 9;
-	
-	makeArm{ vectr.v2(x-80, y-90), vectr.v2(x-140, y-120), vectr.v2(x-200, y-100)};
-	makeArm{ vectr.v2(x+50, y-50), vectr.v2(x+100, y-75), vectr.v2(x+160, y-60)};
-	makeArm{ vectr.v2(x-100, y+80), vectr.v2(x-130, y+90), vectr.v2(x-200, y+100)};
-	makeArm{ vectr.v2(x+50, y+50), vectr.v2(x+100, y+80), vectr.v2(x+160, y+120)};
-	
-	populatePlates(plateCounts[plateIndex]);
-	bgShader:compileFromFile(nil, Misc.resolveFile("background.frag"));
-	
-	setPhase();
-end
 
 local function StartBoss()
 	Audio.MusicVolume(100);
-	Audio.SeizeStream(bossSection);
 	Audio.MusicOpen(Misc.resolveFile("Au Revoir, Mes Anges.ogg"));
 	Audio.MusicPlay();
 	
@@ -2109,9 +2113,160 @@ local function StartBoss()
 	boss.Start();
 end
 
+local function cutscene_intro()
+	Audio.SeizeStream(bossSection);
+	Audio.MusicOpen(Misc.resolveFile("Discord Unleashed.ogg"));
+	Audio.MusicPlay();
+
+	local b = Section(bossSection).boundary;
+	b.left = Zero.x-64;
+	Section(bossSection).boundary = b;
+
+	player.x = Zero.x-64;
+	
+	waitAndDo(128, function() player.speedX = 1.5; end);
+	
+	b.left = Zero.x;
+	Section(bossSection).boundary = b;
+	
+	message.showMessageBox {target=player_pos, text="So this is the accursed ailment. I was expecting something more... corporeal."}
+	message.waitMessageEnd();
+	
+	showPumpMsg {target={x=x, y=y+350, width=0, height = 0}, text="Meh, having a euclidean body is overrated.", bloxProps={hasTail = false}}
+	message.waitMessageEnd();
+	
+	message.showMessageBox {target=player_pos, text="T-that voice!"}
+	message.waitMessageEnd();
+	
+	local t = 256;
+	local u = 2*(initPos.y-y)/t;
+	local a = -u/t;
+	
+	local w = (initPos.x-Zero.x+32);
+	local basex = 800-w+64;
+	local basey = Zero.y-16;
+	
+	waitAndDo(t, function() 
+		y = y + u; 
+		u = u + a;
+		globalfog = math.max(globalfog - 0.005, 0); 
+		w = math.max(w-4,0);
+		if(w <= 0) then
+			ceilfog.enabled = false;
+		else
+			ceilfog:setParam("xOffset", -w..":"..math.min(w, basex));
+			ceilfog.y = math.lerp(basey, math.max(y,basey), 0.5);
+		end
+	end);
+		
+	eyelidFrame = 1;
+	eventu.waitFrames(8);
+	eyelidFrame = 2;
+	eventu.waitFrames(8);
+	eyelidFrame = 3;
+	eventu.waitFrames(8);
+	eyelidFrame = 4;
+	eventu.waitFrames(8);
+	eyelidFrame = -1;
+	eventu.waitFrames(32);
+	
+	local v = vectr.v2(x, y);
+	for i = 1,4 do
+		makeArm{ v,v,v };
+		MoveArm(i, v, 100);
+	end
+	populatePlates(plateCounts[plateIndex]);
+	armInitTimer = 32;
+	eventu.waitFrames(2)
+	setPhase();
+	
+	eventu.waitFrames(16);
+	
+	showPumpMsg {target=eye_pos, text="You just couldn't leave me alone, could you Augustus?"}
+	message.waitMessageEnd();
+	
+	message.showMessageBox {target=player_pos, text="I take it this is the true Pumpernickel I'm speaking to?<page>A fitting form for such a twisted, detestable soul as yourself."}
+	message.waitMessageEnd();
+	
+	showPumpMsg {target=eye_pos, text="If only I could say the same for that hostility of yours."}
+	message.waitMessageEnd();
+	
+	eventu.waitFrames(16);
+	
+	showPumpMsg {target=eye_pos, text="Honestly, what is with you lot and your constant antagonism?<page>All I'm trying to do is corrupt one teensy tiny little reality!<page>I'm sure you'll all come to appreciate my efforts once the deed is done."}
+	message.waitMessageEnd();
+	
+	eventu.waitFrames(16);
+	
+	local function SetReady()
+		panim.setFrame(player, 45);
+	end
+	
+	local function waitMsgWhileReady(msg)
+		while(msg ~= nil and not msg.deleteMe) do
+			SetReady();
+			eventu.waitFrames(0);
+		end
+	end
+	
+	Audio.SfxPlayCh(-1, Audio.SfxOpen(playerManager.getSound(CHARACTER_UNCLEBROADSWORD, 2)), 0)
+	waitAndDo(32, SetReady);
+	
+	local m = message.showMessageBox {target=player_pos, text="My Brynhilde begs to differ."}
+	waitMsgWhileReady(m);
+	
+	waitAndDo(32, SetReady);
+	
+	m = showPumpMsg {target=eye_pos, text="<tremble>UGH.</tremble><page>YOU'RE JUST. <tremble>NO.<pause 20> FUN.</tremble><page>Fine. If you must draw your blade on me, let's just get this over with."}
+	waitMsgWhileReady(m);
+	
+	Audio.MusicStopFadeOut(2000);
+	eventu.waitFrames(128);
+	
+	scene.endScene();
+	
+	StartBoss();
+end
+
+local function InitBoss()
+	Zero.x = Section(bossSection).boundary.left;
+	Zero.y = Section(bossSection).boundary.top;
+	
+	initPos.x = Zero.x+600;
+	initPos.y = Zero.y+250;
+	
+	x = initPos.x;
+	y = initPos.y - 400;
+	
+	ceilfog.x = initPos.x;
+	ceilfog.y = Zero.y - 16;
+	ceilfog:setParam("xOffset", (Zero.x-initPos.x-32)..":"..800+(Zero.x-initPos.x)+32);
+	ceilfog:setPrewarm(2)
+	
+	
+	initPlayerPos.x = player.x+player.width*0.5;
+	initPlayerPos.y = player.y+player.height;
+
+	player.character = CHARACTER_UNCLEBROADSWORD;
+	player.powerup = 2;
+	player.reservePowerup = 9;
+	
+	--[[
+	makeArm{ vectr.v2(x-80, y-90), vectr.v2(x-140, y-120), vectr.v2(x-200, y-100)};
+	makeArm{ vectr.v2(x+50, y-50), vectr.v2(x+100, y-75), vectr.v2(x+160, y-60)};
+	makeArm{ vectr.v2(x-100, y+80), vectr.v2(x-130, y+90), vectr.v2(x-200, y+100)};
+	makeArm{ vectr.v2(x+50, y+50), vectr.v2(x+100, y+80), vectr.v2(x+160, y+120)};
+	]]
+	
+	globalfog = 0.5;
+	
+	bgShader:compileFromFile(nil, Misc.resolveFile("background.frag"));
+	
+	scene.startScene{scene=cutscene_intro, noletterbox=true}
+end
+
 function onStart()
 	InitBoss();
-	eventu.setTimer(2,StartBoss)
 	--StartBoss();
 end
 
@@ -2124,14 +2279,6 @@ end
 
 local mainloop;
 local intensifyReady = false;
-
-local function waitAndDo(t, func)
-	while(t > 0) do
-		t = t-1;
-		func();
-		eventu.waitFrames(0);
-	end
-end
 
 local function cutscene_mid()
 	--Broadsword in ready pose
@@ -2152,7 +2299,7 @@ local function cutscene_mid()
 	
 	waitAndDo(64, SetReady);
 	
-	message.showMessageBox {target=eye_pos, text="Give it up, Augustus!  You can't kill me!"}
+	showPumpMsg {target=eye_pos, text="Give it up, Augustus!  You can't kill me!"}
 	
 	waitAndDo(32, SetReady);
 	
@@ -2180,7 +2327,7 @@ local function cutscene_mid()
 	
 	message.showMessageBox {target=player_pos, text="I only need to keep you busy!"}
 	message.waitMessageEnd();
-	message.showMessageBox {target=eye_pos, text="You cheeky brand!"}
+	showPumpMsg {target=eye_pos, text="You cheeky brand!"}
 	message.waitMessageEnd();
 	
 	
@@ -2198,7 +2345,7 @@ local function cutscene_mid()
 	m = message.showMessageBox {target=player_pos, text="This is the end, Pumpernickel! Neither of us escape this room! <pause 20>", closeWith="auto"}
 	waitMsgWhileReady(m);
 	
-	m = message.showMessageBox {target=eye_pos, text="Yeeaah, no. Here's how this is going to work.<pause 20><page>One: I erase you right here and now.<pause 20><page>Two: I step outside until they're done with this purging nonsense.<pause 20><page>And finally, C:<pause 20>", closeWith="auto"}
+	m = showPumpMsg {target=eye_pos, text="Yeeaah, no. Here's how this is going to work.<pause 20><page>One: I erase you right here and now.<pause 20><page>Two: I step outside until they're done with this purging nonsense.<pause 20><page>And finally, C:<pause 20>", closeWith="auto"}
 	waitMsgWhileReady(m);
 	
 	intensifyReady = 1;
@@ -2212,6 +2359,11 @@ local function cutscene_mid()
 end
 
 function onTick()
+	eye_pos.x = x-32;
+	eye_pos.y = y-32;
+	eye_pos.width = 64;
+	eye_pos.height = 64;
+			
 	if(not intensifies or intensifiesTimer > 0) then
 		
 		player_pos.x = player.x;
@@ -2227,6 +2379,9 @@ function onTick()
 		--Prep animations for rendering
 		HandlePlates(0.025, 1);
 		HandleArmPartciles(24);
+		if(armInitTimer > 0) then
+			armInitTimer = armInitTimer - 1;
+		end
 		
 		updateBullets();
 		updateLargeBullet();
@@ -2283,11 +2438,6 @@ function onTick()
 			signalChecks();
 			eyeBox.x = x;
 			eyeBox.y = y;
-			
-			eye_pos.x = x-32;
-			eye_pos.y = y-32;
-			eye_pos.width = 64;
-			eye_pos.height = 64;
 			
 			
 			if(eyeHitstun > 0) then
@@ -2350,6 +2500,8 @@ local function DrawBG()
 end
 
 local function DrawFog()
+	
+	ceilfog:Draw(-51);
 	
 	--uncomment for vanishing smoke during stun
 	--bodyfog.enabled = not(stunned and not stunRecovery);
@@ -2414,7 +2566,13 @@ local function DrawHands()
 		local p2 = pos + vectr.up2:rotate(rng.random(360))*rng.random(v.vibrate);
 		v.hand.x = p2.x;
 		v.hand.y = p2.y;
-		v.hand:Draw(-50,c);
+		
+		local priority = -50;
+		if(armInitTimer > 0) then
+			priority = -51;
+		end
+		
+		v.hand:Draw(priority,c);
 		v.hand.x = pos.x;
 		v.hand.y = pos.y;
 	end
@@ -2440,37 +2598,43 @@ local function DrawEye()
 		offset = vectr.up2:rotate(rng.random(360))*rng.random(4*math.min(1,eyeHitstun/16));
 	end
 	
-	Graphics.drawImageToSceneWP(eye1, x-28+offset.x, y-28+offset.y, 0, 56*(eyeFrame+frameOffset), 56, 56, -50);
-	
-	local toplayer = vectr.v2(player.x-x, player.y-y);
-	
-	if(not stunRecovery) then
-		eyeRecoveryAmt = 0;
-	else
-		eyeRecoveryAmt = math.min(eyeRecoveryAmt+0.01,1);
+	if(eyelidFrame ~= 0) then
+		Graphics.drawImageToSceneWP(eye1, x-28+offset.x, y-28+offset.y, 0, 56*(eyeFrame+frameOffset), 56, 56, -50);
+		
+		local toplayer = vectr.v2(player.x-x, player.y-y);
+		
+		if(not stunRecovery) then
+			eyeRecoveryAmt = 0;
+		else
+			eyeRecoveryAmt = math.min(eyeRecoveryAmt+0.01,1);
+		end
+			
+		if(stunned and not stunRecovery) then
+			toplayer = vectr.up2:rotate(lunatime.tick()*10);
+		else
+			if(eyeTarget ~= nil) then
+				toplayer = vectr.v2(eyeTarget.x-x, eyeTarget.y-y);
+			end
+			toplayer = toplayer*0.01;
+			if(toplayer.length > 1) then
+				toplayer = toplayer:normalise();
+			end
+			
+			if(stunRecovery) then
+				toplayer = math.lerp(vectr.up2:rotate(lunatime.tick()*10), toplayer, eyeRecoveryAmt);
+			end
+			
+			if(lastEyePos ~= nil) then
+				toplayer = math.lerp(lastEyePos, toplayer, 0.2);
+			end
+			lastEyePos = toplayer;
+		end
+		Graphics.drawImageToSceneWP(eye2, x-7 + toplayer.x * 10, y-7 + toplayer.y * 10, -50);
+		
+		if(eyelidFrame > 0) then
+			Graphics.drawImageToSceneWP(eyelid, x-28+offset.x, y-28+offset.y, 0, 56*(eyelidFrame-1), 56, 56, -50);
+		end
 	end
-		
-	if(stunned and not stunRecovery) then
-		toplayer = vectr.up2:rotate(lunatime.tick()*10);
-	else
-		if(eyeTarget ~= nil) then
-			toplayer = vectr.v2(eyeTarget.x-x, eyeTarget.y-y);
-		end
-		toplayer = toplayer*0.01;
-		if(toplayer.length > 1) then
-			toplayer = toplayer:normalise();
-		end
-		
-		if(stunRecovery) then
-			toplayer = math.lerp(vectr.up2:rotate(lunatime.tick()*10), toplayer, eyeRecoveryAmt);
-		end
-		
-		if(lastEyePos ~= nil) then
-			toplayer = math.lerp(lastEyePos, toplayer, 0.2);
-		end
-		lastEyePos = toplayer;
-	end
-	Graphics.drawImageToSceneWP(eye2, x-7 + toplayer.x * 10, y-7 + toplayer.y * 10, -50);
 end
 
 local function DrawPlates()
@@ -2523,7 +2687,7 @@ local function DrawIntensifies()
 		local angesTime = 300;
 		local angesDelay = lunatime.toTicks(5);
 		pause.Block();
-		eventu.run(function()
+		scene.startScene{scene=function()
 			local fade = 0;
 			local timer = 0;
 			while(true) do
@@ -2543,7 +2707,7 @@ local function DrawIntensifies()
 				
 				eventu.waitFrames(0);
 			end
-		end);
+		end, noletterbox = true};
 	end
 end
 
@@ -2575,5 +2739,11 @@ local function DrawBoss()
 end
 function onDraw()
 	DrawBoss();
+end
+
+function onCameraUpdate()
+	if(Zero ~= nil) then
+		Camera.get()[1].x = Zero.x;
+	end
 end
 
