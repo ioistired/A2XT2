@@ -14,6 +14,7 @@ local pause = API.load("a2xt_pause");
 local message = API.load("a2xt_message");
 local scene = API.load("a2xt_scene");
 local textblox = API.load("textblox");
+local checkpoints = API.load("checkpoints");
 
 local playerManager = API.load("playerManager")
 
@@ -160,6 +161,16 @@ audio.voice.stun = {Misc.resolveFile("voice_stun_1.ogg"), Misc.resolveFile("voic
 
 local events = {};
 
+local cp = checkpoints.create{x = 0, y = 0, section = bossSection, actions = 
+				function()
+					player.x = Section(bossSection).boundary.left + 128;
+					player.y = Section(bossSection).boundary.bottom - 32 - player.height;
+					--player.x = Zero.x - 
+					--player.y = Zero.y + 600 - 32 - player.height;
+					events.InitBoss(true); 
+					
+				end}
+				
 local stunned = false;
 local stunRecovery = false;
 
@@ -2113,6 +2124,24 @@ local function StartBoss()
 	boss.Start();
 end
 
+local function cutscene_intro_checkpoint()
+
+	local b = Section(bossSection).boundary;
+	b.left = Zero.x-64;
+	Section(bossSection).boundary = b;
+
+	player.x = Zero.x-64;
+	
+	waitAndDo(128, function() player.speedX = 1.5; end);
+	
+	b.left = Zero.x;
+	Section(bossSection).boundary = b;
+	
+	scene.endScene();
+	
+	StartBoss();
+end
+
 local function cutscene_intro()
 	Audio.SeizeStream(bossSection);
 	Audio.MusicOpen(Misc.resolveFile("music/a2xt-smokingisbadforyou.ogg"));
@@ -2225,10 +2254,12 @@ local function cutscene_intro()
 	
 	scene.endScene();
 	
+	cp:collect();
+	
 	StartBoss();
 end
 
-local function InitBoss()
+function events.InitBoss(checkpoint)
 	Zero.x = Section(bossSection).boundary.left;
 	Zero.y = Section(bossSection).boundary.top;
 	
@@ -2251,23 +2282,38 @@ local function InitBoss()
 	player.powerup = 2;
 	player.reservePowerup = 9;
 	
-	--[[
-	makeArm{ vectr.v2(x-80, y-90), vectr.v2(x-140, y-120), vectr.v2(x-200, y-100)};
-	makeArm{ vectr.v2(x+50, y-50), vectr.v2(x+100, y-75), vectr.v2(x+160, y-60)};
-	makeArm{ vectr.v2(x-100, y+80), vectr.v2(x-130, y+90), vectr.v2(x-200, y+100)};
-	makeArm{ vectr.v2(x+50, y+50), vectr.v2(x+100, y+80), vectr.v2(x+160, y+120)};
-	]]
-	
 	globalfog = 0.5;
+	
+	if(checkpoint) then
+		y = y + 400;
+		ceilfog.enabled = false;
+		globalfog = 0;
+		
+		makeArm{ vectr.v2(x-80, y-90), vectr.v2(x-140, y-120), vectr.v2(x-200, y-100)};
+		makeArm{ vectr.v2(x+50, y-50), vectr.v2(x+100, y-75), vectr.v2(x+160, y-60)};
+		makeArm{ vectr.v2(x-100, y+80), vectr.v2(x-130, y+90), vectr.v2(x-200, y+100)};
+		makeArm{ vectr.v2(x+50, y+50), vectr.v2(x+100, y+80), vectr.v2(x+160, y+120)};
+		
+		setPhase();
+		
+		eyelidFrame = -1;
+		
+		populatePlates(plateCounts[plateIndex]);
+	end
 	
 	bgShader:compileFromFile(nil, Misc.resolveFile("background.frag"));
 	
-	scene.startScene{scene=cutscene_intro, noletterbox=true}
+	if(checkpoint) then
+		scene.startScene{scene=cutscene_intro_checkpoint, noletterbox=true}
+	else
+		scene.startScene{scene=cutscene_intro, noletterbox=true}
+	end
 end
 
 function onStart()
-	InitBoss();
-	--StartBoss();
+	if(checkpoints.getActive() == nil or checkpoints.getActive().id ~= cp.id) then
+		events.InitBoss();
+	end
 end
 
 local function damage(damage, stun)
