@@ -46,6 +46,29 @@ textblox.presetProps[textblox.PRESET_BUBBLE].borderTable = {
 textblox.presetProps[textblox.PRESET_BUBBLE].xMargin = 0
 textblox.presetProps[textblox.PRESET_BUBBLE].yMargin = 8
 
+textblox.presetProps[4] = table.join(
+                                     {borderTable={col=0x00000000}, boxColor=0x00000000},
+                                     table.clone(textblox.presetProps[textblox.PRESET_BUBBLE])
+                                    )
+textblox.presetProps[5] = table.join(
+                                     {boxType=nil,
+                                      borderTable={
+                                                   ulImg   = Graphics.loadImage(Misc.resolveFile("graphics/HUD/speakerBorderUL.png")),
+                                                   uImg    = textblox.IMGREF_BUBBLE_BORDER_U,
+                                                   urImg   = Graphics.loadImage(Misc.resolveFile("graphics/HUD/speakerBorderUR.png")),
+                                                   rImg    = textblox.IMGREF_BUBBLE_BORDER_R,
+                                                   drImg   = Graphics.loadImage(Misc.resolveFile("graphics/HUD/speakerBorderDR.png")),
+                                                   dImg    = textblox.IMGREF_BUBBLE_BORDER_D,
+                                                   dlImg   = Graphics.loadImage(Misc.resolveFile("graphics/HUD/speakerBorderDL.png")),
+                                                   lImg    = textblox.IMGREF_BUBBLE_BORDER_L,
+                                                   thick   = 16,
+                                                   col     = 0xFFFFFFFF
+                                                  },
+                                     tailTex = Graphics.loadImage(Misc.resolveFile("graphics/HUD/speakerTail.png"))},
+                                     table.clone(textblox.presetProps[textblox.PRESET_BUBBLE])
+                                    )
+
+
 --***************************
 --** Variables             **
 --***************************
@@ -84,8 +107,8 @@ if  SaveData.textLog == nil  then
 	SaveData.textLog = {}
 end
 
--- This one's probably already somewhere in textblox but whatever
-a2xt_message.type = {bubble=textblox.PRESET_BUBBLE, system=textblox.PRESET_SYSTEM, sign=textblox.PRESET_SIGN}
+-- Presets
+a2xt_message.type = {bubble=textblox.PRESET_BUBBLE, system=textblox.PRESET_SYSTEM, sign=textblox.PRESET_SIGN, textonly=4, intercom=5}
 
 
 -- Add strings and functions to this table indexed by a keyword and use that keyword as the newMsg string
@@ -512,6 +535,14 @@ function a2xt_message.endMessage()
 	a2xt_pause.Unblock();
 end
 
+--[[showMessageBox args:
+	strings: text,closeWith(auto,prompt)
+	objects: target
+	bools:   keepOnscreen,hasTail,screenSpace,instant
+	enums:   type
+	ints:    x,y,offX,offY
+	tables:  bloxProps
+--]]
 function a2xt_message.showMessageBox (args)
 	if  type(args) ~= "table"  then
 		args = {text=args}

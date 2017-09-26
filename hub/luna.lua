@@ -1,8 +1,29 @@
 local imagic = API.load("imagic")
+
 local leveldata = API.load("a2xt_leveldata")
+local message = API.load("a2xt_message")
+local scene = API.load("a2xt_scene")
 
 local pendSpr = Graphics.loadImage("pendulum.png")
 local reflections = Graphics.CaptureBuffer(800,600);
+
+
+message.presetSequences.MessageTest = function(args)
+	local talker = args.npc
+
+	message.showMessageBox {target=talker, text="Testing sign messages.", type="sign"}
+	message.waitMessageEnd();
+	message.showMessageBox {target=talker, text="Testing bubble messages."}
+	message.waitMessageEnd();
+	message.showMessageBox {target=talker, text="Testing system messages.", type="system"}
+	message.waitMessageEnd();
+	message.showMessageBox {target=talker, text="Testing no-bubble messages.", type="textonly"}
+	message.waitMessageEnd();
+	message.showMessageBox {target=talker, text="Testing intercom messages.", type="intercom"}
+	message.waitMessageEnd();
+
+	scene.endScene()
+end
 
 
 function onDraw()
