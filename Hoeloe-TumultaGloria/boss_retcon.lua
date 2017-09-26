@@ -2415,7 +2415,7 @@ local function cutscene_mid()
 	message.showMessageBox {target=player_pos, text="I don't need to kill you."}
 	message.waitMessageEnd();
 	--Broadsword press button
-	message.showMessageBox {x=400, y=300, text="CORE REBOOT INITIATED.<br>BEGINNING GARBAGE DISPOSAL IN T-MINUS 1 MINUTE.<page>GIVE OR TAKE.", screenSpace = true}
+	message.showMessageBox {x=400, y=300, text="CORE REBOOT INITIATED.<br>BEGINNING GARBAGE DISPOSAL IN T-MINUS 1 MINUTE.<page>GIVE OR TAKE.", screenSpace = true, type="system"}
 	message.waitMessageEnd();
 	
 	message.showMessageBox {target=player_pos, text="I only need to keep you busy!"}
