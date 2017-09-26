@@ -2178,7 +2178,10 @@ local function cutscene_intro_checkpoint()
 
 	player.x = Zero.x-64;
 	
-	waitAndDo(128, function() player.speedX = 1.5; end);
+	waitAndDo(128, function()
+		player.speedX = 1.5;
+		player.FacingDirection = 1; 
+	end);
 	
 	b.left = Zero.x;
 	Section(bossAPI.section).boundary = b;
@@ -2196,7 +2199,10 @@ local function cutscene_intro()
 
 	player.x = Zero.x-64;
 	
-	waitAndDo(128, function() player.speedX = 1.5; end);
+	waitAndDo(128, function() 
+		player.speedX = 1.5;
+		player.FacingDirection = 1; 
+	end);
 	
 	b.left = Zero.x;
 	Section(bossAPI.section).boundary = b;
@@ -2484,6 +2490,12 @@ function bossAPI.onTick()
 		end
 		
 		if(bossStarted) then
+		
+		if(not drawBG and not intensifies) then
+			player:mem(0x140, FIELD_WORD, 2);
+			player.powerup = 2;
+		end
+		
 			if(intensifies) then
 				if(intensifiesTimer < largeBulletEndTime) then
 					Defines.earthquake = math.lerp(4,2,intensifiesTimer/largeBulletEndTime);
@@ -2501,6 +2513,7 @@ function bossAPI.onTick()
 				flashScreen(150);
 				drawBG = false;
 				stunned = false;
+				player:mem(0x140, FIELD_WORD, 2);
 				SetBodyPos(initPos);
 				for i=1,4 do
 					SetArmPos(i, arms[i].initPos);
@@ -2511,6 +2524,7 @@ function bossAPI.onTick()
 				player.powerup = 2;
 				player.x = initPlayerPos.x-player.width*0.5;
 				player.y = initPlayerPos.y-player.height;
+				
 				player.speedX = 0;
 				player.speedY = 0;
 				player.FacingDirection = 1;
