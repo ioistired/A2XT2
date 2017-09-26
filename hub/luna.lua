@@ -13,16 +13,21 @@ message.presetSequences.MessageTest = function(args)
 
 	message.showMessageBox {target=talker, text="Testing sign messages.", type="sign"}
 	message.waitMessageEnd();
+
 	message.showMessageBox {target=talker, text="Testing bubble messages."}
 	message.waitMessageEnd();
+
 	message.showMessageBox {target=talker, text="Testing system messages.", type="system"}
 	message.waitMessageEnd();
+
 	message.showMessageBox {target=talker, text="Testing no-bubble messages.", type="textonly"}
 	message.waitMessageEnd();
+
 	message.showMessageBox {target=talker, text="Testing intercom messages.", type="intercom"}
 	message.waitMessageEnd();
 
-	scene.endScene()
+	message.endMessage();
+	scene.endScene();
 end
 
 
