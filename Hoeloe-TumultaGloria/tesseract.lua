@@ -42,7 +42,7 @@ local function draw(obj, priority, sceneCoords, color)
 		priority = priority,
 		uniforms = { 
 			scale = obj.size,
-			offset = {obj.x,obj.y,2,100}, 
+			offset = {obj.x,obj.y,0,128}, 
 			depth = 128,
 			rot = r,
 			},

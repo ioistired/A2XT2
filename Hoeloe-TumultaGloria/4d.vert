@@ -1,7 +1,5 @@
 #version 120
 
-uniform vec4 cameraPos = vec4(0,0,0,-1);
-uniform float screen = 0;
 uniform vec4 offset;
 uniform float scale;
 uniform float depth;
@@ -32,30 +30,16 @@ void main()
 					0,			1,			0,				0,
 					0,			0,			cos(rot.w),		-sin(rot.w),
 					0,			0,			sin(rot.w),		cos(rot.w));
-					
-	mat4 rotmat = rotw*rotz*roty*rotx;
-
-	vec4 d = position*rotmat;
 	
-	d += offset-cameraPos;
-	float t = (screen/cameraPos.w)/d.w;
-	
-	vec4 pos = cameraPos+d*t;
-	
-	pos = position*rotmat;
-	
-	float shade = clamp((pos.z)/2,0,1);
-	
+	vec4 pos = position*rotw*rotz*roty*rotx;
 	pos.xyzw *= scale;
-	
 	pos.xyz *= depth/(depth-pos.w);
-	
 	pos += offset;
+	
 	pos.z = 0;
 	pos.w = 1;
 
     gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
     gl_Position = gl_ModelViewProjectionMatrix * pos;
-	vec4 c = gl_Color;
-	gl_FrontColor = c;
+	gl_FrontColor = gl_Color;
 }
