@@ -26,7 +26,7 @@ boss.Name = "Tumulta Gloria"
 boss.SuperTitle = "Chaos Pumpernickel"
 boss.SubTitle = "Anarchy Incarnate"
 
-boss.MaxHP = 110;
+boss.MaxHP = 10;--110;
 
 boss.TitleDisplayTime = 380;
 
@@ -149,13 +149,19 @@ audio.bullet_hit = Misc.resolveFile("bullet_2.ogg")
 audio.bullet_med = Misc.resolveFile("bullet_3.ogg")
 audio.bullet_split = Misc.resolveFile("bullet_4.ogg")
 audio.fog = Misc.resolveFile("fog.ogg")
+audio.core_reset = Misc.resolveFile("core_reset.ogg")
+audio.core_active = Misc.resolveFile("core_active.ogg")
+audio.core_active_loop = Misc.resolveFile("core_active2.ogg")
 
 audio.voice = {}
 
 audio.voice.hurt = {Misc.resolveFile("voice_hurt_1.ogg"), Misc.resolveFile("voice_hurt_2.ogg")}
 audio.voice.stun = {Misc.resolveFile("voice_stun_1.ogg"), Misc.resolveFile("voice_stun_2.ogg")}
 
+local broken_core = audioMaster.Create{sound="core_error.ogg", x = 0, y = 0, type = audio.SOURCE_POINT, falloffRadius = 800, volume = 1};
+
 local events = {};
+local cutscene = {};
 
 local bossBegun = false;
 
@@ -206,6 +212,22 @@ setmetatable(bossAPI, bossmt)
 function bossAPI.GetCheckpoint()
 	return cp;
 end
+
+
+local rng = API.load("rng")
+local vectr = API.load("vectr")
+local tesseract = API.load("tesseract");
+
+local tess = tesseract.Create(400,300,32);
+
+tess.rotation.x = rng.random(0,2*math.pi);
+tess.rotation.y = rng.random(0,2*math.pi);
+tess.rotation.z = rng.random(0,2*math.pi);
+tess.rotation.w = rng.random(0,2*math.pi);
+
+local tess_rotspd = vectr.v4(0.011, 0.023, 0.047, 0.028);
+local tess_spdmult = 1.5;
+local tess_colour = math.lerp(Color.white,Color.red,0.8);
 				
 local stunned = false;
 local stunRecovery = false;
@@ -2130,6 +2152,8 @@ local function intensifiesEvents()
 	boss.Active = false;
 	local t = 0;
 	
+	broken_core:Stop();
+	
 	showPumpMsg {target=eye_pos, text="SAYONARA CAUSALITY!<pause 60>", closeWith="auto"}
 	message.waitMessageEnd();
 	
@@ -2161,7 +2185,6 @@ local initPlayerPos = vectr.v2(0,0);
 
 
 local function StartBoss()
-	Audio.MusicVolume(100);
 	Audio.MusicOpen(Misc.resolveFile("music/a2xt-aurevoir.ogg"));
 	Audio.MusicPlay();
 	
@@ -2170,13 +2193,27 @@ local function StartBoss()
 	boss.Start();
 end
 
-local function cutscene_intro_checkpoint()
+local function LowerCoreVolume(ti)
+	eventu.run(function()
+				local t = ti;
+				while(t > 0) do
+					t = t-1;
+					broken_core.volume = t/ti;
+					eventu.waitFrames(0);
+				end
+				broken_core:Stop();
+		end);
+end
+
+function cutscene.intro_checkpoint()
 
 	local b = Section(bossAPI.section).boundary;
 	b.left = Zero.x-64;
 	Section(bossAPI.section).boundary = b;
 
 	player.x = Zero.x-64;
+	
+	LowerCoreVolume(400);
 	
 	waitAndDo(128, function()
 		player.speedX = 1.5;
@@ -2191,7 +2228,7 @@ local function cutscene_intro_checkpoint()
 	StartBoss();
 end
 
-local function cutscene_intro()
+function cutscene.intro()
 
 	local b = Section(bossAPI.section).boundary;
 	b.left = Zero.x-64;
@@ -2217,6 +2254,7 @@ local function cutscene_intro()
 	message.waitMessageEnd();
 	
 	Audio.SeizeStream(bossAPI.section);
+	Audio.MusicVolume(100);
 	Audio.MusicOpen(Misc.resolveFile("music/a2xt-smokingisbadforyou.ogg"));
 	Audio.MusicPlay();
 	
@@ -2303,6 +2341,9 @@ local function cutscene_intro()
 	waitMsgWhileReady(m);
 	
 	Audio.MusicStopFadeOut(2000);
+	
+	LowerCoreVolume(400);
+	
 	eventu.waitFrames(128);
 	
 	scene.endScene();
@@ -2315,6 +2356,9 @@ end
 function events.InitBoss(checkpoint)
 	Zero.x = Section(bossAPI.section).boundary.left;
 	Zero.y = Section(bossAPI.section).boundary.top;
+	
+	broken_core.x = Zero.x+400;
+	broken_core.y = Zero.y+300;
 	
 	initPos.x = Zero.x+600;
 	initPos.y = Zero.y+250;
@@ -2357,9 +2401,10 @@ function events.InitBoss(checkpoint)
 	bgShader:compileFromFile(nil, Misc.resolveFile("background.frag"));
 	
 	if(checkpoint) then
-		scene.startScene{scene=cutscene_intro_checkpoint, noletterbox=true}
+		scene.startScene{scene=cutscene.intro_checkpoint, noletterbox=true}
+		--scene.startScene{scene=cutscene.mid, noletterbox=true}
 	else
-		scene.startScene{scene=cutscene_intro, noletterbox=true}
+		scene.startScene{scene=cutscene.intro, noletterbox=true}
 	end
 end
 
@@ -2373,7 +2418,11 @@ end
 local mainloop;
 local intensifyReady = false;
 
-local function cutscene_mid()
+function cutscene.mid()
+	
+	broken_core.volume = 1;
+	broken_core:Play();
+
 	--Broadsword in ready pose
 	
 	local function SetReady()
@@ -2403,7 +2452,7 @@ local function cutscene_mid()
 	local m = message.showMessageBox {target=player_pos, text="That may be, but..."}
 	
 	while(true) do
-		if(player.x < Zero.x+380) then
+		if(player.x < Zero.x+340) then
 			player.speedX = 2;
 		elseif(m == nil or m.deleteMe) then
 			break;
@@ -2415,7 +2464,48 @@ local function cutscene_mid()
 	message.showMessageBox {target=player_pos, text="I don't need to kill you."}
 	message.waitMessageEnd();
 	--Broadsword press button
-	message.showMessageBox {x=400, y=300, text="CORE REBOOT INITIATED.<br>BEGINNING GARBAGE DISPOSAL IN T-MINUS 1 MINUTE.<page>GIVE OR TAKE.", screenSpace = true, type="system"}
+	
+	local t = 128;
+	local initc = tess_colour;
+	local rota = -tess_rotspd/t;
+	local initrot = tess.rotation+vectr.zero4;
+	
+	Sound(audio.core_reset);
+	broken_core:Stop();
+	
+	waitAndDo(t, function()
+		t = t-1;
+		local a = 1 - t/128;
+		tess_rotspd = tess_rotspd+rota;
+		tess_colour = math.lerp(initc, Color.black, a);
+		tess.rotation.x = math.rad(math.anglelerp(math.deg(tess.rotation.x),50,a));
+		tess.rotation.y = math.rad(math.anglelerp(math.deg(tess.rotation.y),45,a));
+		tess.rotation.z = math.rad(math.anglelerp(math.deg(tess.rotation.z),0,a));
+		tess.rotation.w = math.rad(math.anglelerp(math.deg(tess.rotation.w),0,a));
+	end);
+	tess_spdmult = 0;
+	
+	eventu.waitFrames(64);
+	
+	Sound(audio.core_active);
+	broken_core.sound=Audio.SfxOpen(audio.core_active_loop);
+	broken_core.volume = 0;
+	broken_core:Play();
+	eventu.run(function()
+		local t = 128;
+		while(t > 0) do
+			t = t-1;
+			local a = 1 - t/128;
+			tess_rotspd.y = 0.02;
+			tess_rotspd.w = 0.01;
+			tess_spdmult = math.lerp(0,4,a*a);
+			tess_colour = math.lerp(Color.black, Color.lightblue, a);
+			broken_core.volume = math.lerp(0,1,a);
+			eventu.waitFrames(0);
+		end
+	end);
+	
+	message.showMessageBox {x=400, y=300, text="CORE REBOOT INITIATED.<br>BEGINNING GARBAGE DISPOSAL IN T-MINUS 2 MINUTES.<page>GIVE OR TAKE.", screenSpace = true, type="system"}
 	message.waitMessageEnd();
 	
 	message.showMessageBox {target=player_pos, text="I only need to keep you busy!"}
@@ -2452,6 +2542,8 @@ local function cutscene_mid()
 end
 
 function bossAPI.onTick()
+	tess.rotation = tess.rotation + tess_rotspd*tess_spdmult;
+	
 	eye_pos.x = x-32;
 	eye_pos.y = y-32;
 	eye_pos.width = 64;
@@ -2529,7 +2621,7 @@ function bossAPI.onTick()
 				player.speedY = 0;
 				player.FacingDirection = 1;
 				intensifyReady = true;
-				scene.startScene{scene=cutscene_mid, noletterbox=true}
+				scene.startScene{scene=cutscene.mid, noletterbox=true}
 			elseif(not intensifies and intensifyReady == 1 and Audio.MusicIsPlaying() and Audio.MusicClock() > 11.4) then
 				flashScreen();
 				drawBG = true;
@@ -2586,18 +2678,25 @@ end
 
 local function DrawBG()
 	local gametime = lunatime.time() - starttime;
-	local t = math.min(2,gametime * 0.05);
-	local gradt = math.pow(math.sin(gametime*0.05),2);
-	local gradcol = smokegrad:get(gradt);
-	Graphics.glDraw{vertexCoords={0,0,800,0,800,600,0,600}, primitive = Graphics.GL_TRIANGLE_FAN, textureCoords = {0,0,1,0,1,1,0,1}, texture = noise, shader = bgShader, color = {1,1,1,gametime},
-									uniforms =  {
-                                        iResolution = {800,600,1},
-                                        iGlobalTime = gametime,
-										gSpeedMult = t,
-										gColBase = {gradcol.r,gradcol.g,gradcol.b},
-										gColAdd = {0.3,0.4,0.6},
-										gBossPos = {x-Camera.get()[1].x,y-Camera.get()[1].y}
-                                     }, priority = -65};
+	
+	if(gametime < 5 or not drawBG) then
+		tess:Draw(-99,false,tess_colour);
+	end
+	
+	if(drawBG) then
+		local t = math.min(2,gametime * 0.05);
+		local gradt = math.pow(math.sin(gametime*0.05),2);
+		local gradcol = smokegrad:get(gradt);
+		Graphics.glDraw{vertexCoords={0,0,800,0,800,600,0,600}, primitive = Graphics.GL_TRIANGLE_FAN, textureCoords = {0,0,1,0,1,1,0,1}, texture = noise, shader = bgShader, color = {1,1,1,(gametime-1)*0.25},
+										uniforms =  {
+											iResolution = {800,600,1},
+											iGlobalTime = gametime,
+											gSpeedMult = t,
+											gColBase = {gradcol.r,gradcol.g,gradcol.b},
+											gColAdd = {0.3,0.4,0.6},
+											gBossPos = {x-Camera.get()[1].x,y-Camera.get()[1].y}
+										 }, priority = -65};
+	end
 end
 
 local function DrawFog()
@@ -2814,9 +2913,7 @@ end
 
 local function DrawBoss()
 	if(not intensifies or intensifiesTimer > 0) then
-		if(drawBG) then
-			DrawBG();
-		end
+		DrawBG();
 	
 		DrawFog();
 		DrawEye();

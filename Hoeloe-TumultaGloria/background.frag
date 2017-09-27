@@ -114,7 +114,7 @@ void main( )
     
 	stars *= 0.25;
 	dust *= 0.5;
-	float a = clamp((iGlobalTime-1)*0.25,0,1);
+	float a = clamp(gl_Color.a,0,1);//clamp((iGlobalTime-1)*0.25,0,1);
 	a *= a;
 	gl_FragColor = vec4(a*(stars + dust)*clamp(distance(gBossPos,gl_FragCoord.xy)/800,0,1), a);
 }
