@@ -127,7 +127,10 @@ for _,v in ipairs(pengs) do
 	npcManager.setNpcSettings(v);
 	npcManager.registerEvent(v.id, pengs, "onTickNPC");
 	npcManager.registerEvent(v.id, pengs, "onStartNPC");
-end			
+end		
+
+
+npcManager.setNpcSettings({id = 151, talkrange = 0});	
 
 local signs = {};
 

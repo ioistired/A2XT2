@@ -8,4 +8,5 @@ LEVEL:Enjl-RETCON
 	Author=Enjl
 	Type=EOW
 	Exit=LEEK
+	Chars=DIB
 	Raocoins=false

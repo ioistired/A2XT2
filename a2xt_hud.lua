@@ -47,6 +47,7 @@ if(isOverworld) then
 	icons_chars[CHARACTER_KOOD] = Graphics.loadImage(Misc.resolveFile("graphics/HUD/filters/head_kood.png"))
 	icons_chars[CHARACTER_RAOCOW] = Graphics.loadImage(Misc.resolveFile("graphics/HUD/filters/head_raocow.png"))
 	icons_chars[CHARACTER_SHEATH] = Graphics.loadImage(Misc.resolveFile("graphics/HUD/filters/head_sheath.png"))
+	icons_chars[CHARACTER_UNCLEBROADSWORD] = Graphics.loadImage(Misc.resolveFile("graphics/HUD/filters/head_broadsword.png"))
 	
 	icons_filters[-2] = Graphics.loadImage(Misc.resolveFile("graphics/HUD/filters/filter_catllama.png"))
 	icons_filters[-1] = Graphics.loadImage(Misc.resolveFile("graphics/HUD/filters/filter_sack.png"))
