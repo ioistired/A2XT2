@@ -48,3 +48,9 @@ LEVEL:Pyro-Peaceful Snowy Night
 	Exit=ROULETTE
 	Secret=KEY
 	Raocoins=true
+LEVEL:raocow-thisleveliscanon
+	Name=this level is canon
+	Author=raocow
+	Type=LEVEL
+	Exit=JAR
+	Raocoins=true

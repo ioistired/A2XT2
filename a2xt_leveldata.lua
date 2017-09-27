@@ -519,15 +519,15 @@ end
 
 
 function leveldata.Visited(levelFile)
-	return GetCompletion(levelFile) ~= nil;
+	return leveldata.GetCompletion(levelFile) ~= nil;
 end
 
 function leveldata.Cleared(levelFile)
-	return GetCompletion(levelFile).Exit == true;
+	return leveldata.GetCompletion(levelFile).Exit == true;
 end
 
 function leveldata.SecretCleared(levelFile)
-	return GetCompletion(levelFile).Secret == true;
+	return leveldata.GetCompletion(levelFile).Secret == true;
 end
 
 function leveldata.CharsOrDefault(data)

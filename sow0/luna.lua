@@ -27,7 +27,7 @@ end
 
 
 
-local hubLevel = "hub"
+local hubLevel = "hub.lvl"
 function onStart()
 	mem(0xB2572A,FIELD_BOOL,false)
 
@@ -37,16 +37,16 @@ function onStart()
 		leveldata.LoadLevel(hubLevel)
 
 	-- else if the player is in world 1 or 2
-	elseif  leveldata.getWorldsUnlocked() > 0  then
+	elseif  leveldata.GetWorldsUnlocked() > 0  then
 
 		-- if the current SOW level is beaten, go to that submap
-		if  leveldata.getWorldsUnlocked() == leveldata.getMapsUnlocked()  then
+		if  leveldata.GetWorldsUnlocked() == leveldata.GetMapsUnlocked()  then
 			Level.exit()
 
 		-- else if the player is currently on a different SOW level, go to that one
 		else
 			mem(0xB2572A,FIELD_BOOL,true)
-			leveldata.LoadLevel(leveldata.GetWorldStart(leveldata.getWorldsUnlocked()))
+			leveldata.LoadLevel(leveldata.GetWorldStart(leveldata.GetWorldsUnlocked()))
 		end
 
 	-- Else if in the tutorial world
@@ -56,6 +56,6 @@ function onStart()
 
 	-- else start the intro cutscene
 	else
-		a2xt_scene.startScene{scene=cor_intro, skip=skip_intro}
+		scene.startScene{scene=cor_intro, skip=skip_intro}
 	end
 end
