@@ -540,9 +540,9 @@ end
 --[[showMessageBox args:
 	strings: text,closeWith(auto,prompt)
 	objects: target
-	bools:   keepOnscreen,hasTail,screenSpace,instant
+	bools:   keepOnscreen,hasTail,screenSpace,instant,inputClose,inputProgress
 	enums:   type
-	ints:    x,y,offX,offY
+	numbers: x,y,width,height,offX,offY
 	tables:  bloxProps
 --]]
 function a2xt_message.showMessageBox (args)
@@ -603,10 +603,13 @@ function a2xt_message.showMessageBox (args)
 		props[k] = v
 	end
 
-	props.trackTarget = messageCtrl
-	props.pauseGame   = false
-	props.z           = 2
-	props.instant     = args.instant  or  props.instant
+	props.trackTarget    = messageCtrl
+	props.pauseGame      = false
+	props.z              = 2
+
+	for  _,v in ipairs{"width","height","instant","inputClose","inputProgress"}  do
+		props[v] = args[v]  or  props[v]
+	end
 	
 	if(args.screenSpace) then
 		props.bind = textblox.BIND_SCREEN
