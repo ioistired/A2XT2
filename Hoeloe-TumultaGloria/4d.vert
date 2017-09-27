@@ -8,30 +8,30 @@ attribute vec4 position;
 
 void main()
 {    
-	mat4 rotx = mat4(
+	mat4 rotxw = mat4(
 					1,			0,			0,				0,
 					0,			cos(rot.x),	-sin(rot.x),	0,
 					0,			sin(rot.x),	cos(rot.x),		0,
 					0,			0,		0,					1);
-	mat4 roty = mat4(
+	mat4 rotyw = mat4(
 					cos(rot.y),	0,			-sin(rot.y),	0,
 					0,			1,			0,				0,
 					sin(rot.y),	0,			cos(rot.y),		0,
 					0,			0,			0,				1);
 					
-	mat4 rotz = mat4(
+	mat4 rotzw = mat4(
 					cos(rot.z),	-sin(rot.z),0,				0,
 					sin(rot.z),	cos(rot.z),	0,				0,
 					0,			0,			1,				0,
 					0,			0,			0,				1);
 					
-	mat4 rotw = mat4(
+	mat4 rotxy = mat4(
 					1,			0,			0,				0,
 					0,			1,			0,				0,
 					0,			0,			cos(rot.w),		-sin(rot.w),
 					0,			0,			sin(rot.w),		cos(rot.w));
 	
-	vec4 pos = position*rotw*rotz*roty*rotx;
+	vec4 pos = position*rotxy*rotzw*rotyw*rotxw;
 	pos.xyzw *= scale;
 	pos.xyz *= depth/(depth-pos.w);
 	pos += offset;
