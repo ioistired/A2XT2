@@ -20,7 +20,7 @@ message.presetSequences.MessageTest = function(args)
 	message.showMessageBox {target=talker, text="Testing system messages.", type="system"}
 	message.waitMessageEnd();
 
-	message.showMessageBox {target=talker, text="Testing no-bubble messages.", type="textonly"}
+	message.showMessageBox {target=talker, text="Testing boxless messages.", type="textonly"}
 	message.waitMessageEnd();
 
 	message.showMessageBox {target=talker, text="Testing intercom messages.", type="intercom"}
@@ -29,6 +29,31 @@ message.presetSequences.MessageTest = function(args)
 	message.endMessage();
 	scene.endScene();
 end
+
+
+message.presetSequences.archiveChars = function(args)
+	local talker = args.npc
+
+	message.promptChosen = false
+	message.showMessageBox {target=talker, text="<gt>Accessing character profiles<pause>.<pause>.<pause>.<pause>", type="system", closeWith="prompt"}
+	message.waitMessageDone();
+
+	a2xt_message.showPrompt{options={"Demo Roseclair, Iris Roseclair, "}}
+	a2xt_message.waitPrompt()
+
+
+	message.showMessageBox {target=talker, text="Testing boxless messages.", type="textonly"}
+	message.waitMessageEnd();
+
+	message.showMessageBox {target=talker, text="Testing intercom messages.", type="intercom"}
+	message.waitMessageEnd();
+
+	message.endMessage();
+	scene.endScene();
+end
+
+
+
 
 
 function onDraw()
