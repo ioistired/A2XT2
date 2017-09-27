@@ -1,5 +1,9 @@
 local eventu = API.load("eventu")
 local rng = API.load("rng")
+local inputs = API.load("inputs2")
+local intercom = API.load("intercom")
+
+local icon_tam = Graphics.loadImage("tamIcon.png")
 
 local blockReplacementList = {
             [229] = {229, 237},
@@ -13,7 +17,7 @@ local blockReplacementIDs = {229,234,247,248,263,264}
 
 local bgoReplacementList = {
             [42] = {42, 43, 44},
-            [86] = {89, 90, 91},
+            [86] = {89, 90, 91, 42, 43, 44},
             [96]  = {96, 152, 131, 133},
             [116] = {116, 118, 120},
             [121] = {121, 119, 117},
@@ -113,7 +117,7 @@ local function switchDelay(id)
 	secondaryCharacterTable[character].powerup = player.powerup
 	secondaryCharacterTable[character].x = player.x
 	secondaryCharacterTable[character].y = player.y
-	eventu.waitFrames(1)
+	eventu.waitFrames(1, true)
 	player.character = id
     for _, i in ipairs(memWhitelist) do
         player:mem(i,FIELD_WORD, secondaryCharacterTable[id].memSave[i])
@@ -129,9 +133,9 @@ local function switchDelay(id)
 	player.height = secondaryCharacterTable[id].height
 	player.x = secondaryCharacterTable[id].x
 	player.y = secondaryCharacterTable[id].y
-	eventu.waitFrames(1)
+	eventu.waitFrames(1, true)
 	hasJustSwitched = false
-	eventu.waitFrames(3)
+	eventu.waitFrames(3, true)
 	eventu.signal("switched")
 end
 
@@ -146,7 +150,25 @@ local function switchCharacter(id)
 	eventu.run(switchDelay, id)
 end
 
+local function openingCutscene()
+	for i=1, 65 do
+		player.rightKeyPressing = true
+		eventu.waitFrames(1)
+	end
+	eventu.waitFrames(25)
+	for i=1, 4 do
+		Layer.get("gate"..i):show(false)
+		Audio.playSFX(37)
+		eventu.waitFrames(16)
+		player.FacingDirection = -1
+	end
+	inputs.locked[1].all = false
+	intercom.queueMessage(icon_tam, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.")
+	intercom.queueMessage(icon_tam, "CAN YOU HEAR ME?!?!.")
+end
+
 local function initCams()
+	inputs.locked[1].all = true
 	player.character = 1
 	addCharacter(CHARACTER_MARIO,
 	            {    x=-199552,
@@ -188,6 +210,12 @@ local function initCams()
 		v.bufferTimer = 1
 	end
 	initialisingCams = false
+	
+	if player.section == 0 then
+		openingCutscene()
+	else
+		inputs.locked[1].all = false
+	end
 end
 
 function onStart()
@@ -196,12 +224,16 @@ function onStart()
 end
 
 local function charSwitch()
-	if player.keys.left == KEYS_PRESSED then
-		if player.keys.run and player.keys.altRun then
+	if player.keys.altRun == KEYS_PRESSED then
+		Misc.pause()
+	elseif player.keys.altRun == SPAGHETTI_AND_MEATBALLS then
+		Misc.unpause()
+	end
+	
+	if player.keys.altRun then
+		if player.keys.left == KEYS_PRESSED then
 			switchCharacter(leftCycle[player.character])
-		end
-	elseif player.keys.right == KEYS_PRESSED then
-		if player.keys.run and player.keys.altRun then
+		elseif player.keys.right == KEYS_PRESSED then
 			switchCharacter(rightCycle[player.character])
 		end
 	end
@@ -251,8 +283,10 @@ local function drawMonitor(id, dir)
 	}
 end
 
-function onTick()
-	charSwitch()
+function onInputUpdate()
+	if not initialisingCams then
+		charSwitch()
+	end
 end
 
 function onDraw()
@@ -261,6 +295,9 @@ function onDraw()
 	else
 		if hasJustSwitched then
 			Graphics.drawScreen{color=Color.grey, priority=10}
+		end
+		if player.keys.altRun then
+			Graphics.drawScreen{color={0,0,0,0.5}, priority=0}
 		end
 		drawMonitor(leftCycle[player.character], -1)
 		drawMonitor(rightCycle[player.character], 1)
