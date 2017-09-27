@@ -26,7 +26,7 @@ boss.Name = "Tumulta Gloria"
 boss.SuperTitle = "Chaos Pumpernickel"
 boss.SubTitle = "Anarchy Incarnate"
 
-boss.MaxHP = 110;
+boss.MaxHP = 10;
 
 boss.TitleDisplayTime = 380;
 
@@ -220,12 +220,15 @@ local tesseract = API.load("tesseract");
 
 local tess = tesseract.Create(400,300,32);
 
-tess.rotation.x = rng.random(0,2*math.pi);
-tess.rotation.y = rng.random(0,2*math.pi);
-tess.rotation.z = rng.random(0,2*math.pi);
-tess.rotation.w = rng.random(0,2*math.pi);
+tess.rotationXYZ.x = rng.random(0,2*math.pi);
+tess.rotationXYZ.y = rng.random(0,2*math.pi);
+tess.rotationXYZ.z = rng.random(0,2*math.pi);
+tess.rotationW.x = rng.random(0,2*math.pi);
+tess.rotationW.y = rng.random(0,2*math.pi);
+tess.rotationW.z = rng.random(0,2*math.pi);
 
-local tess_rotspd = vectr.v4(0.011, 0.023, 0.047, 0.028);
+local tess_rotspdxyz = vectr.v3(0.011, 0.023, 0.047);
+local tess_rotspdw = vectr.v3(0.028,0.013,0.021)
 local tess_spdmult = 1.5;
 local tess_colour = math.lerp(Color.white,Color.red,0.8);
 				
@@ -2467,8 +2470,8 @@ function cutscene.mid()
 	
 	local t = 128;
 	local initc = tess_colour;
-	local rota = -tess_rotspd/t;
-	local initrot = tess.rotation+vectr.zero4;
+	local rotxyza = -tess_rotspdxyz/t;
+	local rotwa = -tess_rotspdw/t;
 	
 	Sound(audio.core_reset);
 	broken_core:Stop();
@@ -2476,12 +2479,15 @@ function cutscene.mid()
 	waitAndDo(t, function()
 		t = t-1;
 		local a = 1 - t/128;
-		tess_rotspd = tess_rotspd+rota;
+		tess_rotspdxyz = tess_rotspdxyz+rotxyza;
+		tess_rotspdw = tess_rotspdw+rotwa;
 		tess_colour = math.lerp(initc, Color.black, a);
-		tess.rotation.x = math.rad(math.anglelerp(math.deg(tess.rotation.x),50,a));
-		tess.rotation.y = math.rad(math.anglelerp(math.deg(tess.rotation.y),45,a));
-		tess.rotation.z = math.rad(math.anglelerp(math.deg(tess.rotation.z),0,a));
-		tess.rotation.w = math.rad(math.anglelerp(math.deg(tess.rotation.w),0,a));
+		tess.rotationXYZ.x = math.rad(math.anglelerp(math.deg(tess.rotationXYZ.x),50,a));
+		tess.rotationXYZ.y = math.rad(math.anglelerp(math.deg(tess.rotationXYZ.y),45,a));
+		tess.rotationXYZ.z = math.rad(math.anglelerp(math.deg(tess.rotationXYZ.z),0,a));
+		tess.rotationW.x = math.rad(math.anglelerp(math.deg(tess.rotationW.x),0,a));
+		tess.rotationW.y = math.rad(math.anglelerp(math.deg(tess.rotationW.y),0,a));
+		tess.rotationW.z = math.rad(math.anglelerp(math.deg(tess.rotationW.z),0,a));
 	end);
 	tess_spdmult = 0;
 	
@@ -2496,8 +2502,8 @@ function cutscene.mid()
 		while(t > 0) do
 			t = t-1;
 			local a = 1 - t/128;
-			tess_rotspd.y = 0.02;
-			tess_rotspd.w = 0.01;
+			tess_rotspdxyz.y = 0.02;
+			tess_rotspdw.z = 0.005;
 			tess_spdmult = math.lerp(0,4,a*a);
 			tess_colour = math.lerp(Color.black, Color.lightblue, a);
 			broken_core.volume = math.lerp(0,1,a);
@@ -2542,7 +2548,8 @@ function cutscene.mid()
 end
 
 function bossAPI.onTick()
-	tess.rotation = tess.rotation + tess_rotspd*tess_spdmult;
+	tess.rotationXYZ = tess.rotationXYZ + tess_rotspdxyz*tess_spdmult;
+	tess.rotationW = tess.rotationW + tess_rotspdw*tess_spdmult;
 	
 	eye_pos.x = x-32;
 	eye_pos.y = y-32;

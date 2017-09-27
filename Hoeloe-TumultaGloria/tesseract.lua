@@ -34,7 +34,8 @@ local function draw(obj, priority, sceneCoords, color)
 		shader:compileFromFile(s..".vert",s..".frag");
 	end
 	
-	local r = {obj.rotation.x, obj.rotation.y, obj.rotation.z, obj.rotation.w};
+	local r1 = {obj.rotationXYZ.x, obj.rotationXYZ.y, obj.rotationXYZ.z};
+	local r2 = {obj.rotationW.x, obj.rotationW.y, obj.rotationW.z};
 	
 	Graphics.glDraw{vertexCoords = obj.__tverts, textureCoords = obj.__tex, shader = shader,
 		sceneCoords = sceneCoords,
@@ -44,7 +45,8 @@ local function draw(obj, priority, sceneCoords, color)
 			scale = obj.size,
 			offset = {obj.x,obj.y,0,128}, 
 			depth = 128,
-			rot = r,
+			rot1 = r1,
+			rot2 = r2
 			},
 
 			color = color or Color.white};
@@ -100,7 +102,7 @@ function tesseract.Create(x,y,size)
 		table.insert(tverts, 0);
 	end
 	
-	local t = {__verts = verts, __tex = tex, __tverts = tverts, x = x, y = y, rotation = vectr.v4(0,0,0,0), size = size}
+	local t = {__verts = verts, __tex = tex, __tverts = tverts, x = x, y = y, rotationXYZ = vectr.v3(0,0,0), rotationW = vectr.v3(0,0,0), size = size}
 	
 	t.draw = draw;
 	t.Draw = draw;
