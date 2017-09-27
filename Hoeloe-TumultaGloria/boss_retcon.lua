@@ -216,7 +216,8 @@ end
 
 local rng = API.load("rng")
 local vectr = API.load("vectr")
-local tesseract = API.load("tesseract");
+local tesseract = API.load("CORE/tesseract");
+local flipclock = API.load("CORE/flipclock");
 
 local tess = tesseract.Create(400,300,32);
 
@@ -231,6 +232,16 @@ local tess_rotspdxyz = vectr.v3(0.011, 0.023, 0.047);
 local tess_rotspdw = vectr.v3(0.028,0.013,0.021)
 local tess_spdmult = 1.5;
 local tess_colour = math.lerp(Color.white,Color.red,0.8);
+
+local flipclocks = {};
+local flip_mania = true;
+local flip_stabletime = 0;
+
+for i = -1.6667,1.6667 do
+	for j = 0,1 do
+		table.insert(flipclocks, flipclock.Create(400+(i*64)+(j*28), 120, rng.randomInt(0,9)));
+	end
+end
 				
 local stunned = false;
 local stunRecovery = false;
@@ -2476,6 +2487,12 @@ function cutscene.mid()
 	Sound(audio.core_reset);
 	broken_core:Stop();
 	
+	flip_mania = false;
+	flip_stabletime = math.huge;
+	for _,v in ipairs(flipclocks) do
+		v.number = 0;
+	end
+	
 	waitAndDo(t, function()
 		t = t-1;
 		local a = 1 - t/128;
@@ -2492,6 +2509,8 @@ function cutscene.mid()
 	tess_spdmult = 0;
 	
 	eventu.waitFrames(64);
+	
+	flip_stabletime = lunatime.time();
 	
 	Sound(audio.core_active);
 	broken_core.sound=Audio.SfxOpen(audio.core_active_loop);
@@ -2688,6 +2707,17 @@ local function DrawBG()
 	
 	if(gametime < 5 or not drawBG) then
 		tess:Draw(-99,false,tess_colour);
+		for k,v in ipairs(flipclocks) do
+			if(flip_mania) then
+				if(v.numtimer == 0) then
+					v.number = rng.randomInt(0,9);
+				end
+			else
+				local l = 8-k;
+				v.number = math.floor(math.max(lunatime.time()-flip_stabletime, 0)/math.pow(10,l))%10;
+			end
+			v:Draw(-99.1);
+		end
 	end
 	
 	if(drawBG) then

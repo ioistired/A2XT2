@@ -25,7 +25,7 @@ local function maketris(verts,tex,quads)
 	end
 end
 
-local shader = "4d"
+local shader = "CORE/4d"
 
 local function draw(obj, priority, sceneCoords, color)
 	if(type(shader) == "string") then
