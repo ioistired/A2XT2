@@ -46,6 +46,8 @@ textblox.presetProps[textblox.PRESET_BUBBLE].borderTable = {
 textblox.presetProps[textblox.PRESET_BUBBLE].xMargin = 0
 textblox.presetProps[textblox.PRESET_BUBBLE].yMargin = 8
 
+textblox.presetProps[textblox.PRESET_SIGN].instant = true
+
 textblox.presetProps[4] = table.join(
                                      {borderTable={col=0x00000000}, boxColor=0x00000000},
                                      table.clone(textblox.presetProps[textblox.PRESET_BUBBLE])
@@ -604,7 +606,7 @@ function a2xt_message.showMessageBox (args)
 	props.trackTarget = messageCtrl
 	props.pauseGame   = false
 	props.z           = 2
-	props.instant     = args.instant
+	props.instant     = args.instant  or  props.instant
 	
 	if(args.screenSpace) then
 		props.bind = textblox.BIND_SCREEN

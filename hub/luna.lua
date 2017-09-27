@@ -35,18 +35,11 @@ message.presetSequences.archiveChars = function(args)
 	local talker = args.npc
 
 	message.promptChosen = false
-	message.showMessageBox {target=talker, text="<gt>Accessing character profiles<pause>.<pause>.<pause>.<pause>", type="system", closeWith="prompt"}
+	message.showMessageBox {target=talker, text="<gt>Accessing character profiles...<pause 0.1>", type="system", closeWith="prompt"}
 	message.waitMessageDone();
 
-	a2xt_message.showPrompt{options={"Demo Roseclair, Iris Roseclair, "}}
-	a2xt_message.waitPrompt()
-
-
-	message.showMessageBox {target=talker, text="Testing boxless messages.", type="textonly"}
-	message.waitMessageEnd();
-
-	message.showMessageBox {target=talker, text="Testing intercom messages.", type="intercom"}
-	message.waitMessageEnd();
+	message.showPrompt{options={"Test",message.getNoOption()}}
+	message.waitPrompt()
 
 	message.endMessage();
 	scene.endScene();
