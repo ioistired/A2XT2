@@ -3,6 +3,7 @@ local imagic = API.load("imagic")
 local leveldata = API.load("a2xt_leveldata")
 local message = API.load("a2xt_message")
 local scene = API.load("a2xt_scene")
+local archives = API.load("a2xt_archives")
 
 local pendSpr = Graphics.loadImage("pendulum.png")
 local reflections = Graphics.CaptureBuffer(800,600);
@@ -38,8 +39,82 @@ message.presetSequences.archiveChars = function(args)
 	message.showMessageBox {target=talker, text="<gt>Accessing character profiles...<pause 0.1>", type="system", closeWith="prompt"}
 	message.waitMessageDone();
 
-	message.showPrompt{options={"Test",message.getNoOption()}}
-	message.waitPrompt()
+	-- Set up prompt
+	local names,bios = archives.GetUnlockedBios()
+
+	local namePages = {}
+	if  #names > 8  then
+		for i=1,#names  do
+			local pageNum = math.floor(i/8)+1
+			if  namePages[pageNum] == nil  then  namePages[pageNum] = {};  end;
+			table.insert(namePages[pageNum], names[i])
+		end
+	else
+		namePages = {names}
+	end
+
+
+	-- Begin prompt loop
+	local loopBroken = false
+	local currentPage = 1
+
+	while  (not loopBroken)  do
+
+		-- Set up page controls and cancel option
+		local extraOptions = {}
+		local nextNum = -1
+		local prevNum = -1
+		local cancelNum = -1
+
+		if  #namePages > 1  then
+			if  currentPage > 1  then
+				extraOptions[#extraOptions+1] = "Previous page"
+				prevNum = extraOptions[#extraOptions]
+			end
+			if  currentPage < #namePages  then
+				extraOptions[#extraOptions+1] = "Next page"
+				nextNum = extraOptions[#extraOptions]
+			end
+		end
+		extraOptions[#extraOptions+1] = message.getCancelOption()
+		cancelNum = extraOptions[#extraOptions]
+
+
+		-- Call prompt
+		local currentNames = namePages[currentPage]
+
+		message.promptChosen = false
+		message.showPrompt{options=table.join(currentNames, extraOptions)}
+		message.waitPrompt()
+
+
+		-- If the player has chosen a character name, show the bio
+		if  message.promptChoice <= #currentNames  then
+			message.showMessageBox{target=talker, text=bios[currentPage[message.promptChoice]], type="system"}
+			message.waitMessageEnd()
+
+		-- Otherwise, if the player cancelled
+		elseif  message.promptChoice == #currentNames + #extraOptions  then
+			loopBroken = true
+
+		-- Otherwise
+		else
+			local extraNum = message.promptChoice-#currentNames
+
+			-- If the player has chosen next page
+			if extraNum == nextNum  then
+				currentPage = currentPage+1
+
+			-- If the player has chosen previous page
+			elseif  extraNum == prevNum  then
+				currentPage = currentPage-1
+			end
+		end
+
+		-- Yield
+		eventu.waitFrames(0)
+	end
+	names[#names+1] = message.getCancelOption()
 
 	message.endMessage();
 	scene.endScene();
