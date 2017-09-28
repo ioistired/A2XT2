@@ -10,6 +10,7 @@ local pendSpr = Graphics.loadImage("pendulum.png")
 local reflections = Graphics.CaptureBuffer(800,600);
 
 
+
 message.presetSequences.MessageTest = function(args)
 	local talker = args.npc
 
@@ -42,6 +43,7 @@ message.presetSequences.archiveChars = function(args)
 
 	-- Set up prompt
 	local names,bios = archives.GetUnlockedBios()
+	windowDebug("Names: "..tostring(#names))
 
 	local namePages = {}
 	if  #names > 8  then
@@ -122,7 +124,13 @@ message.presetSequences.archiveChars = function(args)
 end
 
 
-
+function onStart()
+	for  i=0,1  do
+		SaveData["world"..i].unlocked=true
+		SaveData["world"..i].superleek=true
+	end
+	SaveData["world2"].unlocked=true
+end
 
 
 function onDraw()
