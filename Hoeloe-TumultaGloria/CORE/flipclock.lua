@@ -127,7 +127,9 @@ local function drawFlipNumber(obj, p)
 		if(obj.numtimer == 0) then
 			obj.numtimer = fliptime;
 			
-			audioMaster.PlaySound{sound = tick, loops = 1, volume = 1, tags = {"COREBG"}}
+			if(not obj.silent) then
+				audioMaster.PlaySound{sound = tick, loops = 1, volume = 1, tags = {"COREBG"}}
+			end
 			
 		else
 			obj.numtimer = obj.numtimer - 1;

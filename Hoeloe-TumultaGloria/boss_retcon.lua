@@ -217,7 +217,11 @@ end
 local rng = API.load("rng")
 local vectr = API.load("vectr")
 local tesseract = API.load("CORE/tesseract");
-local flipclock = API.load("CORE/flipclock");
+local backgrounds = API.load("CORE/core_bg");
+backgrounds.colour = Color.red;
+backgrounds.fliprandomise = true;
+backgrounds.initFlipclocks(rng.randomInt(0,99999999));
+backgrounds.nebulaspeed = -3;
 
 local tess = tesseract.Create(400,300,32);
 
@@ -233,15 +237,9 @@ local tess_rotspdw = vectr.v3(0.028,0.013,0.021)
 local tess_spdmult = 1.5;
 local tess_colour = math.lerp(Color.white,Color.red,0.8);
 
-local flipclocks = {};
-local flip_mania = true;
 local flip_stabletime = 0;
 
-for i = -1.6667,1.6667 do
-	for j = 0,1 do
-		table.insert(flipclocks, flipclock.Create(400+(i*64)+(j*28), 120, rng.randomInt(0,9)));
-	end
-end
+local bg_pulsetime = 0;
 				
 local stunned = false;
 local stunRecovery = false;
@@ -2487,15 +2485,20 @@ function cutscene.mid()
 	Sound(audio.core_reset);
 	broken_core:Stop();
 	
-	flip_mania = false;
+	backgrounds.fliprandomise = false;
+	backgrounds.flipnumber = 0;
 	flip_stabletime = math.huge;
-	for _,v in ipairs(flipclocks) do
-		v.number = 0;
-	end
 	
 	waitAndDo(t, function()
 		t = t-1;
-		local a = 1 - t/128;
+		local a = t/128;
+		
+		backgrounds.pulsebrightness = a;
+		backgrounds.nebulaspeed = -3*a;
+		a = 1-a;
+		
+		backgrounds.colour = math.lerp(Color.red, Color.black, a);
+		
 		tess_rotspdxyz = tess_rotspdxyz+rotxyza;
 		tess_rotspdw = tess_rotspdw+rotwa;
 		tess_colour = math.lerp(initc, Color.black, a);
@@ -2508,8 +2511,11 @@ function cutscene.mid()
 	end);
 	tess_spdmult = 0;
 	
+	backgrounds.pulsetimer = 0;
+	
 	eventu.waitFrames(64);
 	
+	bg_pulsetime = lunatime.time();
 	flip_stabletime = lunatime.time();
 	
 	Sound(audio.core_active);
@@ -2520,7 +2526,10 @@ function cutscene.mid()
 		local t = 128;
 		while(t > 0) do
 			t = t-1;
-			local a = 1 - t/128;
+			local a = 1-t/128;
+			backgrounds.pulsebrightness = a;
+			backgrounds.nebulaspeed = a;
+			backgrounds.colour = math.lerp(Color.black, Color.lightblue, a);
 			tess_rotspdxyz.y = 0.02;
 			tess_rotspdw.z = 0.005;
 			tess_spdmult = math.lerp(0,4,a*a);
@@ -2569,6 +2578,10 @@ end
 function bossAPI.onTick()
 	tess.rotationXYZ = tess.rotationXYZ + tess_rotspdxyz*tess_spdmult;
 	tess.rotationW = tess.rotationW + tess_rotspdw*tess_spdmult;
+	
+	if(not backgrounds.fliprandomise) then
+		backgrounds.flipnumber = lunatime.time()-flip_stabletime;
+	end
 	
 	eye_pos.x = x-32;
 	eye_pos.y = y-32;
@@ -2707,17 +2720,8 @@ local function DrawBG()
 	
 	if(gametime < 5 or not drawBG) then
 		tess:Draw(-99,false,tess_colour);
-		for k,v in ipairs(flipclocks) do
-			if(flip_mania) then
-				if(v.numtimer == 0) then
-					v.number = rng.randomInt(0,9);
-				end
-			else
-				local l = 8-k;
-				v.number = math.floor(math.max(lunatime.time()-flip_stabletime, 0)/math.pow(10,l))%10;
-			end
-			v:Draw(-99.1);
-		end
+		backgrounds.pulsetimer = lunatime.time()-bg_pulsetime;
+		backgrounds.Draw(-99.9);
 	end
 	
 	if(drawBG) then
