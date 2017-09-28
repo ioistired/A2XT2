@@ -169,11 +169,11 @@ function archives.IsCharUnlocked(key)
 	local i=0
 	local endResult = false
 
-	while (not endResult)  do
+	for i = 0,10 do
 		if  data[i] ~= nil  and  leveldata.WorldCleared(i)  then
-			endResult = true
+			endResult = true;
+			break;
 		end
-		i=i+1
 	end
 
 	return endResult

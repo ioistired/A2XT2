@@ -1,4 +1,5 @@
 local imagic = API.load("imagic")
+local eventu = API.load("eventu")
 
 local leveldata = API.load("a2xt_leveldata")
 local message = API.load("a2xt_message")

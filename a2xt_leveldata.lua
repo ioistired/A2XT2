@@ -523,11 +523,13 @@ function leveldata.Visited(levelFile)
 end
 
 function leveldata.Cleared(levelFile)
-	return leveldata.GetCompletion(levelFile).Exit == true;
+	local d = leveldata.GetCompletion(levelFile);
+	return d and d.Exit == true;
 end
 
 function leveldata.SecretCleared(levelFile)
-	return leveldata.GetCompletion(levelFile).Secret == true;
+	local d = leveldata.GetCompletion(levelFile);
+	return d and d.Secret == true;
 end
 
 function leveldata.CharsOrDefault(data)
