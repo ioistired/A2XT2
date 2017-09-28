@@ -1,7 +1,10 @@
-local archives = {}
+local leveldata = API.load("a2xt_leveldata")
+local archives  = {}
 
 
-
+--**********************
+--**  CHARACTER BIOS  **
+--**********************
 local bios = {
               demo={
                     name="Demo Roseclair",
@@ -14,7 +17,7 @@ local bios = {
                                info     = "The culmination of the Artist's efforts to create the ultimate ABCD minions, a distinction shared by her twin sister Iris. Escaped the Artist's brainwashing and came to work for a Space Master of Space, later freeing their siblings from the Artist's control.<page>Subject was hosting a picnic with immediate family and traveling associates prior to the timestream's collapse.  Seems to have partially absorbed the memories of the Demo from Sheath's universe upon Sheath's arrival."
                               },
                           [2]={
-                               info     = "Who thought it was a good idea to give leave spoilers about the subject's future in the Galciation Epoch?  You don't do that, it's like, Time Travel 101.  Was it Tom from Accounting?  I bet it was Tom.  That jerk.",
+                               info     = "So THAT'S where our notes on ABCD biology went!  Who's the moron who put them in the Glaciation Epoch, and right in the path of the subject and company too?  You don't give people spoilers about their future, that's like, Time Travel 101!  Was it Tom from Accounting?  I bet it was Tom.  That jerk.",
                               },
                           [3]={
                                likes    = "her Uncle Broadsword",
@@ -72,12 +75,11 @@ local bios = {
                                  likes    = "same as aliases",
                                  dislikes = "ditto",
                                  info     = "A hyperactive sixteen-year-old girl with several anomalous abilities -- uses her hair as a whip, capable of retroactively being there too (whatever that means) and harbors a mystifying ability to nullify even fatal damage by forgetting it.  Latter power currently seems to be lying dormant;  Tom from Accounting believes it is a subconscious choice of hers to suppress the power, but that's why he's in Accounting and not Research.<page>Subject originated from a separate universe and carried an unknown turtle dove-shaped artifact seemingly capable of bridging and synchronizing realities. Given that the only known use of said artifact seemingly resulted in the destruction of this universe, it should be confiscated at the earliest convenience."
-                                }
-                           },
-                           [3]={
+                                },
+                            [3]={
                                  info     = "After careful analysis, the turtle dove appears to be linked to an aborted timeline.  We can only speculate as to what purpose it would have served, but Tom insists it would likely have been used in a convoluted cyclical plot to ferry time duplicates outside of reality using a ship constructed from the remains of dead gods. I strongly advise management to reduce Tom's alloted time in the Anime Room."
                                 }
-                           },
+                           }
                      },
               pal={
                    name="Pal",
@@ -89,7 +91,7 @@ local bios = {
                               dislikes = "Iris, catllamas, penguins",
                               info     = "Demo's pet dog.  Subject is perfectly adorable and as such no further investigation about his origins or identity is necessary."
                              }
-                        },
+                        }
                   },
               tam={
                    name="Tam",
@@ -101,7 +103,7 @@ local bios = {
                               dislikes = "tough crowds",
                               info     = "Head of the P.O.R.T.S. PR department and an esteemed colleague of this researcher.  Subject's distinctive wind-up gear makes for a good icebreaker at parties.  Absolutely no relation whatsoever to Tom (thankfully)."
                              }
-                        },
+                        }
                   },
               feed={
                     name="Feed",
@@ -113,7 +115,7 @@ local bios = {
                                dislikes = "",
                                info     = "An intelligent young girl who seems to be capable of teleportation.  Subject never goes anywhere without her pet, Orbit, and seems determined to feed Sheath's meat to him so he may obtain her regenerative powers."
                               }
-                         },
+                         }
                    },
               steve={
                      name="Steve",
@@ -125,7 +127,7 @@ local bios = {
                                 dislikes = "???",
                                 info     = "A mysterious merchant who trades random items for food.  Subject creeps this researcher out, pretty sure he kidnaps puppies or something.  Do business with him at your own risk."
                                }
-                          },
+                          }
                     },
               noctel={
                       name='"Grand High Ingoopitor" Noctel',
@@ -142,6 +144,100 @@ local bios = {
                                 }
                            },
                      },
+              tom={
+                   name="Tom",
+                   bios={
+                         [0]={
+                              aliases  = "none",
+                              species  = "Chronoton",
+                              likes    = "making everyone's lives more difficult",
+                              dislikes = "probably kittens",
+                              info     = "A big dumb jerk. Don't ever lend him money.<page>DISREGARD THAT LAST ENTRY TOM IS REALLY REALLY AWESOME AND YOU CAN TOTALLY TRUST HIM WITH YOUR FINANCES"
+                             }
+                        },
+                  },
              }
+
+
+
+--****************************
+--**  API MEMBER FUNCTIONS  **
+--****************************
+
+function archives.IsCharUnlocked(key)
+	local data = bios[key].bios
+	local i=0
+	local endResult = false
+
+	while (not endResult)  do
+		if  data[i] ~= nil  and  leveldata.WorldCleared(i)  then
+			endResult = true
+		end
+		i=i+1
+	end
+
+	return endResult
+end
+
+function archives.GetBioString(key)
+	local strings = {}
+	local isUnlocked = false
+
+	local data = bios[key].bios
+	for  i=0,10  do
+
+		-- Only append the strings if any exist and the corresponding world has been cleared
+		if  data[i] ~= nil  and  leveldata.WorldCleared(i)  then
+
+			isUnlocked = true
+
+			-- Go through and append all strings
+			for  k,v in pairs (data[i])  do
+
+				-- Copy over new strings
+				if  strings[k] == nil  then
+					strings[k] = v
+
+				-- Append to existing strings
+				else
+
+					-- Append new info as additional pages
+					if  k == "info"  then
+						strings[k] = strings[k] .. "<page>" .. v
+
+					-- Append other data as part of the same list
+					else
+						strings[k] = strings[k] .. ", " .. v
+					end
+				end
+			end
+		end
+	end
+
+	local finalString = nil
+	if  isUnlocked  then
+		strings.aliases  = strings.aliases   or  "NO ALIASES DEFINED"
+		strings.species  = strings.species   or  "NO SPECIES DEFINED"
+		strings.likes    = strings.likes     or  "NO LIKES DEFINED"
+		strings.dislikes = strings.dislikes  or  "NO DISLIKES DEFINED"
+
+		finalString = bios[key].name .. "<br>ALIASES: " .. strings.aliases .. "<br>SPECIES: " .. strings.species .. "<br>INTERESTS: " .. strings.likes .. "<br>DISLIKES: " .. strings.dislikes .. "<page>" .. strings.info
+	end
+	return finalString;
+end
+
+function archives.GetUnlockedBios()
+	local nameArray   = {}
+	local stringArray = {}
+
+	for  _,v in ipairs {"demo","iris","kood","raocow","sheath","pal","tam","feed","steve","noctel","tom"}  do
+		if  archives.IsCharUnlocked(v)  then
+			nameArray[#nameArray+1]     = bios[v].name
+			stringArray[v] = archives.GetBioString(v)
+		end
+	end
+
+	return nameArray,stringArray
+end
 
 return archives;

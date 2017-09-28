@@ -2,17 +2,17 @@ local rng = API.load("rng")
 
 local eows = 
 {
-[0]="",
+[0]="Pyro and rockythechao-Demo vs the Goopinati",
 [1]="Pyro and rockythechao-Demo vs the Goopinati",
-[2]="",
-[3]="",
-[4]="",
-[5]="",
-[6]="",
-[7]="",
+[2]="talkhaus-FinalLevel",
+[3]="talkhaus-FinalLevel",
+[4]="talkhaus-FinalLevel",
+[5]="talkhaus-FinalLevel",
+[6]="talkhaus-FinalLevel",
+[7]="talkhaus-FinalLevel",
 [8]="talkhaus-FinalLevel",
-[9]="",
-[10]=""
+[9]="talkhaus-FinalLevel",
+[10]="talkhaus-FinalLevel"
 }
 
 local sows = 
