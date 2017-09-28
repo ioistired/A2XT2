@@ -2,8 +2,12 @@ local eventu = API.load("eventu")
 local rng = API.load("rng")
 local inputs = API.load("inputs2")
 local intercom = API.load("intercom")
+local pnpc = API.load("pnpc")
 
 local icon_tam = Graphics.loadImage("tamIcon.png")
+local icon_demo = Graphics.loadImage("demoIcon.png")
+local icon_iris = Graphics.loadImage("irisIcon.png")
+local icon_ub = Graphics.loadImage("broadswordIcon.png")
 
 local blockReplacementList = {
             [229] = {229, 237},
@@ -38,6 +42,7 @@ end
 local secondaryCharacterTable = {}
 local initialisingCams = true
 local hasJustSwitched = false
+local shouldSwitch = 0
 
 local leftCycle = {
             [CHARACTER_MARIO] = CHARACTER_UNCLEBROADSWORD,
@@ -68,7 +73,13 @@ local memWhitelist = {
         0x56, --kill combo
         0x60, --has jumped
         0xE0, --xspeed
+		0xE2,
+		0xE4,
+		0xE6,
         0xE8, --yspeed
+		0xEA,
+		0xEC,
+		0xEE,
        0x108, --mount
        0x10A, --mount color
        0x114, --sprite index
@@ -103,6 +114,7 @@ local function addCharacter(id, props)
 	
 	entry.buffer = Graphics.CaptureBuffer(800,600)
 	entry.bufferTimer = 1
+	entry.npcSave = {}
 	secondaryCharacterTable[id] = entry
 end
 
@@ -112,6 +124,22 @@ local function switchDelay(id)
     for _, i in ipairs(memWhitelist) do
         secondaryCharacterTable[character].memSave[i] = player:mem(i,FIELD_WORD)
     end
+	secondaryCharacterTable[character].npcSave = {}
+	for k,v in ipairs(NPC.get(-1, player.section)) do
+		if v:mem(0x12A, FIELD_WORD) > 0 then
+			v = pnpc.wrap(v)
+			local entry = {}
+			for i=0x00,0x156,0x02 do
+				entry[i] = v:mem(i,FIELD_WORD);
+			end
+			entry.data = table.clone(v.data)
+			if v.data._basegame then
+				entry._basegame = table.clone(v.data._basegame)
+			end
+			secondaryCharacterTable[character].npcSave[v] = entry
+		end
+	end
+	
 	secondaryCharacterTable[character].width = player.width
 	secondaryCharacterTable[character].height = player.height
 	secondaryCharacterTable[character].powerup = player.powerup
@@ -133,6 +161,38 @@ local function switchDelay(id)
 	player.height = secondaryCharacterTable[id].height
 	player.x = secondaryCharacterTable[id].x
 	player.y = secondaryCharacterTable[id].y
+	
+	for k,v in ipairs(NPC.get(-1, player.section)) do
+		v = pnpc.wrap(v)
+		for l,w in pairs(secondaryCharacterTable[id].npcSave) do
+			if l == v then
+				for i=0x00,0x156,0x02 do
+					v:mem(i, FIELD_WORD, w[i])
+				end
+				v.data = w.data
+				if w._basegame then
+					v.data._basegame = w._basegame
+				end
+				break
+			end
+		end
+	end
+	
+	for k,v in pairs(secondaryCharacterTable[id].npcSave) do
+		if not k.isValid then
+			local newK = NPC.spawn(1,1,1,1)
+			for i=0x00,0x156,0x02 do
+				newK:mem(i, FIELD_WORD, v[i])
+			end
+			newK = pnpc.wrap(newK)
+			newK.data = v.data
+			if v._basegame then
+				newK.data._basegame = v._basegame
+			end
+			
+		end
+	end
+	
 	eventu.waitFrames(1, true)
 	hasJustSwitched = false
 	eventu.waitFrames(3, true)
@@ -163,8 +223,14 @@ local function openingCutscene()
 		player.FacingDirection = -1
 	end
 	inputs.locked[1].all = false
-	intercom.queueMessage(icon_tam, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA.")
-	intercom.queueMessage(icon_tam, "CAN YOU HEAR ME?!?!.")
+	intercom.queueMessage{icon=icon_tam, frames=4, text="Test.. test... can you hear me?"}
+	intercom.queueMessage{icon=icon_ub, frames=2, text="Yes, loud and clear. What's the matter?"}
+	intercom.queueMessage{icon=icon_tam, frames=4, text="The core's defences are getting more agressive by the minute. Be careful."}
+	intercom.queueMessage{icon=icon_demo, frames=2, text="Yeah... the door just shut behind me."}
+	intercom.queueMessage{icon=icon_tam, frames=4, text="If you get stuck, let us know and we'll find a way to help you out."}
+	intercom.queueMessage{icon=icon_demo, frames=2, text="Roger."}
+	intercom.queueMessage{icon=icon_ub, frames=2, text="Roger."}
+	intercom.queueMessage{icon=icon_iris, frames=2, text="Alfred."}
 end
 
 local function initCams()
@@ -221,6 +287,10 @@ end
 function onStart()
 	eventu.run(initCams)
 	randomiseTileset()
+	
+	for k,v in ipairs(NPC.get()) do
+		pnpc.wrap(v)
+	end
 end
 
 local function charSwitch()
@@ -232,9 +302,9 @@ local function charSwitch()
 	
 	if player.keys.altRun then
 		if player.keys.left == KEYS_PRESSED then
-			switchCharacter(leftCycle[player.character])
+			shouldSwitch = -1
 		elseif player.keys.right == KEYS_PRESSED then
-			switchCharacter(rightCycle[player.character])
+			shouldSwitch = 1
 		end
 	end
 end
@@ -293,6 +363,14 @@ function onDraw()
 	if initialisingCams then
 		Graphics.drawScreen{color=Color.black, priority=10}
 	else
+		if shouldSwitch ~= 0 then
+			if shouldSwitch < 0 then
+				switchCharacter(leftCycle[player.character])
+			else
+				switchCharacter(rightCycle[player.character])
+			end
+			shouldSwitch = 0
+		end
 		if hasJustSwitched then
 			Graphics.drawScreen{color=Color.grey, priority=10}
 		end
