@@ -356,6 +356,9 @@ function pause.onInputUpdate()
 			unpausing = false;
 			sfxvolume = audiomaster.volume.MASTER;
 			audiomaster.volume.MASTER = 0;
+			pause_option = 0;
+			confirm = nil;
+			confirm_alpha = 0;
 			buffer:captureAt(pause_priority);
 			Misc.pause();
 			Audio.playSFX(30);
