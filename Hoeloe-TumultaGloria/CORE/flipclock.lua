@@ -1,10 +1,13 @@
 local flipclock = {};
 
 local imagic = API.load("imagic");
+local audioMaster = API.load("audioMaster");
 
 local flip_base = Graphics.loadImage("CORE/flipclock_base.png");
 local flips = {Graphics.loadImage("CORE/flipclock_flip_top.png"), Graphics.loadImage("CORE/flipclock_flip.png")}
 local flip_n = Graphics.loadImage("CORE/flipclock_numbers.png");
+
+local tick = "CORE/flipclock_tick.ogg";
 
 local function tophalf_reg(t,x,y,n)
 	table.insert(t.v, x-16); table.insert(t.v, y-16);
@@ -123,6 +126,9 @@ local function drawFlipNumber(obj, p)
 	if(obj.lastnumber ~= obj.number) then
 		if(obj.numtimer == 0) then
 			obj.numtimer = fliptime;
+			
+			audioMaster.PlaySound{sound = tick, loops = 1, volume = 1, tags = {"COREBG"}}
+			
 		else
 			obj.numtimer = obj.numtimer - 1;
 			if(obj.numtimer == 0) then

@@ -158,7 +158,7 @@ audio.voice = {}
 audio.voice.hurt = {Misc.resolveFile("voice_hurt_1.ogg"), Misc.resolveFile("voice_hurt_2.ogg")}
 audio.voice.stun = {Misc.resolveFile("voice_stun_1.ogg"), Misc.resolveFile("voice_stun_2.ogg")}
 
-local broken_core = audioMaster.Create{sound="core_error.ogg", x = 0, y = 0, type = audio.SOURCE_POINT, falloffRadius = 800, volume = 1};
+local broken_core = audioMaster.Create{sound="core_error.ogg", x = 0, y = 0, type = audio.SOURCE_POINT, falloffRadius = 800, volume = 1, tags = {"COREBG"}};
 
 local events = {};
 local cutscene = {};
@@ -2212,7 +2212,7 @@ local function LowerCoreVolume(ti)
 				local t = ti;
 				while(t > 0) do
 					t = t-1;
-					broken_core.volume = t/ti;
+					audioMaster.volume.COREBG = t/ti;
 					eventu.waitFrames(0);
 				end
 				broken_core:Stop();
@@ -2434,7 +2434,7 @@ local intensifyReady = false;
 
 function cutscene.mid()
 	
-	broken_core.volume = 1;
+	audioMaster.volume.COREBG = 1;
 	broken_core:Play();
 
 	--Broadsword in ready pose
