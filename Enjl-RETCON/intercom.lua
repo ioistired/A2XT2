@@ -9,6 +9,7 @@ local img_bg = Graphics.loadImage("intercom_backdrop.png")
 intercom.opened = false
 intercom.lerp = 0
 
+intercom.frames = 1
 intercom.delay = 65
 
 local messageQueue = {}
@@ -25,13 +26,13 @@ intercom.defaults =
 		boxColor=0x00000000,
 		width=400,
 		height=96,
-		scaleMode=0,
+		scaleMode=msg.SCALE_FIXED,
 		boxAnchorX = msg.ALIGN_RIGHT,
 		textAnchorX = msg.ALIGN_LEFT,
 		boxAnchorY = msg.ALIGN_BOTTOM,
 		textAnchorY = msg.ALIGN_TOP,
 		textOffX=16,
-		textOffY=12,
+		textOffY=16,
 		instant = false,
 		inputClose = false,
 		inputProgress = false,
@@ -42,19 +43,11 @@ intercom.defaults =
 }
 intercom.icon = nil
 
-function intercom.queueMessage(source, text)
-	--[[showMessageBox args:
-		strings: text,closeWith(auto,prompt)
-		objects: target
-		bools:   keepOnscreen,hasTail,screenSpace,instant
-		enums:   type
-		ints:    x,y,offX,offY
-		tables:  bloxProps
-	--]]
-	
+function intercom.queueMessage(props)	
 	local entry = {}
-	entry.text = text
-	entry.img = source
+	entry.text = props.text or ""
+	entry.img = props.icon or ""
+	entry.frames = props.frames or 1
 	table.insert(messageQueue, entry)
 	
 	if #messageQueue == 1 then
@@ -86,6 +79,7 @@ function intercom.start()
 	
 	intercom.defaults.text = messageQueue[1].text
 	intercom.icon = messageQueue[1].img
+	intercom.frames = messageQueue[1].frames
 	local block = msg.Block(intercom.defaults.x, intercom.defaults.y, intercom.defaults.text, intercom.defaults.props)
 	
 	while not block.finished do
@@ -94,6 +88,7 @@ function intercom.start()
 	eventu.waitFrames(intercom.delay)
 	
 	table.remove(messageQueue, 1)
+	intercom.icon = nil
 	block:closeSelf()
 	intercom.defaults.text = ""
 	
@@ -117,8 +112,17 @@ function intercom.onDraw()
 		local z = intercom.defaults.props.z
 		Graphics.drawImageWP(img_icon, x - 8 - img_icon.width,y + 0.5 * h - 0.5 * img_icon.height,z)
 		
+		
 		if intercom.icon then
-			Graphics.drawImageWP(intercom.icon, x - 8 - img_icon.width,y + 0.5 * h - 0.5 * img_icon.height,z)
+			local height = intercom.icon.height / intercom.frames
+			Graphics.drawImageWP(intercom.icon,
+								x - 8 - 0.5 * img_icon.width - 0.5 * intercom.icon.width,
+								y + 0.5 * h - 0.5 * height,
+								0,
+								height * (math.floor(lunatime.tick() / 8)%intercom.frames),
+								intercom.icon.width,
+								height,
+								z)
 		end
 		
 		local vt = {
