@@ -222,6 +222,7 @@ backgrounds.colour = Color.red;
 backgrounds.fliprandomise = true;
 backgrounds.initFlipclocks(rng.randomInt(0,99999999));
 backgrounds.nebulaspeed = -3;
+backgrounds.consolestate = -1;
 
 local tess = tesseract.Create(400,300,32);
 
@@ -1744,9 +1745,9 @@ local function phase_armattack3()
 		eventu.waitFrames(0);
 		local c2 = prepareHand(i+1,choose(400,300));
 		eyeTarget = handPos[1];
-		eventu.waitFrames(16);
+		eventu.waitFrames(32);
 		eyeTarget = handPos[2];
-		eventu.waitFrames(16);
+		eventu.waitFrames(32);
 		eyeTarget = nil;
 		Sound(audio.whoosh);
 		launchHand(i, c1);
@@ -1755,7 +1756,15 @@ local function phase_armattack3()
 		eventu.waitFrames(choose(64,48));
 	end
 	
-	eventu.waitFrames(32);
+	local eyevec = vectr.v2(-100,0);
+	
+	local t2 = 32;
+	while(t2 > 0) do
+		local a = 1- (t2/32);
+		eyeTarget = vectr.v2(x, y)+eyevec:rotate(a*180);
+		t2 = t2-1;
+		eventu.waitFrames(0);
+	end
 	
 	waitForArm();
 	
@@ -1765,6 +1774,8 @@ local function phase_armattack3()
 		prepareHand(i,100);
 		eventu.waitFrames(0);
 	end
+	
+	eyeTarget = nil;
 	
 	Sound(audio.whoosh);
 	Sound(audio.whoosh);
@@ -2094,6 +2105,8 @@ end
 -------------------
 
 local function bossEvents()	
+	setPhase(phase_armattack3);
+	waitPhase();
 	eventu.waitFrames(128);
 	setPhase(phase_armattack1);
 	waitPhase();
@@ -2444,6 +2457,7 @@ function cutscene.mid()
 	SetReady();
 	
 	player.speedX = 0.1;
+	player.FacingDirection = 1;
 	eventu.waitFrames(0);
 	player.speedX = 0;
 	
@@ -2488,6 +2502,7 @@ function cutscene.mid()
 	backgrounds.fliprandomise = false;
 	backgrounds.flipnumber = 0;
 	flip_stabletime = math.huge;
+	backgrounds.consolestate = 0;
 	
 	waitAndDo(t, function()
 		t = t-1;
@@ -2527,6 +2542,7 @@ function cutscene.mid()
 		while(t > 0) do
 			t = t-1;
 			local a = 1-t/128;
+			backgrounds.consolestate = a;
 			backgrounds.pulsebrightness = a;
 			backgrounds.nebulaspeed = a;
 			backgrounds.colour = math.lerp(Color.black, Color.lightblue, a);

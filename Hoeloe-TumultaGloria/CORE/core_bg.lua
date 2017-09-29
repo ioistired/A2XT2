@@ -8,14 +8,16 @@ local glow = Graphics.loadImage("CORE/bg_lights_glow.png");
 local tron = Graphics.loadImage("CORE/bg_tron.png");
 local cbg = Graphics.loadImage("CORE/core_bg.png");
 
+local console = { [0] = Graphics.loadImage("CORE/console_off.png"),  [1] = Graphics.loadImage("CORE/console_regular.png"),  [-1] = Graphics.loadImage("CORE/console_error.png") };
+
 local shader_pulse;
 local shader_neb;
 
 local flipclocks = {};
 
-for i = -1.6667,1.6667 do
+for i = -1.5,1.5 do
 	for j = 0,1 do
-		table.insert(flipclocks, flipclock.Create(400+(i*64)+(j*28), 120, 0));
+		table.insert(flipclocks, flipclock.Create(400+(i*64)-16+(j*28), 120, 0));
 	end
 end
 
@@ -35,6 +37,8 @@ bg.colour = Color.black;
 bg.pulsetimer = 0;
 bg.pulsebrightness = 1;
 bg.nebulaspeed = 1;
+
+bg.consolestate = 1;
 
 local neb = 0;
 
@@ -75,6 +79,23 @@ function bg.Draw(p)
 			v.number = math.floor(math.max(bg.flipnumber, 0)/math.pow(10,l))%10;
 		end
 		v:Draw(p);
+	end
+	
+	p = p+5;
+	
+	if(bg.consolestate >= 1) then
+		Graphics.drawImageWP(console[1], 400-32, 600-32-64, p);
+	elseif(bg.consolestate <= -1) then
+		Graphics.drawImageWP(console[-1], 400-32, 600-32-64, p);
+	elseif(bg.consolestate == 0) then
+		Graphics.drawImageWP(console[0], 400-32, 600-32-64, p);
+	else
+		Graphics.drawImageWP(console[0], 400-32, 600-32-64, p);
+		if(bg.consolestate < 0) then
+			Graphics.drawImageWP(console[-1], 400-32, 600-32-64, -bg.consolestate, p);
+		else
+			Graphics.drawImageWP(console[1], 400-32, 600-32-64, bg.consolestate, p);
+		end
 	end
 end
 
