@@ -1787,7 +1787,7 @@ local function phase_armattack3()
 	
 	waitForArm();
 	
-	eventu.waitFrames(64);
+	eventu.waitFrames(32);
 	
 	emitfgfog = false;
 	while(t > 0) do
@@ -1795,8 +1795,13 @@ local function phase_armattack3()
 		t = t-1;
 		eventu.waitFrames(0);
 	end
+		
+	local _;
+	_,subphases[1] = eventu.run(phase_idle);
 	
-	eventu.waitFrames(32);
+	eventu.waitFrames(64);
+	
+	abortSubphases();
 
 	setPhase();
 end
