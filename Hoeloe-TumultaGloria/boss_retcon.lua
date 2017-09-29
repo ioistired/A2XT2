@@ -2105,8 +2105,6 @@ end
 -------------------
 
 local function bossEvents()	
-	setPhase(phase_armattack3);
-	waitPhase();
 	eventu.waitFrames(128);
 	setPhase(phase_armattack1);
 	waitPhase();
