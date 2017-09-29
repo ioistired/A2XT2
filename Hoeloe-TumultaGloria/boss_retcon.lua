@@ -2960,6 +2960,10 @@ local function DrawIntensifies()
 					Graphics.drawScreen{color=math.lerp(Color.transparent, Color.black, math.clamp((timer-angesTime-angesDelay)/100)), priority = 10}
 				end
 				
+				if(timer > angesTime + angesDelay + 100 + 64) then
+					Level.winState(6);
+				end
+				
 				eventu.waitFrames(0);
 			end
 		end, noletterbox = true};
