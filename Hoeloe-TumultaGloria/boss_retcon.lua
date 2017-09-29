@@ -158,7 +158,7 @@ audio.voice = {}
 audio.voice.hurt = {Misc.resolveFile("voice_hurt_1.ogg"), Misc.resolveFile("voice_hurt_2.ogg")}
 audio.voice.stun = {Misc.resolveFile("voice_stun_1.ogg"), Misc.resolveFile("voice_stun_2.ogg")}
 
-local broken_core = audioMaster.Create{sound="core_error.ogg", x = 0, y = 0, type = audio.SOURCE_POINT, falloffRadius = 800, volume = 1, tags = {"COREBG"}};
+local broken_core = audioMaster.Create{sound="core_error.ogg", x = 0, y = 0, type = audioMaster.SOURCE_POINT, falloffRadius = 800, volume = 1, tags = {"COREBG"}};
 
 local events = {};
 local cutscene = {};

@@ -2,13 +2,19 @@ local bg = {}
 
 local flipclock = API.load("CORE/flipclock");
 local rng = API.load("rng");
+local audioMaster = API.load("audioMaster");
 
 local lights = Graphics.loadImage("CORE/bg_lights.png");
 local glow = Graphics.loadImage("CORE/bg_lights_glow.png");
 local tron = Graphics.loadImage("CORE/bg_tron.png");
+local centre = Graphics.loadImage("CORE/core_centre.png");
+local glass = Graphics.loadImage("CORE/core_centre_glass.png");
+local glassglow = Graphics.loadImage("CORE/core_centre_glass_glow.png");
 local cbg = Graphics.loadImage("CORE/core_bg.png");
 
 local console = { [0] = Graphics.loadImage("CORE/console_off.png"),  [1] = Graphics.loadImage("CORE/console_regular.png"),  [-1] = Graphics.loadImage("CORE/console_error.png") };
+
+local flipsound = audioMaster.Create{sound="CORE/flipclock_shuffle.ogg", x = 0, y = 0, type = audioMaster.SOURCE_POINT, falloffRadius = 800, volume = 1, play = false, tags = {"COREBG"}};
 
 local shader_pulse;
 local shader_neb;
@@ -53,6 +59,11 @@ function bg.onStart()
 	shader_neb:compileFromFile(nil, "CORE/nebula.frag")
 end
 
+local function vertcols(c,m)
+	m = m or 1;
+	return {c.r*m,c.g*m,c.b*m,0,c.r*m,c.g*m,c.b*m,0,c.r*m,c.g*m,c.b*m,0,c.r*m,c.g*m,c.b*m,0};
+end
+
 function bg.Draw(p)
 	neb = neb+bg.nebulaspeed*2;
 	Graphics.drawBox{width=800, height=200, x=0, y=200, priority=p, shader=shader_neb, uniforms = {iTime = lunatime.toSeconds(neb/3), iResolution={800,600,0}}};
@@ -62,18 +73,29 @@ function bg.Draw(p)
 	c.a = 1;
 	Graphics.drawScreen{texture=lights, priority=p, color=c};
 	c = bg.colour*math.lerp(0.25,1,s*s);
-	Graphics.drawScreen{texture=glow, vertexColors={c.r,c.g,c.b,0,c.r,c.g,c.b,0,c.r,c.g,c.b,0,c.r,c.g,c.b,0}, priority=p};
+	Graphics.drawScreen{texture=glow, vertexColors=vertcols(c), priority=p};
 	Graphics.drawScreen{texture=tron, priority=p, shader = shader_pulse, color = bg.colour, uniforms = {time = bg.pulsetimer, brightness = bg.pulsebrightness}};
+	
+	Graphics.drawScreen{texture=centre, priority=p};
+	Graphics.drawScreen{texture=glass, priority=p};
+	c = bg.colour*1;
+	c.a=0.3;
+	Graphics.drawScreen{texture=glass, priority=p, color = c};
+	Graphics.drawScreen{texture=glassglow, priority=p, vertexColors=vertcols(bg.colour)};
 	
 	for k,v in ipairs(flipclocks) do
 		if(bg.fliprandomise) then
-			if(k % 2 == 0) then
-				v.silent = true;
+			v.silent = true;
+			if(not flipsound.playing) then
+				flipsound.x = Camera.get()[1].x + 400;
+				flipsound.y = Camera.get()[1].y + 300;
+				flipsound:Play();
 			end
 			if(v.numtimer == 0) then
 				v.number = rng.randomInt(0,9);
 			end
 		else
+			flipsound:Stop();
 			local l = 8-k;
 			v.silent = false;
 			v.number = math.floor(math.max(bg.flipnumber, 0)/math.pow(10,l))%10;
