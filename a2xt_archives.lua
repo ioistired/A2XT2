@@ -170,7 +170,7 @@ function archives.IsCharUnlocked(key)
 	local endResult = false
 
 	for i = 0,10 do
-		if  data[i] ~= nil  and  leveldata.WorldCleared(i)  then
+		if  data[i] ~= nil  and  SaveData["world"..i].superleek  then
 			endResult = true;
 			break;
 		end
@@ -187,7 +187,7 @@ function archives.GetBioString(key)
 	for  i=0,10  do
 
 		-- Only append the strings if any exist and the corresponding world has been cleared
-		if  data[i] ~= nil  and  leveldata.WorldCleared(i)  then
+		if  data[i] ~= nil  and  SaveData["world"..i].superleek  then
 
 			isUnlocked = true
 
@@ -220,6 +220,7 @@ function archives.GetBioString(key)
 		strings.species  = strings.species   or  "NO SPECIES DEFINED"
 		strings.likes    = strings.likes     or  "NO LIKES DEFINED"
 		strings.dislikes = strings.dislikes  or  "NO DISLIKES DEFINED"
+		strings.info     = strings.info      or  "NO INFO DEFINED"
 
 		finalString = bios[key].name .. "<br>ALIASES: " .. strings.aliases .. "<br>SPECIES: " .. strings.species .. "<br>INTERESTS: " .. strings.likes .. "<br>DISLIKES: " .. strings.dislikes .. "<page>" .. strings.info
 	end
@@ -233,7 +234,7 @@ function archives.GetUnlockedBios()
 	for  _,v in ipairs {"demo","iris","kood","raocow","sheath","pal","tam","feed","steve","noctel","tom"}  do
 		if  archives.IsCharUnlocked(v)  then
 			nameArray[#nameArray+1]     = bios[v].name
-			stringArray[v] = archives.GetBioString(v)
+			stringArray[#stringArray+1] = archives.GetBioString(v)
 		end
 	end
 

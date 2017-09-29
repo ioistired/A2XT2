@@ -43,11 +43,11 @@ message.presetSequences.archiveChars = function(args)
 
 	-- Set up prompt
 	local names,bios = archives.GetUnlockedBios()
-	windowDebug("Names: "..tostring(#names))
 
 	local namePages = {}
 	if  #names > 8  then
 		for i=1,#names  do
+			--windowDebug(names[i]..":\n\n"..bios[i])
 			local pageNum = math.floor(i/8)+1
 			if  namePages[pageNum] == nil  then  namePages[pageNum] = {};  end;
 			table.insert(namePages[pageNum], names[i])
@@ -72,11 +72,11 @@ message.presetSequences.archiveChars = function(args)
 		if  #namePages > 1  then
 			if  currentPage > 1  then
 				extraOptions[#extraOptions+1] = "Previous page"
-				prevNum = extraOptions[#extraOptions]
+				prevNum = #extraOptions
 			end
 			if  currentPage < #namePages  then
 				extraOptions[#extraOptions+1] = "Next page"
-				nextNum = extraOptions[#extraOptions]
+				nextNum = #extraOptions
 			end
 		end
 		extraOptions[#extraOptions+1] = message.getCancelOption()
@@ -87,13 +87,13 @@ message.presetSequences.archiveChars = function(args)
 		local currentNames = namePages[currentPage]
 
 		message.promptChosen = false
-		message.showPrompt{options=table.join(currentNames, extraOptions)}
+		message.showPrompt{options=table.append(currentNames, extraOptions)}
 		message.waitPrompt()
 
 
 		-- If the player has chosen a character name, show the bio
 		if  message.promptChoice <= #currentNames  then
-			message.showMessageBox{target=talker, text=bios[currentPage[message.promptChoice]], type="system"}
+			message.showMessageBox{target=talker, text=bios[(currentPage-1)*7 + message.promptChoice], type="system"}
 			message.waitMessageEnd()
 
 		-- Otherwise, if the player cancelled
@@ -112,6 +112,9 @@ message.presetSequences.archiveChars = function(args)
 			elseif  extraNum == prevNum  then
 				currentPage = currentPage-1
 			end
+
+			message.promptChosen = false
+			message.showMessageBox {target=talker, text="<gt>Accessing character profiles...<pause 0.1>", type="system", closeWith="prompt"}
 		end
 
 		-- Yield
