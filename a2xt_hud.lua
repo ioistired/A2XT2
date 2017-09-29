@@ -10,6 +10,8 @@ local leveldata;
 A2XT_FONT_MAIN = textblox.Font (textblox.FONTTYPE_SPRITE, {ini = "graphics/fonts/font_main.ini", image = Graphics.loadImage(Misc.resolveFile("graphics/fonts/font_main.png"))})	
 
 CHAR_RC = "<color white>\127<color default>"
+CHAR_NEW = "<color white>\128<color default>"
+
 
 textblox.presetProps[textblox.PRESET_SYSTEM].font = A2XT_FONT_MAIN
 textblox.presetProps[textblox.PRESET_BUBBLE].font = A2XT_FONT_MAIN

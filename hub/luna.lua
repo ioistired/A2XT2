@@ -34,6 +34,18 @@ message.presetSequences.MessageTest = function(args)
 end
 
 
+message.presetSequences.archiveReset = function(args)
+	local talker = args.npc
+	message.showMessageBox {target=talker, text="<gt>All profile notifications reset.", type="system"}
+	message.waitMessageEnd();
+
+	SaveData.biosRead = {}
+
+	message.endMessage();
+	scene.endScene();
+end
+
+
 message.presetSequences.archiveChars = function(args)
 	local talker = args.npc
 
@@ -42,7 +54,7 @@ message.presetSequences.archiveChars = function(args)
 	message.waitMessageDone();
 
 	-- Set up prompt
-	local names,bios = archives.GetUnlockedBios()
+	local keys,names,bios = archives.GetUnlockedBios()
 
 	local namePages = {}
 	if  #names > 8  then
@@ -87,13 +99,20 @@ message.presetSequences.archiveChars = function(args)
 		local currentNames = namePages[currentPage]
 
 		message.promptChosen = false
-		message.showPrompt{options=table.append(currentNames, extraOptions)}
+		message.showPrompt{options=table.append(currentNames, extraOptions), sideX=-1}
 		message.waitPrompt()
 
 
 		-- If the player has chosen a character name, show the bio
 		if  message.promptChoice <= #currentNames  then
-			message.showMessageBox{target=talker, text=bios[(currentPage-1)*7 + message.promptChoice], type="system"}
+			local keyIndex = (currentPage-1)*7 + message.promptChoice
+			local key = keys[keyIndex]
+
+			archives.UpdateBioReadExtent(key,leveldata.GetWorldsCleared())
+			names[keyIndex] = archives.GetBioProperty (key,"name")
+			namePages[currentPage][message.promptChoice] = names[keyIndex]
+
+			message.showMessageBox{target=talker, text=bios[keyIndex], type="system", bloxProps={autosizeRatio=10/3}}
 			message.waitMessageEnd()
 
 		-- Otherwise, if the player cancelled

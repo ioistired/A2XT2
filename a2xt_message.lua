@@ -12,6 +12,7 @@ local console = API.load("console")
 
 local rng = API.load("rng")
 
+local a2xt_settings = API.load("a2xt_settings")
 local a2xt_hud = API.load("a2xt_hud")
 local a2xt_pause = API.load("a2xt_pause")
 local a2xt_scene = API.load("a2xt_scene")
@@ -77,7 +78,7 @@ textblox.presetProps[5] = table.join(
 local iconSeqs = {[1]="2p2,3,4,5", [2]="2p2,3,4,5", [3]="2p2,3,4,5", [4]="2p2,3,4,5"}
 local iconSet = animatx.Set {sheet=Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_talk.png")), states=4, frames=5, sequences=iconSeqs}
 
-local uiFont = textblox.FONT_SPRITEDEFAULT4X2
+local uiFont = A2XT_FONT_MAIN
 
 local lastNameWidth = -8
 
@@ -693,15 +694,19 @@ function a2xt_message.showPrompt(args)
 	end
 
 
-	local barWidth, barHeight = textblox.printExt (fullStr, {x=-2000,y=0,z=0.1, alpha=bga, font=textblox.FONT_SPRITEDEFAULT4X2, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
+	local barWidth, barHeight = textblox.printExt (fullStr, {x=-2000,y=0,z=0.1, alpha=bga, font=uiFont, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
 	barWidth = barWidth+110
 	barHeight = barHeight+60
-	local barX = 400 - playerSideX*(350 - 0.5*barWidth)
-	local barY = 300 - playerSideY*(250 - 0.5*barHeight)
+
+	local sideX = args.sideX  or  playerSideX
+	local sideY = args.sideY  or  playerSideY
+
+	local barX = 400 - sideX*(350 - 0.5*barWidth)
+	local barY = 300 - sideY*(250 - 0.5*barHeight)
 
 	eventu.run (function()
 
-		cman.playerCam[1]:Transition {time=0.75, xOffset=-barWidth*0.25*playerSideX, easeBoth=cman.EASE.QUAD}
+		cman.playerCam[1]:Transition {time=0.75, xOffset=-barWidth*0.25*sideX, easeBoth=cman.EASE.QUAD}
 		eventu.waitSeconds(0.5)
 		while (not a2xt_message.promptChosen) do
 
@@ -752,7 +757,7 @@ function a2xt_message.showPrompt(args)
 					for  i=1,#options  do
 						local optionStr = options[i]
 						if  a2xt_message.promptChoice == i  then
-							optionStr = "<color rainbow><lt><wave 2> "..optionStr.." <wave 0><gt>"
+							optionStr = "<color rainbow><lt><wave 2> "..optionStr.." <wave 0><color rainbow><gt>"
 						end
 						textblox.printExt (optionStr, {x=barX+xAdd, y=barY + yAdd - 0.5*barHeight + 10 + i*(uiFont.charHeight*uiFont.scaleY + uiFont.leading), z=7, alpha=bga, color=0x000000FF, font=uiFont, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
 					end
@@ -864,7 +869,7 @@ function a2xt_message.onDraw()
 			if(nameBarObj ~= nil) then
 				y = lerp(nameBarObj.y, 300 + 150*playerSideY, transitionSpeed);
 			end
-			local strWidth = textblox.printExt (nameBarName, {x=400,y=y,z=0.1, alpha=bga, font=textblox.FONT_SPRITEDEFAULT4X2, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
+			local strWidth = textblox.printExt (nameBarName, {x=400,y=y,z=0.1, alpha=bga, font=uiFont, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
 
 			if(nameBarObj == nil) then
 				nameBarObj = uiBox {x=400,y=300 + 150*playerSideY, width=strWidth+80, height=70}

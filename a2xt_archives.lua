@@ -1,10 +1,15 @@
 local leveldata = API.load("a2xt_leveldata")
+local hud = API.load("a2xt_hud")
 local archives  = {}
 
 
 --**********************
 --**  CHARACTER BIOS  **
 --**********************
+if  SaveData.biosRead == nil  then
+	SaveData.biosRead = {}
+end
+
 local bios = {
               demo={
                     name="Demo Roseclair",
@@ -52,6 +57,10 @@ local bios = {
                           [4]={
                                likes    = "Uncle @sbestos"
                               },
+                          [9]={
+                               info     = "All personnel are to immediately report any suspicious activity by the subject or other observations potentially linking him to the Artist."
+                              }
+
                          },
                    },
               raocow={
@@ -59,10 +68,13 @@ local bios = {
                       bios={
                             [0]={
                                  aliases  = "Tamuel Sanguay, Post-Production Raocow (PPR)",
-                                 species  = "Human",
+                                 species  = "Human (Canadian)",
                                  likes    = "most animals (especially cats, ducks, sheep and cows), video games, goofing off, naming gimmicks, memes, anime, the Soviet anthem",
                                  dislikes = "mentally-deficient equines, strong winds, building bridges, savestate abuse, bones",
                                  info     = "A human from a sister universe that was pulled into this one through a freak computer accident.  Bizarrely, this universe seems to be a fictional work of the subject's own conception in the universe he came from.  We left the existential quandaries this fact raises for Tom to puzzle over, should keep him out of our figurative hair for a few days.<page>Subject was at a picnic hosted by blah blah blah look I don't want to type up this same stuff again so just take what we wrote for the last three entries and apply it to this one, okay?"
+                                },
+                            [9]={
+                                 info     = "All personnel are to immediately report any suspicious activity by the subject or other observations potentially linking him to the Artist."
                                 }
                            },
                      },
@@ -78,7 +90,11 @@ local bios = {
                                 },
                             [3]={
                                  info     = "After careful analysis, the turtle dove appears to be linked to an aborted timeline.  We can only speculate as to what purpose it would have served, but Tom insists it would likely have been used in a convoluted cyclical plot to ferry time duplicates outside of reality using a ship constructed from the remains of dead gods. I strongly advise management to reduce Tom's alloted time in the Anime Room."
+                                },
+                            [9]={
+                                 info     = "All personnel are to immediately report any suspicious activity by the subject or other observations potentially linking her to the Artist."
                                 }
+
                            }
                      },
               pal={
@@ -86,10 +102,25 @@ local bios = {
                    bios={
                          [0]={
                               aliases  = "Why would a dog have aliases?",
-                              species  = "Canis lupus familiaris (breed = laundromutt)",
+                              species  = "Canis lupus familiaris (Laundromutt)",
                               likes    = "Demo, bones, digging",
                               dislikes = "Iris, catllamas, penguins",
                               info     = "Demo's pet dog.  Subject is perfectly adorable and as such no further investigation about his origins or identity is necessary."
+                             }
+                        }
+                  },
+              artist={
+                   name="The Artist",
+                   bios={
+                         [0]={
+                              aliases  = "???",
+                              species  = "???",
+                              likes    = "???",
+                              dislikes = "???",
+                              info     = "The mysterious creator of Demo, Iris and their siblings.  Subject used brainwashing to keep his creations under his control and after Demo and Iris broke free of it, he sent the siblings out to retrieve them.  Subject's identity is unknown;  even the siblings could not recall his voice or appearance when questioned, despite having taken orders directly from him while under his control (perhaps by design to prevent them from revealing him in the event the mind control failed?)<page>Subject's ultimate goals are also uncertain, but current information paints a less-than-benevolent picture.  As such, he is considered a Person of Interest and any new information about his current whereabouts or true identity should be brought to upper management's attention ASAP."
+                             },
+                         [9]={
+                              info     = "Following up on a recent potential lead, all personnel are to investigate any and all associates of Demo and Iris."
                              }
                         }
                   },
@@ -163,10 +194,47 @@ local bios = {
 --****************************
 --**  API MEMBER FUNCTIONS  **
 --****************************
+function archives.GetBioLastWorld(key)
+	local data = bios[key].bios
+	local top = 0
+
+	for i = 0,10 do
+		if  data[i] ~= nil  then
+			top = i
+		end
+	end
+
+	return top
+end
+
+function archives.GetBioCurrentWorld(key)
+	local data = bios[key].bios
+	local top = 0
+
+	for i = 0,10 do
+		if  data[i] ~= nil  and  SaveData["world"..i].superleek  then
+			top = i
+		end
+	end
+
+	return top
+end
+
+function archives.BioHasNewInfo(key)
+	if  SaveData.biosRead[key] == nil  then
+		return true;
+	elseif  archives.GetBioCurrentWorld(key) > SaveData.biosRead[key]  then
+		return true;
+	end
+	return false;
+end
+
+function archives.UpdateBioReadExtent(key,value)
+	SaveData.biosRead[key] = value
+end
 
 function archives.IsCharUnlocked(key)
 	local data = bios[key].bios
-	local i=0
 	local endResult = false
 
 	for i = 0,10 do
@@ -222,23 +290,33 @@ function archives.GetBioString(key)
 		strings.dislikes = strings.dislikes  or  "NO DISLIKES DEFINED"
 		strings.info     = strings.info      or  "NO INFO DEFINED"
 
-		finalString = bios[key].name .. "<br>ALIASES: " .. strings.aliases .. "<br>SPECIES: " .. strings.species .. "<br>INTERESTS: " .. strings.likes .. "<br>DISLIKES: " .. strings.dislikes .. "<page>" .. strings.info
+		finalString = "<color yellow>" .. bios[key].name .. "<color yellow><br 2>ALIASES: <color default>" .. strings.aliases .. "<color yellow><br>SPECIES: <color default>" .. strings.species .. "<color yellow><br>INTERESTS: <color default>" .. strings.likes .. "<color yellow><br>DISLIKES: <color default>" .. strings.dislikes .. "<page>" .. strings.info
 	end
 	return finalString;
 end
 
+function archives.GetBioProperty(key,propName)
+	return bios[key][propName]
+end
+
 function archives.GetUnlockedBios()
+	local keyArray = {}
 	local nameArray   = {}
 	local stringArray = {}
 
-	for  _,v in ipairs {"demo","iris","kood","raocow","sheath","pal","tam","feed","steve","noctel","tom"}  do
+	for  _,v in ipairs {"demo","iris","kood","raocow","sheath","pal","artist","tam","feed","steve","noctel","tom"}  do
 		if  archives.IsCharUnlocked(v)  then
-			nameArray[#nameArray+1]     = bios[v].name
+			local nameStr = bios[v].name
+			if  archives.BioHasNewInfo(v)  then
+				nameStr = CHAR_NEW.." <color blue>"..nameStr.."<color default>"
+			end
+			keyArray[#keyArray+1]       = v
+			nameArray[#nameArray+1]     = nameStr
 			stringArray[#stringArray+1] = archives.GetBioString(v)
 		end
 	end
 
-	return nameArray,stringArray
+	return keyArray,nameArray,stringArray
 end
 
 return archives;

@@ -502,6 +502,13 @@ function leveldata.GetCompletion(levelFile)
 	return SaveData.completion[string.sub(levelFile, 0, -5)];
 end
 
+function leveldata.GetWorldsCleared()
+	local top = 0
+	for  i=0,9  do
+		if  leveldata.WorldCleared(i)  then  top = i;  end;
+	end
+	return top
+end
 function leveldata.GetWorldsUnlocked()
 	local top = 0
 	for  i=0,9  do
