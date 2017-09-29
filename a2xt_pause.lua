@@ -454,7 +454,7 @@ function pause.onDraw()
 	
 	if(pause.StopMusic) then
 		if(game_paused or not ranOnTickEnd) then
-			if(seizedstreams[player.section]) then
+			if(not seizedstreams[player.section]) then
 				releaseOnUnpause = player.section;
 			end
 			Audio.SeizeStream(player.section)
@@ -468,7 +468,7 @@ function pause.onDraw()
 				releaseOnUnpause = nil;
 			end
 			if(playOnUnpause) then
-				Audio.MusicPlay();
+				Audio.MusicResume();
 				playOnUnpause = false;
 			end
 		end

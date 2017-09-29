@@ -26,7 +26,7 @@ boss.Name = "Tumulta Gloria"
 boss.SuperTitle = "Chaos Pumpernickel"
 boss.SubTitle = "Anarchy Incarnate"
 
-boss.MaxHP = 110;
+boss.MaxHP = 10;
 
 boss.TitleDisplayTime = 380;
 
@@ -165,6 +165,8 @@ local cutscene = {};
 
 local bossBegun = false;
 
+local nomusic = true;
+
 function bossAPI.Begin(fromCheckpoint)
 	if(not bossBegun) then
 		registerEvent(bossAPI, "onTick");
@@ -172,6 +174,11 @@ function bossAPI.Begin(fromCheckpoint)
 		registerEvent(bossAPI, "onCameraUpdate");
 		
 		bossBegun = true;
+		
+		Audio.SeizeStream(bossAPI.section);
+		Audio.MusicStop();
+		
+		nomusic = true;
 
 		pause.StopMusic = true;
 		
@@ -2216,6 +2223,8 @@ local function StartBoss()
 	Audio.MusicOpen(Misc.resolveFile("music/a2xt-aurevoir.ogg"));
 	Audio.MusicPlay();
 	
+	nomusic = false;
+	
 	drawBG = true;
 	starttime = lunatime.time();
 	boss.Start();
@@ -2281,10 +2290,11 @@ function cutscene.intro()
 	message.showMessageBox {target=player_pos, text="T-that voice!"}
 	message.waitMessageEnd();
 	
-	Audio.SeizeStream(bossAPI.section);
 	Audio.MusicVolume(100);
 	Audio.MusicOpen(Misc.resolveFile("music/a2xt-smokingisbadforyou.ogg"));
 	Audio.MusicPlay();
+	
+	nomusic = false;
 	
 	local t = 256;
 	local u = 2*(initPos.y-y)/t;
@@ -2570,6 +2580,8 @@ function cutscene.mid()
 	Audio.MusicOpen(Misc.resolveFile("music/a2xt-aurevoir2.ogg"));
 	Audio.MusicPlay();
 	
+	nomusic = false;
+	
 	local function waitMsgWhileReady(msg)
 		while(msg ~= nil and not msg.deleteMe) do
 			SetReady();
@@ -2597,6 +2609,11 @@ end
 function bossAPI.onTick()
 	tess.rotationXYZ = tess.rotationXYZ + tess_rotspdxyz*tess_spdmult;
 	tess.rotationW = tess.rotationW + tess_rotspdw*tess_spdmult;
+	
+	--Workaround for bug with music resuming erroneously when the window loses focus
+	if(nomusic) then
+		Audio.MusicStop();
+	end
 	
 	if(not backgrounds.fliprandomise) then
 		backgrounds.flipnumber = lunatime.time()-flip_stabletime;
@@ -2669,6 +2686,7 @@ function bossAPI.onTick()
 					SetArmPos(i, arms[i].initPos);
 				end
 				Audio.MusicStop();
+				nomusic = true;
 				Voice(audio.voice.hurt);
 				Sound(audio.sunball_die);
 				player.powerup = 2;
