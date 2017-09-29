@@ -123,7 +123,12 @@ end
 local function printTitle(text, y, scale, fadestart, fadeend)
 	if(text) then
 		local alpha = computeAlpha(fadestart,fadeend);
-		textblox.printExt(text, {x = 400, y = y+2, width=600, font = textblox.FONT_SPRITEDEFAULT4X2, scale = scale, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=5, color=0x00000000+alpha})
+		for i = -1,1,2 do
+			textblox.printExt(text, {x = 400, y = y+i*2, width=600, font = textblox.FONT_SPRITEDEFAULT4X2, scale = scale, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=5, color=0x00000000+alpha})
+		end
+		for i = -1,1,2 do
+			textblox.printExt(text, {x = 400+i*2, y = y, width=600, font = textblox.FONT_SPRITEDEFAULT4X2, scale = scale, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=5, color=0x00000000+alpha})
+		end
 		textblox.printExt(text, {x = 400, y = y, width=600, font = textblox.FONT_SPRITEDEFAULT4X2, scale = scale, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=5, color=0xFFFFFF00+alpha})
 	end
 end
