@@ -26,7 +26,7 @@ boss.Name = "Tumulta Gloria"
 boss.SuperTitle = "Chaos Pumpernickel"
 boss.SubTitle = "Anarchy Incarnate"
 
-boss.MaxHP = 10;
+boss.MaxHP = 110;
 
 boss.TitleDisplayTime = 380;
 
