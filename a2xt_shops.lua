@@ -9,6 +9,7 @@ local rng = API.load("rng")
 local defs = API.load("expandedDefines")
 
 local scene = API.load("a2xt_scene")
+local voice = API.load("a2xt_voice")
 local message = API.load("a2xt_message")
 local raocoins = API.load("a2xt_raocoincounter");
 
@@ -534,9 +535,13 @@ message.presetSequences.steve = function(args)
 		intro = intro.."<page>Can I interesssst you in my waressss? Jussst "..price.." food."
 	end
 	SaveData.spokenToSteve = true;
+
+	local vcs = {};
+	for i = 1,5 do
+		table.insert(vcs, "../sound/voice/steve/0"..i..".ogg")
+	end
 	
-	-- Start the message box
-	local bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text=intro, closeWith="prompt"}
+	local bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text=intro, closeWith="prompt", voice="steve", voiceclip=vcs}
 	message.waitMessageDone()
 	
 	scene.displayFoodHud(true);
@@ -552,13 +557,13 @@ message.presetSequences.steve = function(args)
 	if  message.promptChoice == 1  then
 		if(GLOBAL_LIVES >= price) then
 			GLOBAL_LIVES = GLOBAL_LIVES - price;
-			bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Thankssss for your patronage."}
+			bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Thankssss for your patronage.", voice="steve", voiceclip=vcs}
 			shouldBuy = true;
 		else
-			bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Ah it sssseemssss you don't have enough food.<page>Come back when you have acquired sssssome more."}
+			bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Ah it sssseemssss you don't have enough food.<page>Come back when you have acquired sssssome more.", voice="steve", voiceclip=vcs}
 		end
 	else
-		bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Well then. Don't hessssitate if you change your mind."}
+		bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text="Well then. Don't hessssitate if you change your mind.", voice="steve", voiceclip=vcs}
 	end
 	eventu.waitFrames(64)
 	scene.displayFoodHud(false);

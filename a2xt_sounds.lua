@@ -6,7 +6,29 @@ local a2xt_sounds = {}
 
 
 
-a2xt_sounds.volume = {music=1, ambient=1, sfx=1, voice=1}
+a2xt_sounds.volume = {music=1}
+
+local volmt = {};
+function volmt.__index(tbl,k)
+	if(k == "sfx") then
+		return audiom.volume.a2xt_sfx;
+	elseif(k == "ambient") then
+		return audiom.volume.a2xt_ambient;
+	elseif(k == "voice") then
+		return audiom.volume.a2xt_voice;
+	end
+end
+
+function volmt.__newindex(tbl,k,v)
+	if(k == "sfx") then
+		audiom.volume.a2xt_sfx = v;
+	elseif(k == "ambient") then
+		audiom.volume.a2xt_ambient = v;
+	elseif(k == "voice") then
+		audiom.volume.a2xt_voice = v;
+	end
+end
+
 local voicedGameplay = false
 
 
@@ -44,20 +66,30 @@ function a2xt_sounds.play(args)
 	audiom.PlaySound(args)
 end
 
+local function insertTag(args, tag)
+	local params = table.clone(args);
+	if(params.tags) then
+		params.tags = table.append(params.tags,{tag});
+	elseif(params.tag) then
+		params.tags = {params.tag, tag};
+		params.tag = nil;
+	else
+		params.tag = tag;
+	end
+	return params;
+end
+
 
 function a2xt_sounds.playSFX(args)
-	local params = table.join(args, {volume=a2xt_sounds.volume.sfx})
-	a2xt_sounds.play(params)
+	a2xt_sounds.play(insertTag(args,"a2xt_sfx"))
 end
 
 function a2xt_sounds.playVoice(args)
-	local params = table.join(args, {volume=a2xt_sounds.volume.voice})
-	a2xt_sounds.play(params)
+	a2xt_sounds.play(insertTag(args,"a2xt_voice"))
 end
 
 function a2xt_sounds.playAmbient(args)
-	local params = table.join(args, {volume=a2xt_sounds.volume.ambient})
-	a2xt_sounds.play(params)
+	a2xt_sounds.play(insertTag(args,"a2xt_ambient"))
 end
 
 
