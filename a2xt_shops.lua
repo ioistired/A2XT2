@@ -220,14 +220,17 @@ a2xt_shops.dialogue = {
                                    },
 
                        costume   = {
-                                    options = 	{
-													{"What is this place?", "Later."}
-												},
+                                    options = {"What is this place?", "Later."},
                                     welcome = 	{ 
 													"Bonjour madamoiselle. Would you like to peruse our fine outfits perchance?",
 													"Bonjour monsieur. Would you like to peruse our fine outfits perchance?"
 												},
-									about = "We are a stylish boutique. We sell chique and fashionable outfits at reasonable prices.",
+									about = "We are a stylish boutique. We sell chique and fashionable outfits at reasonable prices.<page>There is also a changing room where you can change into any new clothing you purchase.",
+									goodbye = 
+											{
+												"Au revoir, madame.",
+												"Au revoir, monsieur."
+											},
                                     buy = 	{
 												"Merci, madame.",
 												"Merci, monsieur."
@@ -238,7 +241,7 @@ a2xt_shops.dialogue = {
 													"Ah, such a shame."
 												},
                                     confirm = {
-												"Ah, le [item] outfit, c'est fantastique!",
+												"Ah, le [item] outfit, c'est fantastique! It is [price], d'accord?",
 												"Je suis desole, but that item has already been sold!"
 											  }
                                    },
@@ -545,6 +548,46 @@ message.presetSequences.powerup = function(args)
 	message.endMessage();
 end
 
+local function playerIsMale()
+	return player.character == CHARACTER_RAOCOW or player.character == CHARACTER_KOOD or player.character == CHARACTER_UNCLEBROADSWORD;
+end
+
+message.presetSequences.costume = function(args)
+	local talker = args.npc
+
+	local dialog   = a2xt_shops.dialogue.costume
+	local settings = a2xt_shops.settings.costume
+	
+	local variant = 1;
+	
+	if(playerIsMale()) then
+		variant = 2;
+	end
+
+	-- Begin with the prompt
+	message.promptChosen = false
+	message.showMessageBox {target=talker, type="bubble", text=dialog.welcome[variant], closeWith="prompt"}
+	message.waitMessageDone ()
+	message.showPrompt {options=dialog.options}
+	message.waitPrompt ()
+
+	local choice = message.promptChoice
+	
+	-- About
+	if  choice == 1  then
+		local index = 1;
+		message.showMessageBox {target=talker, type="bubble", text=dialog.about}
+
+	-- Bye
+	elseif  choice == 2  then
+		message.showMessageBox {target=talker, type="bubble", text=dialog.goodbye[variant]}
+	end
+
+	message.waitMessageEnd()
+	scene.endScene()
+	message.endMessage();
+end
+
 message.presetSequences.steve = function(args)
 	local npc = args.npc
 	local price = 10;
@@ -679,7 +722,11 @@ message.presetSequences.shopItem = function(args)
 				
 				if(message.promptChoice == 1)  then
 					if(raocoins.buy(npc.data.price)) then
-						bubble = message.showMessageBox {target = shopkeep, text=getText(dialog.buy), keepOnscreen = true}
+						local buyindex = nil;
+						if(shopkeep.type == "costume" and playerIsMale()) then
+							buyindex = 2;
+						end
+						bubble = message.showMessageBox {target = shopkeep, text=getText(dialog.buy, buyindex), keepOnscreen = true}
 						message.waitMessageEnd ()
 						if(shopkeep.type == "stable") then
 							player:mem(0x108,FIELD_WORD,3);
