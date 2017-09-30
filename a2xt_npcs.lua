@@ -526,6 +526,9 @@ end
 
 local function parseCostumeIni(path)
 	local f = io.open(path, "r");
+	if(f == nil) then
+		return -24,-4,28,56;
+	end
 	local x,y = 0,0;
 	local w,h = 0,0;
 	local parse = -1;
@@ -552,7 +555,8 @@ local function parseCostumeIni(path)
 		
 		if(parse == -1) then
 			local m = v:match("%[frame%-(%d%-%d)%]");
-			if(m and m == "6-4") then
+			local c = path:sub(-14,-7);
+			if(m and ((c ~= "link" and m == "6-4") or (c == "link" and m == "5-1"))) then
 				parse = 2;
 			end
 		else
@@ -573,6 +577,7 @@ local function parseCostumeIni(path)
 			break;
 		end
 	end
+	f:close();
 	return x,y,w,h;
 end
 
@@ -586,8 +591,12 @@ function costumeobj:onDrawNPC()
 				self.data.sprite = Graphics.loadImage(path);
 				self.data.spritexoffset,self.data.spriteyoffset,self.data.spritewidth,self.data.spriteheight = parseCostumeIni(path:sub(1,-4).."ini");
 			end
-			
-			Graphics.drawImageToSceneWP(self.data.sprite, self.x+self.width*0.5-self.data.spritewidth+self.data.spritexoffset, self.y+self.height-self.data.spriteheight+self.data.spriteyoffset, 600, 400, 100, 100, -45);
+			local x,y = 600,400;
+			if(a2xt_costumes.info[self.data.costume].character == CHARACTER_SHEATH) then
+				x = 500;
+				y = 0;
+			end
+			Graphics.drawImageToSceneWP(self.data.sprite, self.x+self.width*0.5-self.data.spritewidth+self.data.spritexoffset, self.y+self.height-self.data.spriteheight+self.data.spriteyoffset, x, y, 100, 100, -45);
 		else
 			if(self.data.a2xt_message) then
 				self.data.a2xt_message.iconSpr.visible=false

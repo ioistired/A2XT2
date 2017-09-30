@@ -139,6 +139,12 @@ end
 a2xt_shops.settings.costume = 	{
 									ids = {977},
 									prices = 	{
+													DEMO_TEMPLATE = 1;
+													IRIS_TEMPLATE = 1;
+													RAOCOW_TEMPLATE = 1;
+													KOOD_TEMPLATE = 1;
+													SHEATH_TEMPLATE = 1;
+													
 													DEMO_BOBBLE = 100;
 												}
 								}
