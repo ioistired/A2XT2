@@ -491,10 +491,13 @@ costumeobj.settings = table.join(
 	},
 	collectsettings);
 	
+costumeobj.mannequin = Graphics.loadImage(Misc.resolveFile("graphics/extra/mannequin.png"));
+	
 npcManager.setNpcSettings(costumeobj.settings);
 	
 registerEvent(costumeobj, "onNPCKill")
 npcManager.registerEvent(costumeobj.settings.id, costumeobj, "onTickNPC");
+npcManager.registerEvent(costumeobj.settings.id, costumeobj, "onDrawNPC");
 
 function costumeobj.collect(args)
 		player.speedX = 0;
@@ -507,18 +510,91 @@ function costumeobj.onNPCKill(eventobj,npc,reason)
 	local id = npc.id;
 	if(id == costumeobj.settings.id) then
 		npc = pnpc.wrap(npc);
-		if(reason == 9) then
+		if(reason == 9 and not npc.data.shopkeep) then
 			if(colliders.collide(player,npc) or colliders.speedCollide(player,npc) or colliders.slash(player,npc) or colliders.downSlash(player,npc)) then
 				a2xt_scene.startScene{scene=costumeobj.collect, sceneArgs={npc=npc}}
-				
 			end
 		end
 	end
 end
 
 function costumeobj:onTickNPC()
-	if(self.data.costume == nil or SaveData.costumes[self.data.costume]) then
+	if(not self.data.shopkeep and (self.data.costume == nil or SaveData.costumes[self.data.costume])) then
 		self:kill(9);
+	end
+end
+
+local function parseCostumeIni(path)
+	local f = io.open(path, "r");
+	local x,y = 0,0;
+	local w,h = 0,0;
+	local parse = -1;
+	local whparse = -1;
+	for v in f:lines() do
+		if(whparse == -1) then
+			local m = v:match("%[common%]");
+			if(m) then
+				whparse = 2;
+			end
+		else
+			local m = v:match("width%s*=%s*(%d+)$");
+			if(m) then
+				w = tonumber(m);
+				whparse = whparse-1;
+			else
+				m = v:match("height%s*=%s*(%d+)$");
+				if(m) then
+					h = tonumber(m);
+					whparse = whparse-1;
+				end
+			end
+		end
+		
+		if(parse == -1) then
+			local m = v:match("%[frame%-(%d%-%d)%]");
+			if(m and m == "6-4") then
+				parse = 2;
+			end
+		else
+			local m = v:match("offsetX%s*=%s*(%d+)$");
+			if(m) then
+				x = tonumber(m);
+				parse = parse-1;
+			else
+				m = v:match("offsetY%s*=%s*(%d+)$");
+				if(m) then
+					y = tonumber(m);
+					parse = parse-1;
+				end
+			end
+		end
+		
+		if(whparse == 0 and parse == 0) then
+			break;
+		end
+	end
+	return x,y,w,h;
+end
+
+function costumeobj:onDrawNPC()
+	if(self.data.shopkeep) then
+		self.animationFrame = 2;
+		
+		if(not SaveData.costumes[self.data.costume]) then
+			if(self.data.sprite == nil) then
+				local path = Misc.resolveFile(a2xt_costumes.info[self.data.costume].path.."/"..a2xt_costumes.info[self.data.costume].characterName.."-2.png");
+				self.data.sprite = Graphics.loadImage(path);
+				self.data.spritexoffset,self.data.spriteyoffset,self.data.spritewidth,self.data.spriteheight = parseCostumeIni(path:sub(1,-4).."ini");
+			end
+			
+			Graphics.drawImageToSceneWP(self.data.sprite, self.x+self.width*0.5-self.data.spritewidth+self.data.spritexoffset, self.y+self.height-self.data.spriteheight+self.data.spriteyoffset, 600, 400, 100, 100, -45);
+		else
+			if(self.data.a2xt_message) then
+				self.data.a2xt_message.iconSpr.visible=false
+			end
+			self.data.price = "";
+			Graphics.drawImageToSceneWP(costumeobj.mannequin, self.x+self.width*0.5-35, self.y+self.height-56, -45);
+		end
 	end
 end
 
@@ -548,7 +624,6 @@ function cardobj.onNPCKill(eventobj,npc,reason)
 		if(reason == 9) then
 			if(colliders.collide(player,npc) or colliders.speedCollide(player,npc) or colliders.slash(player,npc) or colliders.downSlash(player,npc)) then
 				a2xt_scene.startScene{scene=cardobj.collect, sceneArgs={npc=npc}}
-				
 			end
 		end
 	end

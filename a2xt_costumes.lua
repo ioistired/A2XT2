@@ -48,7 +48,8 @@ for  _,v1 in ipairs(Misc.listDirectories(Misc.episodePath().."graphics/costumes"
 				id = costume_id,
 				costume = v2,
 				name = costumes.data[costume_id].name,
-				character = cid
+				character = cid,
+				characterName = v1
 				-- any other properties defined in a text document maybe?
 			}
 			info.animatx = Graphics.loadImage(info.path.."/"..v1.."_anmx.png")

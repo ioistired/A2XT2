@@ -12,6 +12,8 @@ local scene = API.load("a2xt_scene")
 local voice = API.load("a2xt_voice")
 local message = API.load("a2xt_message")
 local raocoins = API.load("a2xt_raocoincounter");
+local costumes = API.load("a2xt_costumes")
+local rewards = API.load("a2xt_rewards")
 
 local a2xt_shops = {}
 
@@ -132,7 +134,14 @@ for _,v in pairs(a2xt_shops.settings) do
 	for k,_ in pairs(v.prices) do
 		table.insert(v.ids, k);
 	end
-end			  
+end		
+
+a2xt_shops.settings.costume = 	{
+									ids = {977},
+									prices = 	{
+													DEMO_BOBBLE = 100;
+												}
+								}
 					  
 a2xt_shops.dialogue = {
                        stable    = {
@@ -205,13 +214,27 @@ a2xt_shops.dialogue = {
                                    },
 
                        costume   = {
-                                    options = {""},
-                                    welcome = "",
-                                    about = "",
-                                    peruse = "",
-                                    buy = "",
-                                    notenough = "",
-                                    goodbye = ""  
+                                    options = 	{
+													{"What is this place?", "Later."}
+												},
+                                    welcome = 	{ 
+													"Bonjour madamoiselle. Would you like to peruse our fine outfits perchance?",
+													"Bonjour monsieur. Would you like to peruse our fine outfits perchance?"
+												},
+									about = "We are a stylish boutique. We sell chique and fashionable outfits at reasonable prices.",
+                                    buy = 	{
+												"Merci, madame.",
+												"Merci, monsieur."
+											},
+                                    notenough = "Ah, je suis triste. Ensure you have the necessary funds, s'il vous plait.",
+									nodeal = 	{
+													"You're mad, moiselle.",
+													"Ah, such a shame."
+												},
+                                    confirm = {
+												"Ah, le [item] outfit, c'est fantastique!",
+												"Je suis desole, but that item has already been sold!"
+											  }
                                    },
 
                        minigame  = {
@@ -618,48 +641,73 @@ message.presetSequences.shopItem = function(args)
 				itemid = 287;
 			end
 			
-			local confirmMessage = a2xt_shops.parse(dialog.confirm[confirmVal], dialog.items[itemid], npc.data.price)
+			local itemname;
+			if(shopkeep.type == "costume") then
+				itemname = costumes.data[npc.data.costume].name;
+			else
+				itemname = dialog.items[itemid];
+			end
 			
-			scene.displayRaocoinHud(true);
-			
-			bubble = message.showMessageBox {target = shopkeep, text=confirmMessage, closeWith="prompt", keepOnscreen = true}
-			message.waitMessageDone ()
-			message.showPrompt ()
-			message.waitPrompt ()
-			
-			if(message.promptChoice == 1)  then
-				if(raocoins.buy(npc.data.price)) then
-					bubble = message.showMessageBox {target = shopkeep, text=getText(dialog.buy), keepOnscreen = true}
-					message.waitMessageEnd ()
-					if(shopkeep.type == "stable") then
-						player:mem(0x108,FIELD_WORD,3);
-						player:mem(0x10A,FIELD_WORD,stable_npc_to_mount[npc.id])
-						changePlayerState();
-					elseif(shopkeep.type == "powerup") then
-						if(npc.data.generator) then
-							spawnSmoke(npc.x+npc.width*0.5,npc.y+npc.height*0.5)
-							buygenerator(npc);
-						else
-							local id = npc.id;
-							if(npc.data.random) then
-								local val = rng.randomInt(0,powerup_shop_lucky_total_prob);
-								for k,v in pairs(powerup_shop_lucky_chances) do
-									val = val - v;
-									if(val <= 0) then
-										id = k;
-										break;
-									end
-								end
-							end
-							NPC.spawn(id, player.x, player.y, player.section);
-						end
-					end
+			local confirmtxt;
+			if(shopkeep.type == "costume") then
+				if(SaveData.costumes[npc.data.costume]) then
+					confirmtxt = dialog.confirm[2];
 				else
-					raocoins.set(100); --debug to give me free raocoins
-					bubble = message.showMessageBox {target = shopkeep, text=dialog.notenough, keepOnscreen = true}
+					confirmtxt = dialog.confirm[1];
 				end
 			else
-				bubble = message.showMessageBox {target = shopkeep, text=getText(dialog.nodeal), keepOnscreen = true}
+				confirmtxt = dialog.confirm[confirmVal];
+			end
+			
+			local confirmMessage = a2xt_shops.parse(confirmtxt, itemname, npc.data.price)
+			
+			
+			if(shopkeep.type == "costume" and SaveData.costumes[npc.data.costume]) then
+				bubble = message.showMessageBox {target = shopkeep, text=confirmMessage, keepOnscreen = true}
+			else
+				scene.displayRaocoinHud(true);
+				bubble = message.showMessageBox {target = shopkeep, text=confirmMessage, closeWith="prompt", keepOnscreen = true}
+				message.waitMessageDone ()
+				message.showPrompt ()
+				message.waitPrompt ()
+				
+				if(message.promptChoice == 1)  then
+					if(raocoins.buy(npc.data.price)) then
+						bubble = message.showMessageBox {target = shopkeep, text=getText(dialog.buy), keepOnscreen = true}
+						message.waitMessageEnd ()
+						if(shopkeep.type == "stable") then
+							player:mem(0x108,FIELD_WORD,3);
+							player:mem(0x10A,FIELD_WORD,stable_npc_to_mount[npc.id])
+							changePlayerState();
+						elseif(shopkeep.type == "powerup") then
+							if(npc.data.generator) then
+								spawnSmoke(npc.x+npc.width*0.5,npc.y+npc.height*0.5)
+								buygenerator(npc);
+							else
+								local id = npc.id;
+								if(npc.data.random) then
+									local val = rng.randomInt(0,powerup_shop_lucky_total_prob);
+									for k,v in pairs(powerup_shop_lucky_chances) do
+										val = val - v;
+										if(val <= 0) then
+											id = k;
+											break;
+										end
+									end
+								end
+								NPC.spawn(id, player.x, player.y, player.section);
+							end
+						elseif(shopkeep.type == "costume") then
+							spawnSmoke(npc.x+npc.width*0.5,npc.y+npc.height*0.5);
+							rewards.give{type="costume", quantity=npc.data.costume, wait=true};
+						end
+					else
+						raocoins.set(100); --debug to give me free raocoins
+						bubble = message.showMessageBox {target = shopkeep, text=dialog.notenough, keepOnscreen = true}
+					end
+				else
+					bubble = message.showMessageBox {target = shopkeep, text=getText(dialog.nodeal), keepOnscreen = true}
+				end
 			end
 			message.waitMessageEnd ()
 			scene.displayRaocoinHud(false);
@@ -708,7 +756,11 @@ function a2xt_shops.onStart()
 				end
 				w.data.event = "shopItem";
 				w.data.talkIcon = 4;
-				w.data.price = a2xt_shops.settings[v.data.event].prices[w.id].buy;
+				if(v.data.event == "costume") then
+					w.data.price = a2xt_shops.settings[v.data.event].prices[w.data.costume];
+				else
+					w.data.price = a2xt_shops.settings[v.data.event].prices[w.id].buy;
+				end
 				w.data.shopkeep = {x = v.x, y = v.y, width = v.width, height = v.height, type=v.data.event};
 				w.data.spawnPos = {x = w.x, y = w.y}
 				if(v.data.event == "stable") then
