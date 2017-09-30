@@ -457,6 +457,111 @@ end
 
 
 -- ***********************
+-- ** COLLECTIBLES      **
+-- ***********************
+
+local collectsettings =
+	{
+		gfxwidth=48,
+		gfxheight=50,
+		width=42,
+		height=42,
+		framestyle=0,
+		frames=1,
+		speed = 0,
+		playerblock=false,
+		npcblock=false,
+		nofireball=true,
+		noiceball=true,
+		noyoshi=true,
+		grabside=false,
+		isshoe=false,
+		isyoshi=false,
+		nohurt=true,
+		iscoin=false,
+		isinteractable=true,
+		jumphurt=true,
+		spinjumpsafe=false
+	}
+
+local costumeobj = {};
+costumeobj.settings = table.join(
+	{
+		id = 977
+	},
+	collectsettings);
+	
+npcManager.setNpcSettings(costumeobj.settings);
+	
+registerEvent(costumeobj, "onNPCKill")
+npcManager.registerEvent(costumeobj.settings.id, costumeobj, "onTickNPC");
+
+function costumeobj.collect(args)
+		player.speedX = 0;
+		eventu.waitFrames(32);
+		a2xt_rewards.give{type="costume", quantity=args.npc.data.costume, wait=true};
+		a2xt_scene.endScene();
+end
+
+function costumeobj.onNPCKill(eventobj,npc,reason)
+	local id = npc.id;
+	if(id == costumeobj.settings.id) then
+		npc = pnpc.wrap(npc);
+		if(reason == 9) then
+			if(colliders.collide(player,npc) or colliders.speedCollide(player,npc) or colliders.slash(player,npc) or colliders.downSlash(player,npc)) then
+				a2xt_scene.startScene{scene=costumeobj.collect, sceneArgs={npc=npc}}
+				
+			end
+		end
+	end
+end
+
+function costumeobj:onTickNPC()
+	if(self.data.costume == nil or SaveData.costumes[self.data.costume]) then
+		self:kill(9);
+	end
+end
+
+local cardobj = {};
+cardobj.settings = table.join(
+	{
+		id = 976
+	},
+	collectsettings);
+	
+npcManager.setNpcSettings(cardobj.settings);
+	
+registerEvent(cardobj, "onNPCKill")
+npcManager.registerEvent(cardobj.settings.id, cardobj, "onTickNPC");
+
+function cardobj.collect(args)
+		player.speedX = 0;
+		eventu.waitFrames(32);
+		a2xt_rewards.give{type="card", quantity=args.npc.data.card, wait=true};
+		a2xt_scene.endScene();
+end
+
+function cardobj.onNPCKill(eventobj,npc,reason)
+	local id = npc.id;
+	if(id == cardobj.settings.id) then
+		npc = pnpc.wrap(npc);
+		if(reason == 9) then
+			if(colliders.collide(player,npc) or colliders.speedCollide(player,npc) or colliders.slash(player,npc) or colliders.downSlash(player,npc)) then
+				a2xt_scene.startScene{scene=cardobj.collect, sceneArgs={npc=npc}}
+				
+			end
+		end
+	end
+end
+
+function cardobj:onTickNPC()
+	if(self.data.card == nil or false --[[SaveData.cards[self.data.card] --TODO: Replace this with a proper system for card saves]]) then
+		self:kill(9);
+	end
+end
+
+
+-- ***********************
 -- ** PORTALS           **
 -- ***********************
 local portal = {}
