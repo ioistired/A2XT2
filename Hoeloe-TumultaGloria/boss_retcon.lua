@@ -23,7 +23,7 @@ local audioMaster = API.load("audioMaster");
 local panim = API.load("playerAnim");
 
 boss.Name = "Tumulta Gloria"
-boss.SuperTitle = "Chaos Pumpernickel"
+boss.SuperTitle = "Chaos Pumpernickle"
 boss.SubTitle = "Anarchy Incarnate"
 
 boss.MaxHP = 110;
@@ -2343,7 +2343,7 @@ function cutscene.intro()
 	showPumpMsg {target=eye_pos, text="You just couldn't leave me alone, could you Augustus?"}
 	message.waitMessageEnd();
 	
-	message.showMessageBox {target=player_pos, text="I take it this is the true Pumpernickel I'm speaking to?<page>A fitting form for such a twisted, detestable soul as yourself."}
+	message.showMessageBox {target=player_pos, text="I take it this is the true Pumpernickle I'm speaking to?<page>A fitting form for such a twisted, detestable soul as yourself."}
 	message.waitMessageEnd();
 	
 	showPumpMsg {target=eye_pos, text="If only I could say the same for that hostility of yours."}
@@ -2590,7 +2590,7 @@ function cutscene.mid()
 	end
 	
 	Audio.SfxPlayCh(-1, Audio.SfxOpen(playerManager.getSound(CHARACTER_UNCLEBROADSWORD, 2)), 0)
-	m = message.showMessageBox {target=player_pos, text="This is the end, Pumpernickel! Neither of us escape this room! <pause 20>", closeWith="auto"}
+	m = message.showMessageBox {target=player_pos, text="This is the end, Pumpernickle! Neither of us escape this room! <pause 20>", closeWith="auto"}
 	waitMsgWhileReady(m);
 	
 	m = showPumpMsg {target=eye_pos, text="Yeeaah, no. Here's how this is going to work.<pause 20><page>One: I erase you right here and now.<pause 20><page>Two: I step outside until they're done with this purging nonsense.<pause 20><page>And finally, C:<pause 20>", closeWith="auto"}
