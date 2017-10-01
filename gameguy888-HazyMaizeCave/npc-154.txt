@@ -1,0 +1,7 @@
+playerblock=0
+playerblocktop=1
+npcblock=0
+npcblocktop=1
+noyoshi=1
+frames=1
+framestyle=1
