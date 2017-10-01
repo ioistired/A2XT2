@@ -11,7 +11,6 @@ local eventu = API.load("eventu");
 local a2xt_scene = API.load("a2xt_scene");
 local a2xt_leveldata = API.load("a2xt_leveldata")
 local a2xt_rewards = API.load("a2xt_rewards")
-local a2xt_audio = API.load("a2xt_audio")
 local a2xt_message = API.load("a2xt_message")
 local a2xt_costumes = API.load("a2xt_costumes")
 
@@ -275,7 +274,7 @@ function pengs:onMessageEnd(id)
 		pengData[id].collected = true
 		SaveData.pengs[tostring(id)] = true;
 		--Misc.saveGame();
-		audio.PlaySound{sound = Misc.resolveFile("sound/noot.ogg"), volume = a2xt_audio.voice.volume}
+		audio.PlaySound{sound = Misc.resolveFile("sound/noot.ogg")}
 		local a = Animation.spawn(10,self.x+self.width*0.5,self.y+self.height*0.5);
 		a.x = a.x-a.width*0.5;
 		a.y = a.y-a.height*0.5;

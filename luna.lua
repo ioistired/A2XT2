@@ -20,7 +20,7 @@ local npcs = API.load("a2xt_npcs");
 local scene = API.load("a2xt_scene");
 local messages = API.load("a2xt_message");
 local shops = API.load("a2xt_shops");
-local sounds = API.load("a2xt_sounds");
+local voice  = API.load("a2xt_voice");
 
 API.load("a2xt_cheats")
 
