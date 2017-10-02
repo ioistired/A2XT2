@@ -839,6 +839,11 @@ function a2xt_shops.onStart()
 							w.data.price = w.data.price * 3;
 						end
 					end
+				elseif(v.data.event == "costume") then
+					w.dontMove = true;
+					w.data.height = w.height;
+					w.height = w.height+32;
+					w.data.y = w.y;
 				end
 				table.insert(shopItems, w);
 			end
@@ -908,6 +913,9 @@ function a2xt_shops.onDraw()
 					id = v.data.visibleid or 9;
 				end
 				Graphics.drawImageToSceneWP(Graphics.sprites.npc[id].img, v.x, v.y, 0, 0, v.width, v.data.height, -45);
+			elseif(v.data.shopkeep.type == "costume") then
+				v.height = v.data.height+32;
+				v.y = v.data.y;
 			end
 		end
 	end

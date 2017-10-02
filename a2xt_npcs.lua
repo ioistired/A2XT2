@@ -603,7 +603,7 @@ function costumeobj:onDrawNPC()
 				x = 500;
 				y = 0;
 			end
-			Graphics.drawImageToSceneWP(self.data.sprite, self.x+self.width*0.5-self.data.spritewidth*0.5-self.data.spritexoffset, self.y+self.height-self.data.spriteheight-self.data.spriteyoffset+4, x, y, 100, 100, -45);
+			Graphics.drawImageToSceneWP(self.data.sprite, self.x+self.width*0.5-self.data.spritewidth*0.5-self.data.spritexoffset, self.y+self.height-self.data.spriteheight-self.data.spriteyoffset+8-32, x, y, 100, 100, -45);
 		else
 			if(self.data.a2xt_message) then
 				self.data.a2xt_message.iconSpr.visible=false
