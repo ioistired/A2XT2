@@ -1,0 +1,9 @@
+gfxoffsetx = 12
+gfxoffsety = 30
+gfxheight = 98
+gfxwidth = 100
+height = 32
+width = 32
+framestyle = 1
+frames = 8
+framespeed=2.5
