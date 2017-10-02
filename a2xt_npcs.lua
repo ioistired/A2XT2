@@ -609,7 +609,7 @@ function costumeobj:onDrawNPC()
 				self.data.a2xt_message.iconSpr.visible=false
 			end
 			self.data.price = "";
-			Graphics.drawImageToSceneWP(costumeobj.mannequin, self.x+self.width*0.5-35, self.y+self.height-56, -45);
+			Graphics.drawImageToSceneWP(costumeobj.mannequin, self.x+self.width*0.5-35, self.y+self.height-56-32, -45);
 		end
 	end
 end
