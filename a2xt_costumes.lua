@@ -108,7 +108,9 @@ function costumes.getCurrent(character)
 end
 
 function costumes.unlock (id)
-	SaveData.costumes[id] = true
+	if(not id:match("_TEMPLATE$")) then
+		SaveData.costumes[id] = true
+	end
 end
 
 

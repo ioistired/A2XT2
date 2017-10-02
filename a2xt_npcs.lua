@@ -317,6 +317,9 @@ local boothSettings =
 				  playerblocktop = true,
 				  frames=1,
 				  framespeed=4,
+				  nofireball=true,
+				  noiceball=true,
+				  noyoshi=true,
 				  nohurt=true};
 
 npcManager.registerEvent(boothSettings.id, changebooth, "onTickNPC");
@@ -526,7 +529,7 @@ end
 local function parseCostumeIni(path)
 	local f = io.open(path, "r");
 	if(f == nil) then
-		return -24,-4,28,56;
+		return 38,38,24,56;
 	end
 	local x,y = 0,0;
 	local w,h = 0,0;
@@ -587,8 +590,13 @@ function costumeobj:onDrawNPC()
 		if(not SaveData.costumes[self.data.costume]) then
 			if(self.data.sprite == nil) then
 				local path = Misc.resolveFile(a2xt_costumes.info[self.data.costume].path.."/"..a2xt_costumes.info[self.data.costume].characterName.."-2.png");
+				local inipath = Misc.resolveFile(a2xt_costumes.info[self.data.costume].path.."/"..a2xt_costumes.info[self.data.costume].characterName.."-2.ini");
+				if(inipath == nil) then
+					local nms = {"DEMO", "IRIS", "KOOD", "RAOCOW", "SHEATH"};
+					inipath = Misc.resolveFile("graphics/costumes/"..a2xt_costumes.info[self.data.costume].characterName.."/"..nms[a2xt_costumes.info[self.data.costume].character].."-CENTERED/"..a2xt_costumes.info[self.data.costume].characterName.."-2.ini");
+				end
 				self.data.sprite = Graphics.loadImage(path);
-				self.data.spritexoffset,self.data.spriteyoffset,self.data.spritewidth,self.data.spriteheight = parseCostumeIni(path:sub(1,-4).."ini");
+				self.data.spritexoffset,self.data.spriteyoffset,self.data.spritewidth,self.data.spriteheight = parseCostumeIni(inipath);
 			end
 			local x,y = 600,400;
 			if(a2xt_costumes.info[self.data.costume].character == CHARACTER_SHEATH) then
