@@ -19,6 +19,7 @@ costumes.data =
 	SHEATH_TEMPLATE = {path = "Sheath-Centered", name = "Default"},
 
 	DEMO_BOBBLE = {path = "Demo-BobbleHat", name = "Bobble Hat Demo"};
+	DEMO_SAFETYBEE = {path = "Demo-SafetyBee", name = "D the Safety Bee"};
 }
 
 costumes.defaults =

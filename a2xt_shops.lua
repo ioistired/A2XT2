@@ -146,6 +146,7 @@ a2xt_shops.settings.costume = 	{
 													SHEATH_TEMPLATE = 0;
 													
 													DEMO_BOBBLE = 100;
+													DEMO_SAFETYBEE = 100;
 												}
 								}
 					  
