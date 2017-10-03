@@ -405,6 +405,7 @@ function changebooth.onTick()
 		
 		player.keys.left = false;
 		player.keys.right = false;
+		player.keys.down = false;
 	end
 	
 end
