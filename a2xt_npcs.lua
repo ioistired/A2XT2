@@ -1807,7 +1807,7 @@ function pal:onTickNPC()
 				-- if it's an NPC, the NPC must not be hidden unless it's something to dig up
 				v = pnpc.wrap(v)
 				isValid = (not v:mem(0x40, FIELD_BOOL)  or  v.data.buried == true)
-				if  isValid  then
+				if  isValid and v.data then
 					targetType = "npc"
 					reactType = REACTTYPES[v.id]
 					if  v.data.buried == true  then
