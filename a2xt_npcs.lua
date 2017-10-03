@@ -325,6 +325,8 @@ local boothSettings =
 npcManager.registerEvent(boothSettings.id, changebooth, "onTickNPC");
 changebooth.settings = npcManager.setNpcSettings(boothSettings);
 
+changebooth.sfx = Misc.resolveFile("sound/extra/changing-curtain.ogg");
+
 registerEvent(changebooth, "onTick");
 registerEvent(changebooth, "onDraw");
 
@@ -365,8 +367,10 @@ function changebooth.onTick()
 		if(changebooth.changing == 0) then
 			if(player.keys.left and not changebooth.keyLeft) then
 				changebooth.changing = -7*boothSettings.framespeed;
+				Audio.playSFX(changebooth.sfx);
 			elseif(player.keys.right and not changebooth.keyRight) then
 				changebooth.changing = 7*boothSettings.framespeed;
+				Audio.playSFX(changebooth.sfx);
 			end
 		else
 			player.keys.jump = false;
