@@ -530,61 +530,47 @@ function costumeobj:onTickNPC()
 	end
 end
 
-local function parseCostumeIni(path)
+local function parseFromSubheading(f, heading, ...)
+	local vals = {...};
+	local parsed = {};
+	local parsecount = -1;
+	while(parsecount ~= 0) do
+		local v = f:read();
+		if(v == nil) then
+			break;
+		end
+		if(parsecount < 0 and v:match("%["..heading.."%]")) then
+			parsecount = #vals;
+		else
+			for _,k in ipairs(vals) do
+				if(parsed[k] == nil) then
+					local m = v:match(k.."%s*=%s*(%d+)%s*$");
+					if(m) then
+						parsed[k] = tonumber(m);
+						parsecount = parsecount - 1;
+					end
+				end
+			end
+		end
+	end
+	return parsed;
+end
+
+local function parseCostumeIni(path, frame)
 	local f = io.open(path, "r");
 	if(f == nil) then
 		return 38,38,24,56;
 	end
-	local x,y = 0,0;
-	local w,h = 0,0;
-	local parse = -1;
-	local whparse = -1;
-	for v in f:lines() do
-		if(whparse == -1) then
-			local m = v:match("%[common%]");
-			if(m) then
-				whparse = 2;
-			end
-		else
-			local m = v:match("width%s*=%s*(%d+)$");
-			if(m) then
-				w = tonumber(m);
-				whparse = whparse-1;
-			else
-				m = v:match("height%s*=%s*(%d+)$");
-				if(m) then
-					h = tonumber(m);
-					whparse = whparse-1;
-				end
-			end
-		end
-		
-		if(parse == -1) then
-			local m = v:match("%[frame%-(%d%-%d)%]");
-			local c = path:sub(-14,-7);
-			if(m and ((c ~= "link" and m == "6-4") or (c == "link" and m == "5-1"))) then
-				parse = 2;
-			end
-		else
-			local m = v:match("offsetX%s*=%s*(%d+)$");
-			if(m) then
-				x = tonumber(m);
-				parse = parse-1;
-			else
-				m = v:match("offsetY%s*=%s*(%d+)$");
-				if(m) then
-					y = tonumber(m);
-					parse = parse-1;
-				end
-			end
-		end
-		
-		if(whparse == 0 and parse == 0) then
-			break;
-		end
+	local wh = parseFromSubheading(f, "common", "width", "height");
+	local c = path:sub(-14,-7);
+	local frm = "frame-6-4";
+	if(c == "link") then
+		frm = "frame-5-1";
 	end
+	local xy = parseFromSubheading(f, frm, "offsetX", "offsetY");
+	
 	f:close();
-	return x,y,w,h;
+	return xy.offsetX,xy.offsetY,wh.width,wh.height;
 end
 
 function costumeobj:onDrawNPC()
@@ -833,18 +819,35 @@ demokrew[1] = table.join(
 
 local krewInfo = {
                  chars     = {[980]=CHARACTER_MARIO, [981]=CHARACTER_LUIGI, [982]=CHARACTER_PEACH, [983]=CHARACTER_TOAD, [984]=CHARACTER_LINK},
-                 names     = {[980]="Demo", [981]="Iris", [982]="Kood", [983]="raocow", [984]="Sheath"}
+                 names     = {[980]="Demo", [981]="Iris", [982]="Kood", [983]="Raocow", [984]="Sheath"},
+				 defaultW  = {[980]=24,		[981]=24,	  [982]=30,		[983]=26,		[984]=22},
+				 defaultH  = {[980]=54,		[981]=60,	  [982]=52,		[983]=50,		[984]=54}
                 }
+			
+
+
+local function parseCharIni(path)
+	local f = io.open(path, "r");
+	if(f == nil) then
+		return 38,38,24,56;
+	end
+	local wh = parseFromSubheading(f, "common", "width", "height");
+	local start = f:seek();
+	local xyl = parseFromSubheading(f, "frame-4-8", "offsetX", "offsetY");
+	f:seek("set", start);
+	local xyr = parseFromSubheading(f, "frame-5-1", "offsetX", "offsetY");
+	
+	f:close();
+	return xyl,xyr,wh.width,wh.height;
+end	
 
 
 for i = 980,984 do
 	local s = table.clone(demokrew[1]);
 	s.id = i;
 	
-	local ps = PlayerSettings.get(pm.getCharacters()[krewInfo.chars[i]].base, 2);
-	
-	s.width = ps.hitboxWidth;
-	s.height = ps.hitboxHeight;
+	s.width = krewInfo.defaultW[i];
+	s.height = krewInfo.defaultH[i];
 	table.insert(demokrew, s);
 end
 
@@ -852,19 +855,24 @@ for _,v in ipairs(demokrew) do
 	npcManager.setNpcSettings(v);
 	npcManager.registerEvent(v.id, demokrew, "onTickNPC");
 	npcManager.registerEvent(v.id, demokrew, "onDrawNPC");
-end	
-
-registerEvent(demokrew, "onStart", "onStart", false)
-
---Force update the character hitboxes for the demo krew NPCs to use
-function demokrew.onStart()
-	if(isTownLevel()) then
-		for i = 1,5 do
-			pm.refreshHitbox(i)
-		end
-	end
 end
 
+local function updateDemoKrewHitbox(self, c)
+	self.data.costume = Player.getCostume(c);
+	
+	local temps = Player.getTemplates();
+	self.data.powerup = temps[c].powerup;
+		
+	local basenames = {"mario", "luigi", "peach", "toad", "link"};
+	local inipath = Misc.resolveFile("graphics/costumes/"..basenames[c].."/"..self.data.costume.."/"..basenames[c].."-"..self.data.powerup..".ini");
+	if(inipath == nil) then
+		inipath = Misc.resolveFile("graphics/costumes/"..basenames[c].."/"..krewInfo.names[self.id]:upper().."-CENTERED/"..basenames[c].."-"..self.data.powerup..".ini");
+	end
+	
+	self.data.offsetL,self.data.offsetR,self.data.w,self.data.h = parseCharIni(inipath);
+	
+	self.data.sprite = Graphics.sprites[basenames[c]];
+end
 
 function demokrew:onTickNPC()
 	self.friendly = true;
@@ -879,24 +887,29 @@ function demokrew:onTickNPC()
 		self.isHidden = true;
 	end
 	
-	local x,y = self.x,self.y;
-	x = x + self.width*0.5;
-	y = y + self.height;
-	local temps = Player.getTemplates();
-	local c = krewInfo.chars[self.id];
-	local ps = PlayerSettings.get(pm.getCharacters()[c].base, temps[c].powerup);
-	self.height = ps.hitboxHeight;
-	self.width = ps.hitboxWidth;
-	
-	self.x = x-self.width*0.5;
-	self.y = y-self.height;
+	if(self:mem(0x124, FIELD_BOOL)) then
+		local temps = Player.getTemplates();
+		local c = krewInfo.chars[self.id];
+		if(self.data.costume ~= Player.getCostume(c) or self.data.powerup ~= temps[c].powerup) then
+			updateDemoKrewHitbox(self, c);
+		end
+		
+		if(self.height ~= self.data.h) then
+			local x,y = self.x,self.y;
+			x = x + self.width*0.5;
+			y = y + self.height;
+			self.x = x-self.data.w*0.5;
+			self.y = y-self.data.h;
+		end
+		self.speedY = -Defines.npc_grav;
+		self.width = self.data.w;
+		self.height = self.data.h;
+	end
 end
 
 function demokrew:onDrawNPC()
-	if(not self.isHidden) then
-		local temps = Player.getTemplates();
+	if(not self.isHidden and self:mem(0x124, FIELD_BOOL)) then
 		local c = krewInfo.chars[self.id];
-		local ps = PlayerSettings.get(pm.getCharacters()[c].base, temps[c].powerup);
 				
 		local f = 1;
 		
@@ -912,14 +925,23 @@ function demokrew:onDrawNPC()
 			tx1 = 4 - math.floor(f/10);
 			ty1 = 9-(f%10)
 		end
-				
-		local xOffset = ps:getSpriteOffsetX(tx1, ty1);
-		local yOffset = ps:getSpriteOffsetY(tx1, ty1);
 		
 		tx1 = tx1*100;
 		ty1 = ty1*100;
+		
+		if(self.data.offsetR == nil) then
+			updateDemoKrewHitbox(self, c);
+		end
+		
+		local offset = self.data.offsetR;
+		if(offset == nil) then
+			return;
+		end
+		if(self.direction == -1) then
+			offset = self.data.offsetL;
+		end
 				
-		Graphics.drawImageToSceneWP(Graphics.sprites[pm.getCharacters()[c].name][temps[c].powerup].img, self.x+xOffset, self.y+yOffset, tx1, ty1, 100, 100, -45)
+		Graphics.drawImageToSceneWP(self.data.sprite[self.data.powerup].img, self.x-offset.offsetX, self.y-offset.offsetY, tx1, ty1, 100, 100, -45)
 		
 		self.animationFrame = 9999;
 	end
