@@ -351,7 +351,7 @@ function pause.onInputUpdate()
    if(player.keys.pause and not presspause) then
 		if(game_paused) then
 			unpause();
-		elseif (not mem(0x00B250E2, FIELD_BOOL) and not Misc.isPausedByLua() and not pause.Blocked) then
+		elseif (not mem(0x00B250E2, FIELD_BOOL) and not Misc.isPausedByLua() and not pause.Blocked and player:mem(0x13E, FIELD_WORD) == 0) then
 			game_paused = true;
 			unpausing = false;
 			sfxvolume = audiomaster.volume.MASTER;
