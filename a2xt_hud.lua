@@ -270,17 +270,17 @@ Graphics.overrideHUD(renderHUD);
 
 function hud.onDraw()
 	if(isOverworld) then
-		showhud = Graphics.getOverworldHudState();
-		Graphics.activateOverworldHud(WHUD_NONE);
+		showhud = WHUD_ALL--showhud = Graphics.getOverworldHudState();
+		--Graphics.activateOverworldHud(WHUD_NONE);
 		drawHUD(5);
 	else
-		showhud = Graphics.isHudActivated();
+		--showhud = Graphics.isHudActivated();
 	end
 end
 
 function hud.onDrawEnd()
 	if(isOverworld) then
-		Graphics.activateOverworldHud(showhud);
+		--Graphics.activateOverworldHud(showhud);
 	end
 end
 

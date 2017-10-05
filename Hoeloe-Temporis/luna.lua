@@ -1683,7 +1683,7 @@ function onCameraDraw()
 		hazeShader = Shader();
 		hazeShader:compileFromFile(nil, "haze.frag");
 	end
-
+	
 	
 	if(player.section == 1) then
 		waterfallTop:Draw(-70);
@@ -1705,10 +1705,6 @@ function onCameraDraw()
 	elseif(player.section == 0) then
 		sandstorm:Draw(-40);
 		
-		if(cave_darkness.ambient ~= Color.white) then
-			cave_darkness:Draw();
-		end
-		
 		local boundmod = default_cave_bounds.right + math.lerp(0, 800, math.min((present_cave.x + present_cave.width - player.x)/400,1));
 		if(colliders.collide(player, present_cave)) then
 			sandstorm.enabled = false;
@@ -1726,6 +1722,10 @@ function onCameraDraw()
 				cave_darkness.ambient = Color.white;
 				cave_darkness.bounds.right = default_cave_bounds.right;
 			end
+		end
+		
+		if(cave_darkness.ambient ~= Color.white) then
+			cave_darkness:Draw();
 		end
 		
 		if(haze_blend > 0) then

@@ -49,5 +49,9 @@ function trail.onCameraDraw()
 	lastPlayerPos.y = player.y;
 end
 
+function trail.Break()
+	spinjump_trail:Break();
+end
+
 
 return trail;

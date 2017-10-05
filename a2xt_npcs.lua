@@ -11,7 +11,6 @@ local eventu = API.load("eventu");
 local a2xt_scene = API.load("a2xt_scene");
 local a2xt_leveldata = API.load("a2xt_leveldata")
 local a2xt_rewards = API.load("a2xt_rewards")
-local a2xt_audio = API.load("a2xt_audio")
 local a2xt_message = API.load("a2xt_message")
 local a2xt_costumes = API.load("a2xt_costumes")
 
@@ -275,7 +274,7 @@ function pengs:onMessageEnd(id)
 		pengData[id].collected = true
 		SaveData.pengs[tostring(id)] = true;
 		--Misc.saveGame();
-		audio.PlaySound{sound = Misc.resolveFile("sound/noot.ogg"), volume = a2xt_audio.voice.volume}
+		audio.PlaySound{sound = Misc.resolveFile("sound/noot.ogg")}
 		local a = Animation.spawn(10,self.x+self.width*0.5,self.y+self.height*0.5);
 		a.x = a.x-a.width*0.5;
 		a.y = a.y-a.height*0.5;
@@ -318,10 +317,15 @@ local boothSettings =
 				  playerblocktop = true,
 				  frames=1,
 				  framespeed=4,
+				  nofireball=true,
+				  noiceball=true,
+				  noyoshi=true,
 				  nohurt=true};
 
 npcManager.registerEvent(boothSettings.id, changebooth, "onTickNPC");
 changebooth.settings = npcManager.setNpcSettings(boothSettings);
+
+changebooth.sfx = Misc.resolveFile("sound/extra/changing-curtain.ogg");
 
 registerEvent(changebooth, "onTick");
 registerEvent(changebooth, "onDraw");
@@ -363,8 +367,10 @@ function changebooth.onTick()
 		if(changebooth.changing == 0) then
 			if(player.keys.left and not changebooth.keyLeft) then
 				changebooth.changing = -7*boothSettings.framespeed;
+				Audio.playSFX(changebooth.sfx);
 			elseif(player.keys.right and not changebooth.keyRight) then
 				changebooth.changing = 7*boothSettings.framespeed;
+				Audio.playSFX(changebooth.sfx);
 			end
 		else
 			player.keys.jump = false;
@@ -385,7 +391,7 @@ function changebooth.onTick()
 				if(changebooth.costumes[changebooth.costumeindex]) then
 					a2xt_costumes.wear(changebooth.costumes[changebooth.costumeindex]);
 				else
-					Player.setCostume(player.character, nil);
+					a2xt_costumes.wear(a2xt_costumes.defaults[player.character]);
 				end
 			end
 		end
@@ -399,6 +405,7 @@ function changebooth.onTick()
 		
 		player.keys.left = false;
 		player.keys.right = false;
+		player.keys.down = false;
 	end
 	
 end
@@ -453,6 +460,186 @@ function changebooth.onDraw()
 end
 
 function changebooth:onTickNPC()
+end
+
+
+-- ***********************
+-- ** COLLECTIBLES      **
+-- ***********************
+
+local collectsettings =
+	{
+		gfxwidth=48,
+		gfxheight=50,
+		width=42,
+		height=42,
+		framestyle=0,
+		frames=1,
+		speed = 0,
+		playerblock=false,
+		npcblock=false,
+		nofireball=true,
+		noiceball=true,
+		noyoshi=true,
+		grabside=false,
+		isshoe=false,
+		isyoshi=false,
+		nohurt=true,
+		iscoin=false,
+		isinteractable=true,
+		jumphurt=true,
+		spinjumpsafe=false
+	}
+
+local costumeobj = {};
+costumeobj.settings = table.join(
+	{
+		id = 977
+	},
+	collectsettings);
+	
+costumeobj.mannequin = Graphics.loadImage(Misc.resolveFile("graphics/extra/mannequin.png"));
+	
+npcManager.setNpcSettings(costumeobj.settings);
+	
+registerEvent(costumeobj, "onNPCKill")
+npcManager.registerEvent(costumeobj.settings.id, costumeobj, "onTickNPC");
+npcManager.registerEvent(costumeobj.settings.id, costumeobj, "onDrawNPC");
+
+function costumeobj.collect(args)
+		player.speedX = 0;
+		eventu.waitFrames(32);
+		a2xt_rewards.give{type="costume", quantity=args.npc.data.costume, wait=true};
+		a2xt_scene.endScene();
+end
+
+function costumeobj.onNPCKill(eventobj,npc,reason)
+	local id = npc.id;
+	if(id == costumeobj.settings.id) then
+		npc = pnpc.wrap(npc);
+		if(reason == 9 and not npc.data.shopkeep) then
+			if(colliders.collide(player,npc) or colliders.speedCollide(player,npc) or colliders.slash(player,npc) or colliders.downSlash(player,npc)) then
+				a2xt_scene.startScene{scene=costumeobj.collect, sceneArgs={npc=npc}}
+			end
+		end
+	end
+end
+
+function costumeobj:onTickNPC()
+	if(not self.data.shopkeep and (self.data.costume == nil or SaveData.costumes[self.data.costume])) then
+		self:kill(9);
+	end
+end
+
+local function parseFromSubheading(f, heading, ...)
+	local vals = {...};
+	local parsed = {};
+	local parsecount = -1;
+	while(parsecount ~= 0) do
+		local v = f:read();
+		if(v == nil) then
+			break;
+		end
+		if(parsecount < 0 and v:match("%["..heading.."%]")) then
+			parsecount = #vals;
+		else
+			for _,k in ipairs(vals) do
+				if(parsed[k] == nil) then
+					local m = v:match(k.."%s*=%s*(%d+)%s*$");
+					if(m) then
+						parsed[k] = tonumber(m);
+						parsecount = parsecount - 1;
+					end
+				end
+			end
+		end
+	end
+	return parsed;
+end
+
+local function parseCostumeIni(path, frame)
+	local f = io.open(path, "r");
+	if(f == nil) then
+		return 38,38,24,56;
+	end
+	local wh = parseFromSubheading(f, "common", "width", "height");
+	local c = path:sub(-14,-7);
+	local frm = "frame-6-4";
+	if(c == "link") then
+		frm = "frame-5-1";
+	end
+	local xy = parseFromSubheading(f, frm, "offsetX", "offsetY");
+	
+	f:close();
+	return xy.offsetX,xy.offsetY,wh.width,wh.height;
+end
+
+function costumeobj:onDrawNPC()
+	if(self.data.shopkeep) then
+		self.animationFrame = 2;
+		
+		if(not SaveData.costumes[self.data.costume]) then
+			if(self.data.sprite == nil) then
+				local path = Misc.resolveFile(a2xt_costumes.info[self.data.costume].path.."/"..a2xt_costumes.info[self.data.costume].characterName.."-2.png");
+				local inipath = Misc.resolveFile(a2xt_costumes.info[self.data.costume].path.."/"..a2xt_costumes.info[self.data.costume].characterName.."-2.ini");
+				if(inipath == nil) then
+					local nms = {"DEMO", "IRIS", "KOOD", "RAOCOW", "SHEATH"};
+					inipath = Misc.resolveFile("graphics/costumes/"..a2xt_costumes.info[self.data.costume].characterName.."/"..nms[a2xt_costumes.info[self.data.costume].character].."-CENTERED/"..a2xt_costumes.info[self.data.costume].characterName.."-2.ini");
+				end
+				self.data.sprite = Graphics.loadImage(path);
+				self.data.spritexoffset,self.data.spriteyoffset,self.data.spritewidth,self.data.spriteheight = parseCostumeIni(inipath);
+			end
+			local x,y = 600,400;
+			if(a2xt_costumes.info[self.data.costume].character == CHARACTER_SHEATH) then
+				x = 500;
+				y = 0;
+			end
+			Graphics.drawImageToSceneWP(self.data.sprite, self.x+self.width*0.5-self.data.spritewidth*0.5-self.data.spritexoffset, self.y+self.height-self.data.spriteheight-self.data.spriteyoffset+8-32, x, y, 100, 100, -45);
+		else
+			if(self.data.a2xt_message) then
+				self.data.a2xt_message.iconSpr.visible=false
+			end
+			self.data.price = "";
+			Graphics.drawImageToSceneWP(costumeobj.mannequin, self.x+self.width*0.5-35, self.y+self.height-56-32, -45);
+		end
+	end
+end
+
+local cardobj = {};
+cardobj.settings = table.join(
+	{
+		id = 976
+	},
+	collectsettings);
+	
+npcManager.setNpcSettings(cardobj.settings);
+	
+registerEvent(cardobj, "onNPCKill")
+npcManager.registerEvent(cardobj.settings.id, cardobj, "onTickNPC");
+
+function cardobj.collect(args)
+		player.speedX = 0;
+		eventu.waitFrames(32);
+		a2xt_rewards.give{type="card", quantity=args.npc.data.card, wait=true};
+		a2xt_scene.endScene();
+end
+
+function cardobj.onNPCKill(eventobj,npc,reason)
+	local id = npc.id;
+	if(id == cardobj.settings.id) then
+		npc = pnpc.wrap(npc);
+		if(reason == 9) then
+			if(colliders.collide(player,npc) or colliders.speedCollide(player,npc) or colliders.slash(player,npc) or colliders.downSlash(player,npc)) then
+				a2xt_scene.startScene{scene=cardobj.collect, sceneArgs={npc=npc}}
+			end
+		end
+	end
+end
+
+function cardobj:onTickNPC()
+	if(self.data.card == nil or false --[[SaveData.cards[self.data.card] --TODO: Replace this with a proper system for card saves]]) then
+		self:kill(9);
+	end
 end
 
 
@@ -633,18 +820,35 @@ demokrew[1] = table.join(
 
 local krewInfo = {
                  chars     = {[980]=CHARACTER_MARIO, [981]=CHARACTER_LUIGI, [982]=CHARACTER_PEACH, [983]=CHARACTER_TOAD, [984]=CHARACTER_LINK},
-                 names     = {[980]="Demo", [981]="Iris", [982]="Kood", [983]="raocow", [984]="Sheath"}
+                 names     = {[980]="Demo", [981]="Iris", [982]="Kood", [983]="Raocow", [984]="Sheath"},
+				 defaultW  = {[980]=24,		[981]=24,	  [982]=30,		[983]=26,		[984]=22},
+				 defaultH  = {[980]=54,		[981]=60,	  [982]=52,		[983]=50,		[984]=54}
                 }
+			
+
+
+local function parseCharIni(path)
+	local f = io.open(path, "r");
+	if(f == nil) then
+		return 38,38,24,56;
+	end
+	local wh = parseFromSubheading(f, "common", "width", "height");
+	local start = f:seek();
+	local xyl = parseFromSubheading(f, "frame-4-8", "offsetX", "offsetY");
+	f:seek("set", start);
+	local xyr = parseFromSubheading(f, "frame-5-1", "offsetX", "offsetY");
+	
+	f:close();
+	return xyl,xyr,wh.width,wh.height;
+end	
 
 
 for i = 980,984 do
 	local s = table.clone(demokrew[1]);
 	s.id = i;
 	
-	local ps = PlayerSettings.get(pm.getCharacters()[krewInfo.chars[i]].base, 2);
-	
-	s.width = ps.hitboxWidth;
-	s.height = ps.hitboxHeight;
+	s.width = krewInfo.defaultW[i];
+	s.height = krewInfo.defaultH[i];
 	table.insert(demokrew, s);
 end
 
@@ -652,19 +856,24 @@ for _,v in ipairs(demokrew) do
 	npcManager.setNpcSettings(v);
 	npcManager.registerEvent(v.id, demokrew, "onTickNPC");
 	npcManager.registerEvent(v.id, demokrew, "onDrawNPC");
-end	
-
-registerEvent(demokrew, "onStart", "onStart", false)
-
---Force update the character hitboxes for the demo krew NPCs to use
-function demokrew.onStart()
-	if(isTownLevel()) then
-		for i = 1,5 do
-			pm.refreshHitbox(i)
-		end
-	end
 end
 
+local function updateDemoKrewHitbox(self, c)
+	self.data.costume = Player.getCostume(c);
+	
+	local temps = Player.getTemplates();
+	self.data.powerup = temps[c].powerup;
+		
+	local basenames = {"mario", "luigi", "peach", "toad", "link"};
+	local inipath = Misc.resolveFile("graphics/costumes/"..basenames[c].."/"..self.data.costume.."/"..basenames[c].."-"..self.data.powerup..".ini");
+	if(inipath == nil) then
+		inipath = Misc.resolveFile("graphics/costumes/"..basenames[c].."/"..krewInfo.names[self.id]:upper().."-CENTERED/"..basenames[c].."-"..self.data.powerup..".ini");
+	end
+	
+	self.data.offsetL,self.data.offsetR,self.data.w,self.data.h = parseCharIni(inipath);
+	
+	self.data.sprite = Graphics.sprites[basenames[c]];
+end
 
 function demokrew:onTickNPC()
 	self.friendly = true;
@@ -679,24 +888,29 @@ function demokrew:onTickNPC()
 		self.isHidden = true;
 	end
 	
-	local x,y = self.x,self.y;
-	x = x + self.width*0.5;
-	y = y + self.height;
-	local temps = Player.getTemplates();
-	local c = krewInfo.chars[self.id];
-	local ps = PlayerSettings.get(pm.getCharacters()[c].base, temps[c].powerup);
-	self.height = ps.hitboxHeight;
-	self.width = ps.hitboxWidth;
-	
-	self.x = x-self.width*0.5;
-	self.y = y-self.height;
+	if(self:mem(0x124, FIELD_BOOL)) then
+		local temps = Player.getTemplates();
+		local c = krewInfo.chars[self.id];
+		if(self.data.costume ~= Player.getCostume(c) or self.data.powerup ~= temps[c].powerup) then
+			updateDemoKrewHitbox(self, c);
+		end
+		
+		if(self.height ~= self.data.h) then
+			local x,y = self.x,self.y;
+			x = x + self.width*0.5;
+			y = y + self.height;
+			self.x = x-self.data.w*0.5;
+			self.y = y-self.data.h;
+		end
+		self.speedY = -Defines.npc_grav;
+		self.width = self.data.w;
+		self.height = self.data.h;
+	end
 end
 
 function demokrew:onDrawNPC()
-	if(not self.isHidden) then
-		local temps = Player.getTemplates();
+	if(not self.isHidden and self:mem(0x124, FIELD_BOOL)) then
 		local c = krewInfo.chars[self.id];
-		local ps = PlayerSettings.get(pm.getCharacters()[c].base, temps[c].powerup);
 				
 		local f = 1;
 		
@@ -712,14 +926,23 @@ function demokrew:onDrawNPC()
 			tx1 = 4 - math.floor(f/10);
 			ty1 = 9-(f%10)
 		end
-				
-		local xOffset = ps:getSpriteOffsetX(tx1, ty1);
-		local yOffset = ps:getSpriteOffsetY(tx1, ty1);
 		
 		tx1 = tx1*100;
 		ty1 = ty1*100;
+		
+		if(self.data.offsetR == nil) then
+			updateDemoKrewHitbox(self, c);
+		end
+		
+		local offset = self.data.offsetR;
+		if(offset == nil) then
+			return;
+		end
+		if(self.direction == -1) then
+			offset = self.data.offsetL;
+		end
 				
-		Graphics.drawImageToSceneWP(Graphics.sprites[pm.getCharacters()[c].name][temps[c].powerup].img, self.x+xOffset, self.y+yOffset, tx1, ty1, 100, 100, -45)
+		Graphics.drawImageToSceneWP(self.data.sprite[self.data.powerup].img, self.x-offset.offsetX, self.y-offset.offsetY, tx1, ty1, 100, 100, -45)
 		
 		self.animationFrame = 9999;
 	end
@@ -1611,7 +1834,7 @@ function pal:onTickNPC()
 				-- if it's an NPC, the NPC must not be hidden unless it's something to dig up
 				v = pnpc.wrap(v)
 				isValid = (not v:mem(0x40, FIELD_BOOL)  or  v.data.buried == true)
-				if  isValid  then
+				if  isValid and v.data then
 					targetType = "npc"
 					reactType = REACTTYPES[v.id]
 					if  v.data.buried == true  then

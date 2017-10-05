@@ -16,6 +16,7 @@ local a2xt_settings = API.load("a2xt_settings")
 local a2xt_hud = API.load("a2xt_hud")
 local a2xt_pause = API.load("a2xt_pause")
 local a2xt_scene = API.load("a2xt_scene")
+local a2xt_voice = API.load("a2xt_voice")
 local a2xt_message = {}
 
 local messageInvincibile = 0;
@@ -468,9 +469,14 @@ local function cor_manageMessage(bubbleTarget, bubble)
 				bubbleTarget.x = bubbleTarget.initialArgs.x + cam.cam.x
 				bubbleTarget.y = bubbleTarget.initialArgs.y + cam.cam.y
 			end
-
 			-- Log each page as it happens
 			if  pagesLogged < bubble.latestPage  then
+				if(bubble.voiceclips ~= nil and bubble.voiceclips[bubble.latestPage]) then
+					a2xt_voice.Play(a2xt_voice.char[bubble.voice], bubble.voiceclips[bubble.latestPage]);
+				elseif(bubble.voiceclip) then
+					a2xt_voice.Play(a2xt_voice.char[bubble.voice], bubble.voiceclip);
+				end
+				
 				pagesLogged = bubble.latestPage
 				logText (bubble.pages[pagesLogged], bubbleTarget.name)
 			end
@@ -656,9 +662,14 @@ function a2xt_message.showMessageBox (args)
 	bubble.finishSound = ""
 	bubble.typeSounds = {"sound/text-blip1.ogg", "sound/text-blip2.ogg"}
 	bubble.typeSoundChunks = {};
+	
 	for  k,v in pairs (bubble.typeSounds)  do
 		bubble.typeSoundChunks[k] = Audio.SfxOpen (textblox.getPath (v))
 	end
+	
+	bubble.voice = args.voice or "default";
+	bubble.voiceclips = args.voiceclips;
+	bubble.voiceclip = args.voiceclip;
 	
 	if  args.closeWith == "auto"  then
 		bubble.closeSound = "";
@@ -937,7 +948,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 						end
 						
 						-- Initialize the pnpc data
-						if  v.data.a2xt_message == nil  then
+						if  v.data.a2xt_message == nil then
 							v.data.a2xt_message = {
 												   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y, z=1, alpha=0, state=v.data.talkIcon or 1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
 												   talkedTo = false,

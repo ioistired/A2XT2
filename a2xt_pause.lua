@@ -332,6 +332,12 @@ function pause.Unblock()
 	pause.Blocked = false;
 end
 
+local lastinputs = {left = false, right = false};
+
+local function checkpressed(nm)
+	return player.keys[nm] and not lastinputs[nm];
+end
+
 function pause.onInputUpdate()
 	unregisterEvent(pm, "onInputUpdate", "onInputUpdate");
 	
@@ -351,7 +357,7 @@ function pause.onInputUpdate()
    if(player.keys.pause and not presspause) then
 		if(game_paused) then
 			unpause();
-		elseif (not mem(0x00B250E2, FIELD_BOOL) and not Misc.isPausedByLua() and not pause.Blocked) then
+		elseif (not mem(0x00B250E2, FIELD_BOOL) and not Misc.isPausedByLua() and not pause.Blocked and player:mem(0x13E, FIELD_WORD) == 0) then
 			game_paused = true;
 			unpausing = false;
 			sfxvolume = audiomaster.volume.MASTER;
@@ -370,19 +376,19 @@ function pause.onInputUpdate()
 		elseif(player.keys.up == KEY_PRESSED and confirm == nil) then
 			pause_option = (pause_option-1)%(#options);
 			Audio.playSFX(26)
-		elseif((player.keys.left == KEY_PRESSED or player.keys.right == KEY_PRESSED)) then
+		elseif((checkpressed("left") or checkpressed("right"))) then
 			if(confirm ~= nil) then
 				confirm_option = 1-confirm_option;
 				Audio.playSFX(26)
 			elseif(isOverworld) then
-				if(player.keys.left == KEY_PRESSED and not player.keys.right) then
+				if(checkpressed("left") and not player.keys.right) then
 					currentChar = currentChar-1;
 					if(currentChar < 1) then
 						currentChar = 5;
 					end
 					leveldata.setCharacter(charList[currentChar]);
 					Audio.playSFX(26)
-				elseif(player.keys.right == KEY_PRESSED and not player.keys.right) then
+				elseif(checkpressed("right") and not player.keys.left) then
 					currentChar = currentChar+1;
 					if(currentChar > 5) then
 						currentChar = 1;
@@ -406,6 +412,8 @@ function pause.onInputUpdate()
 		end
 	end
 	presspause = player.keys.pause;
+	lastinputs.left = player.keys.left;
+	lastinputs.right = player.keys.right;
 end
 
 function pause.onTickEnd()
@@ -454,7 +462,7 @@ function pause.onDraw()
 	
 	if(pause.StopMusic) then
 		if(game_paused or not ranOnTickEnd) then
-			if(seizedstreams[player.section]) then
+			if(not seizedstreams[player.section]) then
 				releaseOnUnpause = player.section;
 			end
 			Audio.SeizeStream(player.section)
@@ -468,7 +476,7 @@ function pause.onDraw()
 				releaseOnUnpause = nil;
 			end
 			if(playOnUnpause) then
-				Audio.MusicPlay();
+				Audio.MusicResume();
 				playOnUnpause = false;
 			end
 		end

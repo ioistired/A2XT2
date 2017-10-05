@@ -12,13 +12,23 @@ costumes.charLists = {}
 --Fill this in
 costumes.data = 
 {
-	DEMO_TEMPLATE = {path = "Demo-Centered", name = "Template Demo"},
-	IRIS_TEMPLATE = {path = "Iris-Centered", name = "Template Iris"},
-	KOOD_TEMPLATE = {path = "Kood-Centered", name = "Template Kood"},
-	RAOCOW_TEMPLATE = {path = "Raocow-Centered", name = "Template Raocow"},
-	SHEATH_TEMPLATE = {path = "Sheath-Centered", name = "Template Sheath"},
+	DEMO_TEMPLATE = {path = "Demo-Centered", name = "Default"},
+	IRIS_TEMPLATE = {path = "Iris-Centered", name = "Default"},
+	KOOD_TEMPLATE = {path = "Kood-Centered", name = "Default"},
+	RAOCOW_TEMPLATE = {path = "Raocow-Centered", name = "Default"},
+	SHEATH_TEMPLATE = {path = "Sheath-Centered", name = "Default"},
 
 	DEMO_BOBBLE = {path = "Demo-BobbleHat", name = "Bobble Hat Demo"};
+	DEMO_SAFETYBEE = {path = "Demo-SafetyBee", name = "D the Safety Bee"};
+}
+
+costumes.defaults =
+{	
+	[CHARACTER_DEMO] = "DEMO_TEMPLATE";
+	[CHARACTER_IRIS] = "IRIS_TEMPLATE";
+	[CHARACTER_KOOD] = "KOOD_TEMPLATE";
+	[CHARACTER_RAOCOW] = "RAOCOW_TEMPLATE";
+	[CHARACTER_SHEATH] = "SHEATH_TEMPLATE";
 }
 
 local reference = {}
@@ -48,7 +58,8 @@ for  _,v1 in ipairs(Misc.listDirectories(Misc.episodePath().."graphics/costumes"
 				id = costume_id,
 				costume = v2,
 				name = costumes.data[costume_id].name,
-				character = cid
+				character = cid,
+				characterName = v1
 				-- any other properties defined in a text document maybe?
 			}
 			info.animatx = Graphics.loadImage(info.path.."/"..v1.."_anmx.png")
@@ -98,7 +109,9 @@ function costumes.getCurrent(character)
 end
 
 function costumes.unlock (id)
-	SaveData.costumes[id] = true
+	if(not id:match("_TEMPLATE$")) then
+		SaveData.costumes[id] = true
+	end
 end
 
 
@@ -107,7 +120,14 @@ function costumes.wear (id)
 	Player.setCostume(info.character, info.costume)
 end
 
-function onStart()
+registerEvent(costumes,"onStart","onStart",false);
+
+function costumes.onStart()
+	for i=1,5 do
+		if(Player.getCostume(i) == nil) then
+			costumes.wear(costumes.defaults[i]);
+		end
+	end
 end
 
 

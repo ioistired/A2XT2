@@ -23,7 +23,7 @@ local audioMaster = API.load("audioMaster");
 local panim = API.load("playerAnim");
 
 boss.Name = "Tumulta Gloria"
-boss.SuperTitle = "Chaos Pumpernickel"
+boss.SuperTitle = "Chaos Pumpernickle"
 boss.SubTitle = "Anarchy Incarnate"
 
 boss.MaxHP = 110;
@@ -165,6 +165,8 @@ local cutscene = {};
 
 local bossBegun = false;
 
+local nomusic = true;
+
 function bossAPI.Begin(fromCheckpoint)
 	if(not bossBegun) then
 		registerEvent(bossAPI, "onTick");
@@ -172,6 +174,11 @@ function bossAPI.Begin(fromCheckpoint)
 		registerEvent(bossAPI, "onCameraUpdate");
 		
 		bossBegun = true;
+		
+		Audio.SeizeStream(bossAPI.section);
+		Audio.MusicStop();
+		
+		nomusic = true;
 
 		pause.StopMusic = true;
 		
@@ -1787,7 +1794,7 @@ local function phase_armattack3()
 	
 	waitForArm();
 	
-	eventu.waitFrames(64);
+	eventu.waitFrames(32);
 	
 	emitfgfog = false;
 	while(t > 0) do
@@ -1795,8 +1802,13 @@ local function phase_armattack3()
 		t = t-1;
 		eventu.waitFrames(0);
 	end
+		
+	local _;
+	_,subphases[1] = eventu.run(phase_idle);
 	
-	eventu.waitFrames(32);
+	eventu.waitFrames(64);
+	
+	abortSubphases();
 
 	setPhase();
 end
@@ -2211,6 +2223,8 @@ local function StartBoss()
 	Audio.MusicOpen(Misc.resolveFile("music/a2xt-aurevoir.ogg"));
 	Audio.MusicPlay();
 	
+	nomusic = false;
+	
 	drawBG = true;
 	starttime = lunatime.time();
 	boss.Start();
@@ -2276,10 +2290,11 @@ function cutscene.intro()
 	message.showMessageBox {target=player_pos, text="T-that voice!"}
 	message.waitMessageEnd();
 	
-	Audio.SeizeStream(bossAPI.section);
 	Audio.MusicVolume(100);
 	Audio.MusicOpen(Misc.resolveFile("music/a2xt-smokingisbadforyou.ogg"));
 	Audio.MusicPlay();
+	
+	nomusic = false;
 	
 	local t = 256;
 	local u = 2*(initPos.y-y)/t;
@@ -2328,7 +2343,7 @@ function cutscene.intro()
 	showPumpMsg {target=eye_pos, text="You just couldn't leave me alone, could you Augustus?"}
 	message.waitMessageEnd();
 	
-	message.showMessageBox {target=player_pos, text="I take it this is the true Pumpernickel I'm speaking to?<page>A fitting form for such a twisted, detestable soul as yourself."}
+	message.showMessageBox {target=player_pos, text="I take it this is the true Pumpernickle I'm speaking to?<page>A fitting form for such a twisted, detestable soul as yourself."}
 	message.waitMessageEnd();
 	
 	showPumpMsg {target=eye_pos, text="If only I could say the same for that hostility of yours."}
@@ -2565,6 +2580,8 @@ function cutscene.mid()
 	Audio.MusicOpen(Misc.resolveFile("music/a2xt-aurevoir2.ogg"));
 	Audio.MusicPlay();
 	
+	nomusic = false;
+	
 	local function waitMsgWhileReady(msg)
 		while(msg ~= nil and not msg.deleteMe) do
 			SetReady();
@@ -2573,7 +2590,7 @@ function cutscene.mid()
 	end
 	
 	Audio.SfxPlayCh(-1, Audio.SfxOpen(playerManager.getSound(CHARACTER_UNCLEBROADSWORD, 2)), 0)
-	m = message.showMessageBox {target=player_pos, text="This is the end, Pumpernickel! Neither of us escape this room! <pause 20>", closeWith="auto"}
+	m = message.showMessageBox {target=player_pos, text="This is the end, Pumpernickle! Neither of us escape this room! <pause 20>", closeWith="auto"}
 	waitMsgWhileReady(m);
 	
 	m = showPumpMsg {target=eye_pos, text="Yeeaah, no. Here's how this is going to work.<pause 20><page>One: I erase you right here and now.<pause 20><page>Two: I step outside until they're done with this purging nonsense.<pause 20><page>And finally, C:<pause 20>", closeWith="auto"}
@@ -2592,6 +2609,11 @@ end
 function bossAPI.onTick()
 	tess.rotationXYZ = tess.rotationXYZ + tess_rotspdxyz*tess_spdmult;
 	tess.rotationW = tess.rotationW + tess_rotspdw*tess_spdmult;
+	
+	--Workaround for bug with music resuming erroneously when the window loses focus
+	if(nomusic) then
+		Audio.MusicStop();
+	end
 	
 	if(not backgrounds.fliprandomise) then
 		backgrounds.flipnumber = lunatime.time()-flip_stabletime;
@@ -2664,6 +2686,7 @@ function bossAPI.onTick()
 					SetArmPos(i, arms[i].initPos);
 				end
 				Audio.MusicStop();
+				nomusic = true;
 				Voice(audio.voice.hurt);
 				Sound(audio.sunball_die);
 				player.powerup = 2;
@@ -2958,6 +2981,10 @@ local function DrawIntensifies()
 				
 				if(timer > angesTime + angesDelay) then
 					Graphics.drawScreen{color=math.lerp(Color.transparent, Color.black, math.clamp((timer-angesTime-angesDelay)/100)), priority = 10}
+				end
+				
+				if(timer > angesTime + angesDelay + 100 + 64) then
+					Level.winState(6);
 				end
 				
 				eventu.waitFrames(0);

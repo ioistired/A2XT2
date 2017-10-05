@@ -70,6 +70,7 @@ function onInputUpdate()
 	else
 		lastOkPress = false;
 	end
+	player.jumpKeyPressing = false;
 	if(tranTimer > 0) then
 		lastOkPress = true;
 		if(tranTimer == 1) then

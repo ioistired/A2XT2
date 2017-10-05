@@ -6,6 +6,9 @@ local colliders = API.load("colliders");
 local rc = {};
 
 --rc.currency = raocoins.registerCurrency(274, false, 480, 66);
+
+local sfx = Misc.resolveFile("sound/extra/buy-item.ogg");
+
 rc.local_counter = 0;
 local raocoinCount = 0;
 
@@ -86,9 +89,12 @@ function rc.check(val)
 	return raocoinCount >= val;
 end
 	
-function rc.buy(val)
+function rc.buy(val, playsound)
 	if(rc.check(val)) then
 		raocoinCount = raocoinCount-val;
+		if(playsound ~= false) then
+			Audio.playSFX(sfx);
+		end
 		rc:save();
 		return true;
 	end
