@@ -28,6 +28,7 @@ local barbgimg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/boss_backgrou
 local barimg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/boss_bar.png"));
 local bardmg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/boss_dmg.png"));
 local barheal = Graphics.loadImage(Misc.resolveFile("graphics/HUD/boss_heal.png"));
+local titlebg = Graphics.loadImage(Misc.resolveFile("graphics/HUD/boss_titledrop.png"));
 
 local barbg = imagic.Create{x=barx, y=bary, primitive = imagic.TYPE_BOXBORDER, width = barwid, height = 16, depth = 8, texture = barbgimg};
 
@@ -136,6 +137,8 @@ end
 function boss.onDraw()
 	if(boss.Active) then
 		if(introTimer > 0) then
+			Graphics.drawBox{x=200,y=titleY-10,w=400,h=100,texture=titlebg,color={1,1,1,(computeAlpha(0,0.75)*0.5)/255}};
+			
 			printTitle(boss.SuperTitle, titleY, 1, 0, 0.5);
 			printTitle(boss.Name, titleY+22, 2, 0.25, 0.75);
 			printTitle(boss.SubTitle, titleY+60, 1, 0.5, 1);
