@@ -177,7 +177,6 @@ function bossAPI.onTick()
 	--Workaround for bug with music resuming erroneously when the window loses focus
 	if(nomusic) then
 		Audio.MusicStop();
-		lastAudioClock = 0;
 	else
 		if(Audio.MusicClock() >= audiotimer) then
 			progressMusic();
