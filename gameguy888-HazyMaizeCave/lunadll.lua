@@ -21,7 +21,6 @@ local nocornallowed2 = false --Check if Corn2 is in a restricted area
 local cornImg = Graphics.loadImage("cornshield.png") --Corn Shield Image
 local gasImg = Graphics.loadImage("Gas.png") --Gas Image
 local fade = loadAPI("fade")
-local triggers = loadAPI("triggers")
 
  --Draw air meter, corn shield, and green overlay
 function onHUDDraw()
