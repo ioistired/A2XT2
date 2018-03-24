@@ -13,7 +13,6 @@ local rng = API.load("rng")
 local pm = API.load("playerManager")
 local npcconfig = API.load("npcconfig")
 local pnpc = API.load("pnpc")
-local classExpander = API.load("classExpander")
 
 local a2xt_scene = API.load("a2xt_scene")
 
