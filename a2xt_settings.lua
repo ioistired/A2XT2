@@ -15,16 +15,12 @@ CHARACTER_NAME = {
                   }
 
 local textblox = loadSharedAPI("textblox")
-local encrypt =  API.load("encrypt");
 local pm = API.load("playerManager");
 pm.overworldCharacters = {CHARACTER_DEMO,CHARACTER_IRIS,CHARACTER_RAOCOW,CHARACTER_KOOD,CHARACTER_SHEATH};
 
 GENERIC_FONT = textblox.FONT_SPRITEDEFAULT4X2;
 
 local settings = {};
-
-settings.Settings = encrypt.Data(Data.DATA_WORLD, "ConfigData", true)
-settings.TextSettings = Data(Data.DATA_WORLD, "TextConfigData", true)
  
  
 local EP_LIST_PTR = mem(0x00B250FC, FIELD_DWORD)

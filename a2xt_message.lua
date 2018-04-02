@@ -5,7 +5,6 @@ local cman = API.load("cameraman")
 local eventu = API.load("eventu")
 local imagic = API.load("imagic")
 local pnpc = API.load("pnpc")
-local npcconfig = API.load("npcconfig")
 local colliders = API.load("colliders")
 local defs = API.load("expandedDefines")
 local console = API.load("console")
@@ -411,7 +410,7 @@ end
 local function getBubbleTarget(obj)
 	local x,y = obj.x + obj.width*0.5, obj.y + obj.height*0.5;
 	if(obj.__type == "NPC") then
-		x = x + npcconfig[obj.id].gfxoffsetx*(-obj.direction)
+		x = x + NPC.config[obj.id].gfxoffsetx*(-obj.direction)
 	end
 	return x,y
 end
@@ -960,7 +959,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 						local data = v.data.a2xt_message
 
 						data.delete = false
-						data.iconSpr.x = v.x+v.width*0.5+npcconfig[v.id].gfxoffsetx*(-v.direction)
+						data.iconSpr.x = v.x+v.width*0.5+NPC.config[v.id].gfxoffsetx*(-v.direction)
 						data.iconSpr.y = v.y-(v.data.iconOffset or 8)
 
 						if  excam ~= nil  then

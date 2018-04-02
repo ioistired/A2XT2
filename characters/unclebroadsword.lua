@@ -11,7 +11,6 @@ THINGS TO DO (Please list any bugs/suggestions here):
 local colliders = API.load("colliders")
 local rng = API.load("rng")
 local pm = API.load("playerManager")
-local npcconfig = API.load("npcconfig")
 local pnpc = API.load("pnpc")
 
 local a2xt_scene = API.load("a2xt_scene")
@@ -665,8 +664,8 @@ local function PerformSwordBlockCollisions() -----------------------------------
 							-- Spawn coins
 						elseif contentID > 1000 then
 							npcID = contentID - 1000
-							xpos = block.x + block.width/2 - npcconfig[npcID].width/2
-							ypos = block.y + block.height/2 - npcconfig[npcID].height/2
+							xpos = block.x + block.width/2 - NPC.config[npcID].width/2
+							ypos = block.y + block.height/2 - NPC.config[npcID].height/2
 							NPC.spawn(npcID, xpos, ypos, player.section)
 						end
 					end
@@ -728,7 +727,7 @@ local function PerformSwordNPCCollisions() -------------------------------------
 				end
 			else
 				-- Freeze enemy if you have the ice flower and it can be frozen
-				if player.powerup == PLAYER_ICE and npcconfig[npc.id].noiceball == 0 then
+				if player.powerup == PLAYER_ICE and NPC.config[npc.id].noiceball == 0 then
 					npc:harm(HARM_TYPE_EXT_ICE)
 				-- Ignore if a tool, an egg, or Mouser's bomb
 				elseif not (npc.id == 96 or npc.id == 134 or isType(npc.id, NPC_CARRYABLETOOL)) then

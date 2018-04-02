@@ -1,4 +1,3 @@
-local npcconfig = API.load("npcconfig");
 local raocoins = API.load("a2xt_raocoincounter");
 local settings = API.load("a2xt_settings");
 local textblox = API.load("textblox");
@@ -96,13 +95,13 @@ local function drawNPC(id, x, y, priority)
 		if(id == 0) then
 			return;
 		end
-		local gfxw = npcconfig[id].gfxwidth;
-		local gfxh = npcconfig[id].gfxheight;
+		local gfxw = NPC.config[id].gfxwidth;
+		local gfxh = NPC.config[id].gfxheight;
 		if(gfxw == 0) then
-			gfxw = npcconfig[id].width;
+			gfxw = NPC.config[id].width;
 		end
 		if(gfxh == 0) then
-			gfxh = npcconfig[id].height;
+			gfxh = NPC.config[id].height;
 		end
 		Graphics.draw{x=x-gfxw*0.5,y=y-gfxh*0.5,type=RTYPE_IMAGE,image=Graphics.sprites.npc[id].img,sourceX=0,sourceY=0,priority=priority,sourceWidth=gfxw,sourceHeight=gfxh};
 end

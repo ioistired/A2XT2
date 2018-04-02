@@ -1,5 +1,4 @@
 local rng = API.load("rng")
-local npcconfig = API.load("npcconfig")
 local npcManager = API.load("npcManager")
 local pnpc = API.load("pnpc")
 local audio = API.load("audioMaster")

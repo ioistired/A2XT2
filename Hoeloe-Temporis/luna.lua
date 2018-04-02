@@ -1,7 +1,6 @@
 --local cinematx = loadSharedAPI("cinematx");
 local eventu = API.load("eventu");
 local particles = API.load("particles");
-local raocoin = API.load("raocoin2");
 local colliders = API.load("colliders");
 local sanctuary = API.load("a2xt_leeksanctuary");
 local minigame = API.load("a2xt_minigame");
