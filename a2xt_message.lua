@@ -932,15 +932,15 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 				v.msg = " ";
 			else
 				if(v.data) then --Is not a generator
-					if(v.data.event and v.msg.str == "") then
+					if(v.data.event and v.msg == "") then
 						v.msg = " ";
 					end
-					if  v.friendly  and  v.msg ~= nil and v.msg.str ~= "" and  not v.isHidden  and  not v:mem(0x64, FIELD_BOOL)  then
+					if  v.friendly  and  v.msg ~= nil and v.msg ~= "" and  not v.isHidden  and  not v:mem(0x64, FIELD_BOOL)  then
 						
 
 						--A2XT quick-parse
 						if(v.data.name == nil and isTownLevel()) then
-							local nm,msg = v.msg.str:match("^([^{}]+):%s*(.+)$");
+							local nm,msg = v.msg:match("^([^{}]+):%s*(.+)$");
 							if(nm ~= nil and msg ~= nil) then
 								v.data.name = nm;
 								v:mem(0x4C, FIELD_STRING, msg);
@@ -971,7 +971,7 @@ function a2xt_message.onCameraUpdate(eventobj, camindex)
 						local dy = (v.y+v.height*0.5) - (player.y+player.height*0.5);
 						local d = math.sqrt(dx*dx + dy*dy)
 
-						if  (v.msg.str ~= nil  and  v.msg.str ~= "")  or  v.data.scene ~= nil  or  v.data.routine ~= nil  then
+						if  (v.msg ~= nil  and  v.msg ~= "")  or  v.data.scene ~= nil  or  v.data.routine ~= nil  then
 							data.iconSpr.alpha = lerp(0.4, 1, math.max(0, invLerp(256,16, d)))
 
 							-- UI changes when player is adjacent;  swell icon, name bar
