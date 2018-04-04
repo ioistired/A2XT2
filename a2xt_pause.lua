@@ -333,6 +333,7 @@ function pause.Unblock()
 end
 
 function pause.onInputUpdate()
+
 	unregisterEvent(pm, "onInputUpdate", "onInputUpdate");
 	
 	if(queueMenuReset and not game_paused) then
@@ -364,25 +365,25 @@ function pause.onInputUpdate()
 			Audio.playSFX(30);
 		end
 	elseif(game_paused) then
-		if(player.keys.down == KEY_PRESSED and confirm == nil) then
+		if(player.keys.down == KEYS_PRESSED and confirm == nil) then
 			pause_option = (pause_option+1)%(#options);
 			Audio.playSFX(26)
-		elseif(player.keys.up == KEY_PRESSED and confirm == nil) then
+		elseif(player.keys.up == KEYS_PRESSED and confirm == nil) then
 			pause_option = (pause_option-1)%(#options);
 			Audio.playSFX(26)
-		elseif(player.keys.left == KEY_PRESSED or player.keys.right == KEY_PRESSED) then
+		elseif(player.keys.left == KEYS_PRESSED or player.keys.right == KEYS_PRESSED) then
 			if(confirm ~= nil) then
 				confirm_option = 1-confirm_option;
 				Audio.playSFX(26)
 			elseif(isOverworld) then
-				if(player.keys.left == KEY_PRESSED and not player.keys.right) then
+				if(player.keys.left == KEYS_PRESSED and not player.keys.right) then
 					currentChar = currentChar-1;
 					if(currentChar < 1) then
 						currentChar = 5;
 					end
 					leveldata.setCharacter(charList[currentChar]);
 					Audio.playSFX(26)
-				elseif(player.keys.right == KEY_PRESSED and not player.keys.left) then
+				elseif(player.keys.right == KEYS_PRESSED and not player.keys.left) then
 					currentChar = currentChar+1;
 					if(currentChar > 5) then
 						currentChar = 1;
@@ -392,7 +393,7 @@ function pause.onInputUpdate()
 				end
 			end
 			
-		elseif(player.keys.jump == KEY_PRESSED) then
+		elseif(player.keys.jump == KEYS_PRESSED) then
 			if(confirm == nil) then
 				options[pause_option+1].action();
 			else

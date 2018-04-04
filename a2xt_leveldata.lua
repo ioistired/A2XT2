@@ -441,17 +441,7 @@ function leveldata.applyFilters(charList, filterList)
 end
 
 function leveldata.setCharacter(id)
-	local temps = Player.getTemplates();
-	for i=0x00,0x184,0x02 do
-		temps[player.character]:mem(i,FIELD_WORD,player:mem(i,FIELD_WORD));
-	end
-	player.powerup = temps[id].powerup;
-	player.reservePowerup = temps[id].reservePowerup;
-	player:mem(0x108, FIELD_WORD, temps[id]:mem(0x108,FIELD_WORD));
-	player:mem(0x10A, FIELD_WORD, temps[id]:mem(0x10A,FIELD_WORD));
-	player:mem(0x16, FIELD_WORD, temps[id]:mem(0x16,FIELD_WORD));
-	
-	player.character = id;
+	player:transform(id);
 end
 
 function leveldata.GetWorldInfo(index)
