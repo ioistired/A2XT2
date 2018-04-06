@@ -117,8 +117,9 @@ function hud.drawFood(x, y, priority)
 	Graphics.drawImageWP(HUD_IMG.food, x, y, priority);
 	if(GLOBAL_LIVES < 0) then
 		Graphics.drawImageWP(img_minus, x, y+19,priority);
+		x = x+12;
 	end
-	Text.printWP(GLOBAL_LIVES, 1, x, y+19,priority)
+	Text.printWP(math.abs(GLOBAL_LIVES), 1, x, y+19,priority)
 end
 
 function hud.drawRC(x,y,priority)
