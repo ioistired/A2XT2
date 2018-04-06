@@ -34,7 +34,7 @@ function onStart()
 	shader_blur:compileFromFile(vert_default, frag_blur);
 	
 	if(player.character == CHARACTER_UNCLEBROADSWORD) then
-		player.character = CHARACTER_DEMO; --TODO: Filter with program PlayerTemplates
+		player:transform(CHARACTER_DEMO);
 	end
 end
 
