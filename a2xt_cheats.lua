@@ -36,7 +36,7 @@ if(Misc.inEditor()) then
 	
 else
 
-	Cheats.enabled = false;
+	--Cheats.enabled = false;
 	
 end
 
