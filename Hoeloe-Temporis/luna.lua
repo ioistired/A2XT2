@@ -968,6 +968,7 @@ function onExitLevel()
 end
 
 function onStart()
+
 	if((mapLocs[1]-mapPos).sqrlength < 128) then
 		player.x = player.x+20000;
 		player.y = player.y+20000;
@@ -1106,7 +1107,6 @@ local wheelTime = 0;
 local lastSection = 0;
 	
 function onTick()
-
 	if(lastSection ~= player.section and player:mem(0x154,FIELD_WORD) > 0) then
 		for _,v in ipairs(NPC.get(158,lastSection)) do
 			v:mem(0x146,FIELD_WORD,player.section)

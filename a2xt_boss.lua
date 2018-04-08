@@ -123,6 +123,7 @@ end
 
 local function printTitle(text, y, scale, fadestart, fadeend)
 	if(text) then
+		--TODO: Print these to a render target before applying alpha
 		local alpha = computeAlpha(fadestart,fadeend);
 		for i = -1,1,2 do
 			textblox.printExt(text, {x = 400, y = y+i*2, width=600, font = textblox.FONT_SPRITEDEFAULT4X2, scale = scale, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_TOP, z=5, color=0x00000000+alpha})
