@@ -116,11 +116,88 @@ pumpernick.sprites =
 
 local bullets = {};
 
-local bullet = { SHOCKWAVE = 0 }
+local bullet = { SHOCKWAVE = 0, MINISHOCK = 1 }
 
-local function makeBullet(x,y,typ,dir)
+bullet.img = {}
+bullet.img[bullet.SHOCKWAVE] = Graphics.loadImage(Misc.resolveFile("bullet_shockwave.png"));
+bullet.img[bullet.MINISHOCK] = Graphics.loadImage(Misc.resolveFile("bullet_shockwave.png"));
+
+local function makeBullet(x,y,typ,v)
+	local b = {x=x, y=y, v=v, a=vectr.zero2, typ=typ, frametimer = 0, frametime = 8, frames = 1, frame = 1};
 	if(typ == bullet.SHOCKWAVE) then
+		b.frames = 4;
+		b.width = 256;
+		b.height = 256;
+		b.frametime = 4;
+		b.flip = v.x < 0;
+		b.additive = true;
+		local f = 1;
+		if(b.flip) then
+			f = -1;
+		end
+		b.hitbox = colliders.Tri(x,y,{f*110,74},{f*74,-44},{-f*54,74})
+	elseif(typ == bullet.MINISHOCK) then
+		b.frames = 4;
+		b.width = 64;
+		b.height = 64;
+		b.frametime = 4;
+		b.flip = v.x < 0;
+		b.additive = true;
+		local f = 1;
+		if(b.flip) then
+			f = -1;
+		end
+		b.hitbox = colliders.Tri(x,y,{f*27,18},{f*18,-11},{-f*13,18})
+	end
 	
+	table.insert(bullets, b);
+	return b;
+end
+
+local function drawBullet(b)
+	local ft = (b.frame-1)/b.frames;
+	local fb = (b.frame)/b.frames;
+	local fx = 0;
+	if(b.flip) then
+		fx = 1;
+	end
+	local t = 	{	x = b.x-b.width*0.5, y = b.y - b.height*0.5, w = b.width, h = b.height, 
+					textureCoords = {fx,ft,1-fx,ft,1-fx,fb,fx,fb}, 
+					priority = -45, sceneCoords = true,
+					texture = bullet.img[b.typ]
+				}
+	if(b.additive) then
+		t.vertexColors = {1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0};
+	end
+	Graphics.drawBox(t);
+end
+
+local function updateBullet(b)
+	b.x = b.x+b.v.x;
+	b.y = b.y+b.v.y;
+	b.v = b.v+b.a;
+	
+	b.hitbox.x = b.x;
+	b.hitbox.y = b.y;
+	
+	if(colliders.collide(b.hitbox, player)) then
+		player:harm();
+	end
+	
+	if(b.x - b.width > Zero.x+800 or b.x + b.width < Zero.x
+	or b.y - b.height > Zero.y+600 or b.y + b.height < Zero.y) then
+		for i = 1,#bullets do
+			if(bullets[i] == b) then
+				table.remove(bullets, i);
+				break;
+			end
+		end
+	end
+	
+	b.frametimer = b.frametimer + 1;
+	if(b.frametimer > b.frametime) then
+		b.frame = (b.frame%b.frames)+1;
+		b.frametimer = 0;
 	end
 end
 
@@ -237,6 +314,7 @@ local function progressMusic()
 	if(#musicList == 0) then
 		musicList = shuffleMusic();
 	end
+	Audio.MusicVolume(128);
 	Audio.MusicOpen(Misc.resolveFile("entropyelemental_"..n..".ogg"));
 	Audio.MusicPlay();
 	audiotimer = audioTimes[n];
@@ -458,7 +536,7 @@ function bossAPI.onTick()
 		pumpernick.hitbox:Draw();
 	end
 	
-	if(pumpernick.hitboxActive and player:mem(0x13E, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
+	if(pumpernick.hitboxActive and player:mem(0x13E, FIELD_WORD) == 0 and player:mem(0x122, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
 		colliders.bounceResponse(player);
 		if(pumpernick.eye.state == EYE_OPEN and pumpernick.eye.timer == 0) then
 			damage(1);
@@ -481,6 +559,10 @@ function bossAPI.onTick()
 		pumpernick.eye.timer = math.max(pumpernick.eye.timer - eyeblinktime,0);
 	elseif(pumpernick.eye.timer < 3 and pumpernick.eye.state == EYE_CLOSED) then
 		pumpernick.eye.timer = pumpernick.eye.timer + eyeblinktime;
+	end
+	
+	for _,v in ipairs(bullets) do
+		updateBullet(v);
 	end
 	
 	updateLegs();
@@ -545,6 +627,10 @@ end
 
 function bossAPI.onDraw()
 	DrawBoss();
+	
+	for _,v in ipairs(bullets) do
+		drawBullet(v);
+	end
 	
 	if(flash > 0) then
 		local c = Color.white;
@@ -848,7 +934,11 @@ local function phase_pendulum()
 	
 	pumpernick.y = targy;
 	Audio.playSFX(37);
-	Defines.earthquake = 16;
+	Audio.playSFX(42);
+	Defines.earthquake = 24;
+	
+	makeBullet(pumpernick.x, GROUNDBODY-32, bullet.SHOCKWAVE, 6*vectr.right2);
+	makeBullet(pumpernick.x, GROUNDBODY-32, bullet.SHOCKWAVE, -6*vectr.right2);
 	
 	falltime = 8;
 	t = 0;
@@ -916,7 +1006,7 @@ local function phase_pendulum()
 			lastxsign = 0;
 		end
 		
-		if(player:mem(0x13E, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
+		if(player:mem(0x13E, FIELD_WORD) == 0 and player:mem(0x122, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
 			colliders.bounceResponse(player);
 			hits = hits+1;
 			legltarget = legltarget - 32;
@@ -1108,10 +1198,18 @@ local function phase_pendulum()
 			
 			pumpernick.up = -vectr.up2:rotate(180*dt*pumpernick.dir);
 			
+			--[ --Trailing legs
 			lx,ly,rx,ry = getLegPos();
+			dt = math.sqrt(dt);
 			pumpernick.left.x, pumpernick.left.y = math.lerp(startl.x, lx, dt), math.lerp(startl.y, ly, dt)
 			pumpernick.right.x, pumpernick.right.y = math.lerp(startr.x, rx, dt), math.lerp(startr.y, ry, dt)
 			pumpernick.left.up, pumpernick.right.up = math.lerp(startlup, pumpernick.up, dt):normalise(), math.lerp(startrup, pumpernick.up, dt):normalise();
+			--]]
+			
+			--[[ --Snapping legs
+			pumpernick.left.x, pumpernick.left.y, pumpernick.right.x, pumpernick.right.y = getLegPos();
+			pumpernick.left.up, pumpernick.right.up= pumpernick.up, pumpernick.up;
+			--]]
 			
 			t = t+1;
 			eventu.waitFrames(0);
@@ -1119,12 +1217,122 @@ local function phase_pendulum()
 		pumpernick.hitboxActive = true;
 		pumpernick.left.x, pumpernick.left.y, pumpernick.right.x, pumpernick.right.y = getLegPos();
 		pumpernick.left.up, pumpernick.right.up = vectr.up2, vectr.up2;
-		
-		eventu.waitFrames(32);
 	end
-	
+	local px = player.x + player.width*0.5;
+	if((pumpernick.dir == 1 and px < pumpernick.x) or (pumpernick.dir == -1 and px > pumpernick.x)) then
+		pumpernick.turn();
+		eventu.waitFrames(16);
+	end
 	setPhase();
 	
+end
+
+local function phase_noodlewalk()
+	pumpernick.up = vectr.up2;
+	abortBodyMove();
+	
+	local _;
+	_,subphases[1] = eventu.run(phase_idle);
+	
+	moveBody(64, pumpernick.x, GROUNDBODY-400);
+	waitForBody();
+	
+	eventu.waitFrames(64);
+	
+	local noodle = pumpernick.left;
+	local othernoodle = pumpernick.right;
+	local noodleoffset = -34;
+	if(pumpernick.dir == -1) then
+		noodle = pumpernick.right;
+		othernoodle = pumpernick.left;
+		noodleoffset = 32;
+	end
+	
+	for i = 1,6 do
+		local raiseTime = 32;
+		local t = 0;
+		local sx,sy = noodle.x,noodle.y;
+		while(t <= raiseTime) do
+			local dt = t/raiseTime;
+			dt = ease(dt);
+			
+			noodle.x = math.lerp(sx,player.x+player.width*0.5,dt);
+			noodle.y = math.lerp(sy,pumpernick.y + 192, dt);
+			
+			t=t+1;
+			eventu.waitFrames(0);
+		end
+		
+		waitAndDo(32, function() noodle.x = player.x+player.width*0.5; end);
+		
+		local stompTime = 16;
+		t = 0;
+		sy = noodle.y;
+		noodle.hitboxActive = true;
+		while(t <= stompTime) do
+			local dt = t/stompTime;
+			dt = dt*dt*dt;
+			
+			noodle.y = math.lerp(sy,GROUNDBODY+32, dt);
+			
+			t=t+1;
+			eventu.waitFrames(0);
+		end
+		noodle.hitboxActive = false;
+		
+		Audio.playSFX(37);
+		Audio.playSFX(42);
+		Defines.earthquake = 4;
+		
+		local dir = 1;
+		if(player.x + player.width*0.5 < noodle.x) then
+			dir = -1;
+		end
+		makeBullet(noodle.x, GROUNDBODY+20, bullet.MINISHOCK, dir*4*vectr.right2);
+		
+		eventu.waitFrames(16);
+		
+		local tmp = noodle;
+		noodle = othernoodle;
+		othernoodle = tmp;
+		moveBody(64, othernoodle.x-noodleoffset, GROUNDBODY-400);
+		local px = player.x + player.width*0.5;
+		if((pumpernick.dir == 1 and px < pumpernick.x) or (pumpernick.dir == -1 and px > pumpernick.x)) then
+			pumpernick.turn();
+			eventu.waitFrames(16)
+			tmp = noodle;
+			noodle = othernoodle;
+			othernoodle = tmp;
+		else
+			if(noodleoffset < 0) then
+				noodleoffset = 33;
+			else
+				noodleoffset = -34;
+			end
+		end
+	end
+	
+	local recoverTime = 64;
+	moveBody(recoverTime, pumpernick.x, GROUNDBODY);
+	local lx,ly,rx,ry = getLegPos(pumpernick.x, GROUNDBODY, vectr.up2);
+	local slx,sly = pumpernick.left.x,pumpernick.left.y;
+	local srx,sry = pumpernick.right.x,pumpernick.right.y;
+	local t = 0;
+	while(t <= recoverTime) do
+		local dt = t/recoverTime;
+		dt = ease(dt);
+		
+		pumpernick.left.x,pumpernick.left.y = math.lerp(slx,lx,dt),math.lerp(sly,ly,dt)
+		pumpernick.right.x,pumpernick.right.y = math.lerp(srx,rx,dt),math.lerp(sry,ry,dt)
+			
+		t=t+1;
+		eventu.waitFrames(0);
+	end
+	
+	
+	abortSubphases();
+	
+	setPhase();
 end
 
 function events.intro()
@@ -1138,13 +1346,15 @@ function events.intro()
 	moveBody(lunatime.toTicks(1), pumpernick.x, pumpernick.y + 400);
 	
 	waitForBody();
-	setPhase(phase_pendulum);
-	waitPhase();
 	setPhase(phase_pogo);
+	waitPhase();
+	eventu.waitFrames(64);
+	setPhase(phase_noodlewalk);
 	waitPhase();
 	eventu.waitFrames(64);
 	setPhase(phase_pendulum);
 	waitPhase();
+	eventu.waitFrames(64);
 end
 
 function cutscene.intro_checkpoint()
@@ -1174,6 +1384,7 @@ function cutscene.intro_checkpoint()
 end
 
 function cutscene.intro()
+	Audio.MusicVolume(100);
 	Audio.MusicOpen(Misc.resolveFile("music/a2xt-bonkers.ogg"));
 	Audio.MusicPlay();
 	setPhase();
