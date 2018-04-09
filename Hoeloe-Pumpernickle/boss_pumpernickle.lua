@@ -14,6 +14,7 @@ local scene = API.load("a2xt_scene");
 local textblox = API.load("textblox");
 local checkpoints = API.load("checkpoints");
 local hermite = API.load("hermite");
+local ease = API.load("ext/easing");
 
 local playerManager = API.load("playerManager")
 
@@ -23,11 +24,13 @@ local audioMaster = API.load("audioMaster");
 
 local panim = API.load("playerAnim");
 
+local DEBUG = false;
+
 boss.SuperTitle = "Maximillion"
 boss.Name = "Pumpernickle"
 boss.SubTitle = "Off Several Rockers"
 
-boss.MaxHP = 100;
+boss.MaxHP = 150;
 
 boss.TitleDisplayTime = 360;
 
@@ -35,15 +38,45 @@ local bossBegun = false;
 local nomusic = false;
 local Zero = vectr.v2(0,0);
 
-
 local pumpernick = {};
 pumpernick.x = -199344;
 pumpernick.y = -200064;
 pumpernick.up = vectr.up2;
-pumpernick.left = {x = -199312, y = -200032, up = vectr.up2, leg = hermite.new{start = vectr.zero2, stop = vectr.zero2, startTan = vectr.zero2, stopTan = vectr.zero2}};
-pumpernick.right = {x = -199378, y = -200032, up = vectr.up2, leg = hermite.new{start = vectr.zero2, stop = vectr.zero2, startTan = vectr.zero2, stopTan = vectr.zero2}};
+
+local GROUNDBODY = -200064;
+local hurt = false;
+
+local function getLegPos(x,y,u)
+	if(x == nil) then
+		x = pumpernick.x;
+		y = pumpernick.y;
+		u = pumpernick.up;
+	elseif(u == nil) then
+		u = y;
+		y = x.y;
+		x = x.x;
+	end
+	
+	local c = vectr.v2(x,y)+u*32;
+	local r = u:rotate(-90);
+	local cl = c + r*32;
+	local cr = c - r*34;
+	if(pumpernick.dir == -1) then
+		local d = cr;
+		cr = cl;
+		cl = d;
+	end
+		
+	return cl.x, cl.y, cr.x, cr.y;
+end
+
+pumpernick.left = {x = -199312, y = -200032, up = vectr.up2, leg = hermite.new{start = vectr.zero2, stop = vectr.zero2, startTan = vectr.zero2, stopTan = vectr.zero2}, hitbox = colliders.Poly(0,0,{-16,0},{-16,-16},{16,-16},{16,0}), hitboxAngle = 0, hitboxActive = false};
+pumpernick.right = {x = -199378, y = -200032, up = vectr.up2, leg = hermite.new{start = vectr.zero2, stop = vectr.zero2, startTan = vectr.zero2, stopTan = vectr.zero2}, hitbox = colliders.Poly(0,0,{-16,0},{-16,-16},{16,-16},{16,0}), hitboxAngle = 0, hitboxActive = false};
+
 pumpernick.dir = 1;
 pumpernick.turncounter = 0;
+
+pumpernick.left.x, pumpernick.left.y, pumpernick.right.x, pumpernick.right.y = getLegPos();
 
 pumpernick.flip = function()
 	pumpernick.dir = -pumpernick.dir;
@@ -67,8 +100,9 @@ local EYE_OPEN = 0;
 local EYE_CLOSED = 1;
 pumpernick.eye = { state = EYE_OPEN, timer = 0, target = player };
 
-pumpernick.hitbox = colliders.Poly(0,0,{-32,20},{-54,-8},{-34,-24},{-12,-42},{12,-42},{34,-24},{50,-8},{24,20});
+pumpernick.hitbox = colliders.Poly(0,0,{-32,18},{-54,-8},{-30,-24},{-12,-38},{12,-38},{30,-24},{50,-8},{24,18});
 pumpernick.hitboxAngle = 0;
+pumpernick.hitboxActive = true;
 
 pumpernick.sprites = 
 {
@@ -80,7 +114,20 @@ pumpernick.sprites =
 	eyelid = Graphics.loadImage(Misc.resolveFile("pump_eyelid.png")),
 };
 
+local bullets = {};
+
+local bullet = { SHOCKWAVE = 0 }
+
+local function makeBullet(x,y,typ,dir)
+	if(typ == bullet.SHOCKWAVE) then
+	
+	end
+end
+
 local flash = 0;
+
+local audio = {};
+audio.hurt = Misc.resolveFile("pump_hurt.ogg")
 
 
 local events = {};
@@ -203,6 +250,35 @@ local function StartBoss()
 	
 	starttime = lunatime.time();
 	boss.Start();
+	
+	eventu.run(events.intro);
+end
+
+local function Sound(name, volume, tags)
+	audioMaster.PlaySound{sound = name, loops = 1, volume = volume, tags = tags}
+end
+
+local function damage(damage, stun)
+	boss.Damage(damage);
+	if(stun == nil) then
+		stun = damage*16 + 8;
+	end
+	if(stun > 0) then
+		hurt = true;
+		pumpernick.eye.state = EYE_CLOSED;
+		eventu.setFrameTimer(stun, function() pumpernick.eye.state = EYE_OPEN; hurt = false; end);
+	end
+	--eyeHitstun = stun;
+	Sound(audio.hurt);
+	--Voice(audio.voice.hurt, 0.75);
+end
+
+local function updateHitbox(obj)
+	local a = math.deg(math.atan2(obj.up.y, obj.up.x) - 1.5707963267949 --[[math.atan2(1, 0)]]);
+	obj.hitbox.x = obj.x;
+	obj.hitbox.y = obj.y;
+	obj.hitbox:Rotate(a-obj.hitboxAngle);
+	obj.hitboxAngle = a;
 end
 
 local function updateLegs()
@@ -232,6 +308,16 @@ local function updateLegs()
 	
 	pumpernick.right.leg.startTan = -pumpernick.right.up * rtan;
 	pumpernick.right.leg.stopTan = -pumpernick.up * rtan;
+	
+	updateHitbox(pumpernick.left);
+	updateHitbox(pumpernick.right);
+	
+	if(DEBUG and pumpernick.left.hitboxActive) then
+		pumpernick.left.hitbox:Draw();
+	end
+	if(DEBUG and pumpernick.right.hitboxActive) then
+		pumpernick.right.hitbox:Draw();
+	end
 end
 
 local function drawFromVector(up, pos, dir, sprite, priority, frame, frames)
@@ -268,40 +354,42 @@ local function drawLeg(leg, priority, flip)
 	
 	local t = 0;
 	
-	for i = 0, 50 do
-		local r = dir:rotate(pumpernick.dir*90);
+	if((l.start - l.stop).sqrlength >= 16) then
+		for i = 0, 50 do
+			local r = dir:rotate(pumpernick.dir*90);
+				
+			table.insert(ps, p.x-r.x*32)
+			table.insert(ps, p.y-r.y*32)
+				
+			table.insert(ps, p.x+r.x*32)
+			table.insert(ps, p.y+r.y*32)
+				
+			if(not flip) then
+				table.insert(txs, 1)
+				table.insert(txs, t)
+				table.insert(txs, 0)
+				table.insert(txs, t)
+			else
+				table.insert(txs, 0)
+				table.insert(txs, t)
+				table.insert(txs, 1)
+				table.insert(txs, t)
+			end
 			
-		table.insert(ps, p.x-r.x*32)
-		table.insert(ps, p.y-r.y*32)
+			local p2 = l:eval((i+1)/50);
+			dir = (p2-p):normalise();
+			p = p2;
 			
-		table.insert(ps, p.x+r.x*32)
-		table.insert(ps, p.y+r.y*32)
-			
-		if(not flip) then
-			table.insert(txs, 1)
-			table.insert(txs, t)
-			table.insert(txs, 0)
-			table.insert(txs, t)
-		else
-			table.insert(txs, 0)
-			table.insert(txs, t)
-			table.insert(txs, 1)
-			table.insert(txs, t)
+			t = 1-t;
 		end
 		
-		local p2 = l:eval((i+1)/50);
-		dir = (p2-p):normalise();
-		p = p2;
-		
-		t = 1-t;
+		Graphics.glDraw{vertexCoords = ps, textureCoords = txs, sceneCoords = true, texture = pumpernick.sprites.leg, priority = priority, primitive = Graphics.GL_TRIANGLE_STRIP}
 	end
-	
-	Graphics.glDraw{vertexCoords = ps, textureCoords = txs, sceneCoords = true, texture = pumpernick.sprites.leg, priority = priority, primitive = Graphics.GL_TRIANGLE_STRIP}
 	local d = pumpernick.dir;
 	if(flip) then 
 		d = -d;
 	end
-	local t = drawFromVector(leg.up, vectr.v2(leg.x, leg.y-6), d, pumpernick.sprites.feet, -45);
+	local t = drawFromVector(leg.up, vectr.v2(leg.x, leg.y)-leg.up*6, d, pumpernick.sprites.feet, -45);
 end
 
 local function drawLegs()
@@ -311,7 +399,11 @@ end
 
 local function drawBody()
 	local eyepos = vectr.v2(pumpernick.x, pumpernick.y)-pumpernick.up*14;
-	drawFromVector(pumpernick.up, eyepos, pumpernick.dir, pumpernick.sprites.eyeball, -45);
+	local eyeframe = 1;
+	if(hurt) then
+		eyeframe = 2;
+	end
+	drawFromVector(pumpernick.up, eyepos, pumpernick.dir, pumpernick.sprites.eyeball, -45, eyeframe, 2);
 	
 	local r = pumpernick.up:rotate(pumpernick.dir*90);
 	
@@ -352,6 +444,7 @@ function bossAPI.onTick()
 		if(nomusic) then
 			Audio.MusicStop();
 		else
+			Audio.MusicResume();
 			if(Audio.MusicClock() >= audiotimer) then
 				progressMusic();
 			end
@@ -360,14 +453,20 @@ function bossAPI.onTick()
 	
 	--pumpernick.y = pumpernick.y - 0.5;
 	
-	local a = math.deg(math.atan2(pumpernick.up.y, pumpernick.up.x) - 1.5707963267949 --[[math.atan2(1, 0)]]);
-	pumpernick.hitbox.x = pumpernick.x;
-	pumpernick.hitbox.y = pumpernick.y;
-	pumpernick.hitbox:Rotate(a-pumpernick.hitboxAngle);
-	pumpernick.hitboxAngle = a;
+	updateHitbox(pumpernick);
+	if(DEBUG and pumpernick.hitboxActive) then
+		pumpernick.hitbox:Draw();
+	end
 	
-	if(colliders.bounce(player, pumpernick.hitbox)) then
+	if(pumpernick.hitboxActive and player:mem(0x13E, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
 		colliders.bounceResponse(player);
+		if(pumpernick.eye.state == EYE_OPEN and pumpernick.eye.timer == 0) then
+			damage(1);
+		end
+	end
+	
+	if((pumpernick.left.hitboxActive and colliders.collide(pumpernick.left.hitbox, player)) or (pumpernick.right.hitboxActive and colliders.collide(pumpernick.right.hitbox, player))) then
+		player:harm();
 	end
 	
 	if(pumpernick.turncounter > 0) then
@@ -377,7 +476,7 @@ function bossAPI.onTick()
 		end
 	end
 	
-	local eyeblinktime = lunatime.toSeconds(8);
+	local eyeblinktime = lunatime.toSeconds(12);
 	if(pumpernick.eye.timer > 0 and pumpernick.eye.state == EYE_OPEN) then
 		pumpernick.eye.timer = math.max(pumpernick.eye.timer - eyeblinktime,0);
 	elseif(pumpernick.eye.timer < 3 and pumpernick.eye.state == EYE_CLOSED) then
@@ -465,6 +564,8 @@ end
 local subphases = {};
 local current_phase = nil;
 
+local currentBodyMove = nil;
+
 local cutscene = {};
 
 local function abortSubphases()
@@ -474,18 +575,100 @@ local function abortSubphases()
 	end
 end
 
+local function abortBodyMove()
+	if(currentBodyMove ~= nil) then
+		eventu.abort(currentBodyMove);
+		eventu.signal("BODYMOVED")
+		currentBodyMove = nil;
+	end
+end
+
 local function abortAll()
+	abortBodyMove();
 	abortSubphases();
 end
 
-local function phase_idle()
-	pumpernick.up = vectr.up2;
-	while(true) do
-		pumpernick.up = pumpernick.up:rotate(0.5*math.cos(lunatime.tick()/20));
+local function ease(t)
+	return 0.5*(1-math.cos(t * math.pi));
+end
+
+local function moveAndRotateBody(t,x,y,u)
+	abortBodyMove()
+	if(u == nil) then
+		u = y;
+		y = x.y;
+		x = x.x;
+	end
+	
+	local startx = pumpernick.x;
+	local starty = pumpernick.y;
+	local startup = pumpernick.up;
+	_, currentBodyMove = eventu.run( function()
+					local dt = 0;
+					while(dt <= 1) do
+						dt = dt + 1/t;
+						local t2 = ease(dt);
+						pumpernick.x = math.lerp(startx, x, t2);
+						pumpernick.y = math.lerp(starty, y, t2);
+						pumpernick.up = math.lerp(startup, u, t2);
+						eventu.waitFrames(0);
+					end
+					
+					eventu.signal("BODYMOVED")
+					currentBodyMove = nil;
+				end)
+end
+
+local function moveBody(t,x,y)
+	abortBodyMove()
+	if(y == nil) then
+		y = x.y;
+		x = x.x;
+	end
+	
+	local startx = pumpernick.x;
+	local starty = pumpernick.y;
+	_, currentBodyMove = eventu.run( function()
+					local dt = 0;
+					while(dt <= 1) do
+						dt = dt + 1/t;
+						local t2 = ease(dt);
+						pumpernick.x = math.lerp(startx, x, t2);
+						pumpernick.y = math.lerp(starty, y, t2);
+						eventu.waitFrames(0);
+					end
+					
+					eventu.signal("BODYMOVED")
+					currentBodyMove = nil;
+				end)
+end
+
+local function waitForBody()
+	return eventu.waitSignal("BODYMOVED");
+end
+
+local function waitAndDo(t, func)
+	local st = t;
+	while(t > 0) do
+		t = t-1;
+		func(1-(t/st));
 		eventu.waitFrames(0);
 	end
 end
 
+local function phase_idle()
+	pumpernick.up = vectr.up2;
+	local t = 0;
+	while(true) do
+		pumpernick.up = pumpernick.up:rotate(0.4*math.cos(t/20));
+		t = t+1;
+		eventu.waitFrames(0);
+	end
+end
+
+local function waitPhase()
+	return eventu.waitSignal("PHASE")
+end
 
 local function setPhase(phase, args)
 	if(current_phase) then
@@ -501,13 +684,467 @@ local function setPhase(phase, args)
 	current_phase = c;
 end
 
+local function phase_pogo()
+	pumpernick.up = vectr.up2;
+	abortBodyMove();
+	for i = 1,10 do
+		local t = 0;
+		local targ = pumpernick.dir * rng.random(120,240);
+		
+		if(pumpernick.turncounter > 0) then
+			targ = -targ;
+		end
+			
+		if(i == 10) then
+			targ = (Zero.x + 400 + 256*pumpernick.dir) - pumpernick.x;
+		end
+		while(t < 10) do
+			pumpernick.up = pumpernick.up:rotate(pumpernick.dir)
+			t = t+1;
+			eventu.waitFrames(0);
+		end
+		local totTime = 64;
+		local g = 0.75;
+		local v = vectr.v2(targ/totTime,g*totTime*0.5);
+		t = 0;
+		
+		local stomped = false;
+		
+		while(t <= totTime) do
+			local dir = pumpernick.dir;
+			if(pumpernick.turncounter > 0) then
+				dir = -dir;
+			end
+			pumpernick.x = pumpernick.x + v.x;
+			pumpernick.y = pumpernick.y - v.y;
+			pumpernick.up = vectr.up2:rotate((10 - 20*math.sin(5*(t/totTime)*math.pi/6))*dir)
+			
+			if((pumpernick.x < Zero.x + 64 and pumpernick.dir == -1) or (pumpernick.x > Zero.x+800-64 and pumpernick.dir == 1)) then
+				v.x = -v.x;
+				pumpernick.turn();
+			end
+			
+			do
+				local lx,ly,rx,ry = getLegPos();
+				local legupl,legupr = pumpernick.up, pumpernick.up;
+				local lrp = 0.25
+				local spd = 16;
+				if(t > totTime*0.5) then
+					pumpernick.left.hitboxActive = true;
+					pumpernick.right.hitboxActive = true;
+					lrp = t/totTime;
+					local x = (1-(2*(1-lrp)) - 0.464);
+					spd = spd * (1 - 3.482*x*x);
+					--y = 1 + (-sqrt3 - 7/4)(x + 3-2sqrt3)^2
+					lx = lx + spd*v.x;
+					rx = rx + spd*v.x;
+					ly = math.min(ly - spd*v.y, GROUNDBODY+32);
+					ry = math.min(ry - spd*v.y, GROUNDBODY+32);
+					
+					lrp = lrp*lrp;
+					
+					if(ly >= GROUNDBODY+32) then
+						legupl = vectr.up2;
+						if(not stomped) then
+							Audio.playSFX(37);
+							Defines.earthquake = 8;
+							stomped = true;
+						end
+					end
+					
+					if(ry >= GROUNDBODY+32) then
+						legupr = vectr.up2;
+						if(not stomped) then
+							Audio.playSFX(37);
+							Defines.earthquake = 8;
+							stomped = true;
+						end
+					end
+					
+				end
+				pumpernick.left.x, pumpernick.left.y = math.lerp(pumpernick.left.x, lx, lrp), math.lerp(pumpernick.left.y, ly, lrp)
+				pumpernick.right.x, pumpernick.right.y = math.lerp(pumpernick.right.x, rx, lrp), math.lerp(pumpernick.right.y, ry, lrp)
+				pumpernick.left.up, pumpernick.right.up = legupl,legupr;
+			end
+			
+			t = t+1;
+			v.y = v.y-g;
+			eventu.waitFrames(0);
+		end
+		pumpernick.left.hitboxActive = false;
+		pumpernick.right.hitboxActive = false;
+	end
+	if((pumpernick.x < Zero.x + 400 and pumpernick.dir == -1) or (pumpernick.x > Zero.x + 400 and pumpernick.dir == 1)) then
+		pumpernick.turn();
+	end
+	moveAndRotateBody(lunatime.toTicks(0.25), pumpernick.x, GROUNDBODY, vectr.up2);
+	eventu.waitFrames(lunatime.toTicks(0.25));
+	setPhase();
+end
 
-local function waitAndDo(t, func)
-	while(t > 0) do
-		t = t-1;
-		func();
+local function phase_pendulum()
+	pumpernick.up = vectr.up2;
+	abortBodyMove();
+	
+	local targ = Zero.x + rng.random(256,800-256);
+	
+	moveBody(32, pumpernick.x, pumpernick.y + 5);
+	waitForBody();
+	
+	eventu.waitFrames(32);
+	
+	local startx, starty = pumpernick.x, pumpernick.y;
+	
+	local lx,ly,rx,ry = getLegPos(targ, Zero.y + 24 + 32, -vectr.up2);
+	local slx, sly = pumpernick.left.x, pumpernick.left.y;
+	local srx, sry = pumpernick.right.x, pumpernick.right.y;
+	
+	local t = 0;
+	local jumptime = 32;
+	while(t <= jumptime) do
+		local dt = t/jumptime;
+		pumpernick.x = math.lerp(startx, targ, dt);
+		pumpernick.y = math.lerp(starty, Zero.y + 24 + 32, dt);
+		pumpernick.up = vectr.up2:rotate(pumpernick.dir*180*dt);
+		
+		pumpernick.left.x = math.lerp(slx, lx, dt)
+		pumpernick.left.y = math.lerp(sly, ly, dt)
+		pumpernick.left.up = vectr.up2:rotate(pumpernick.dir*180*dt);
+		pumpernick.right.x = math.lerp(srx, rx, dt)
+		pumpernick.right.y = math.lerp(sry, ry, dt)
+		pumpernick.right.up = vectr.up2:rotate(pumpernick.dir*180*dt);
+		
+		t = t+1;
 		eventu.waitFrames(0);
 	end
+	pumpernick.y = Zero.y + 24 + 32;
+	pumpernick.up = -vectr.up2;
+	
+	moveBody(32, pumpernick.x, pumpernick.y - 5);
+	waitForBody();
+	
+	t = 0;
+	local falltime = 32;
+	starty = pumpernick.y;
+	local v = 0;
+		
+	pumpernick.hitboxActive = false;
+	pumpernick.eye.state = EYE_CLOSED;
+	
+	local targy = GROUNDBODY + 8;
+	local g = 2*(targy - starty)/(falltime*falltime);
+	while (t < falltime) do
+		local dt = t/falltime;
+		pumpernick.y = math.lerp(starty, targy, dt*dt*dt);
+		v = v + g;
+		
+		if(colliders.collide(player, pumpernick.hitbox)) then
+			player:harm();
+		end
+		
+		t = t+1;
+		eventu.waitFrames(0);
+	end
+	
+	pumpernick.y = targy;
+	Audio.playSFX(37);
+	Defines.earthquake = 16;
+	
+	falltime = 8;
+	t = 0;
+	while (t < falltime) do
+		local dt = t/falltime;
+		pumpernick.y = pumpernick.y - math.lerp(2,0,dt);
+		
+		if(colliders.collide(player, pumpernick.hitbox)) then
+			player:harm();
+		end
+		
+		t = t+1;
+		eventu.waitFrames(0);
+	end
+	
+	startx = pumpernick.x;
+	local swing = vectr.v2(0, pumpernick.y-starty);
+	local dist = swing.length;
+	
+	t = 0;
+	local swingtime = 384;
+	
+	local offset = 0;
+	local lastxsign = 0;
+	
+	local hits = 0;
+	local legl = pumpernick.left;
+	local legr = pumpernick.right;
+	if(legl.x > legr.x) then
+		legl = pumpernick.right;
+		legr = pumpernick.left;
+	end
+	
+	local legltarget = legl.x;
+	local legrtarget = legr.x;
+	
+	local fall = false;
+	local swingspd = vectr.zero2;
+	while(true) do
+		local dt = t/swingtime;
+		pumpernick.x = startx+swing.x;
+		pumpernick.y = starty+swing.y;
+		pumpernick.up = -swing:normalise();
+		
+		legl.x = math.lerp(legl.x, legltarget, 0.5);
+		legr.x = math.lerp(legr.x, legrtarget, 0.5);
+		
+		if(lastxsign == 0 and (pumpernick.x > Zero.x + 800 - 32 or pumpernick.x < Zero.x + 32)) then
+			local x = (offset + t/64)%(2*math.pi)
+			if(x < math.pi*0.5) then
+				x = math.pi-2*x;
+			elseif(x < 3*math.pi*0.5) then
+				x = 3*math.pi-2*x;
+			else --x < 2pi
+				x = 5*math.pi-2*x;
+			end
+			offset = offset + x;
+			lastxsign = math.sign(swing.x);
+		end
+		local lastswing = swing;
+		swing = vectr.up2:rotate(40*math.sin(offset + t/64))*dist;
+		swingspd = swing-lastswing;
+		
+		if(lastxsign ~= 0 and math.sign(swing.x) ~= lastxsign) then
+			lastxsign = 0;
+		end
+		
+		if(player:mem(0x13E, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
+			colliders.bounceResponse(player);
+			hits = hits+1;
+			legltarget = legltarget - 32;
+			legrtarget = legrtarget + 32;
+			if(hits >= 3) then
+				fall = true;
+				break;
+			end
+		elseif(colliders.collide(player, pumpernick.hitbox)) then
+			player:harm();
+		end
+		
+		if(t >= swingtime) then
+			if(swingspd.y < -1.7) then
+				break;
+			end
+		end
+		
+		t = t+1;
+		eventu.waitFrames(0);
+	end
+	
+	if(not fall) then
+		local v = swingspd;
+		local s = GROUNDBODY-pumpernick.y;
+		local g = 0.1
+		falltime = (math.sqrt(2*g*s+v.y*v.y))/(g);
+		t = 0;
+		local startup = pumpernick.up;
+		local startl = vectr.v2(pumpernick.left.x, pumpernick.left.y);
+		local startr = vectr.v2(pumpernick.right.x, pumpernick.right.y);
+		pumpernick.eye.state = EYE_OPEN;
+		while(t <= falltime) do
+			local dt = t/falltime;
+			pumpernick.up = math.lerp(startup, vectr.up2, dt):normalise();
+			pumpernick.x = math.clamp(pumpernick.x + v.x, Zero.x+128, Zero.x+800-128);
+			pumpernick.y = pumpernick.y + v.y;
+			if(pumpernick.y > GROUNDBODY) then
+				pumpernick.y = GROUNDBODY;
+			end
+			
+			v.y = v.y + g;
+			
+			local lx,ly,rx,ry = getLegPos();
+			
+			pumpernick.left.x, pumpernick.left.y = math.lerp(startl.x, lx, dt), math.lerp(startl.y, ly, dt)
+			pumpernick.right.x, pumpernick.right.y = math.lerp(startr.x, rx, dt), math.lerp(startr.y, ry, dt)
+			pumpernick.left.up, pumpernick.right.up = -vectr.up2:rotate(180*dt),-vectr.up2:rotate(180*dt)
+			
+			v.y = v.y + g;
+			
+			if(colliders.collide(player, pumpernick.hitbox)) then
+				player:harm();
+			end
+		
+			t = t+1;
+			eventu.waitFrames(0);
+		end
+	
+		pumpernick.hitboxActive = true;
+		pumpernick.left.x, pumpernick.left.y, pumpernick.right.x, pumpernick.right.y = getLegPos();
+		pumpernick.left.up, pumpernick.right.up = vectr.up2, vectr.up2;
+	else
+		--[[
+		
+		local hovertime = 64;
+		t = 0;
+		pumpernick.eye.state = EYE_OPEN;
+		
+		local startl = vectr.v2(pumpernick.left.x, pumpernick.left.y);
+		local startr = vectr.v2(pumpernick.right.x, pumpernick.right.y);
+			
+		local lx,ly,rx,ry = getLegPos();
+		while(t < hovertime) do
+			local dt = t/hovertime;
+			
+			pumpernick.left.x, pumpernick.left.y = math.lerp(startl.x, lx, dt), math.lerp(startl.y, ly, dt)
+			pumpernick.right.x, pumpernick.right.y = math.lerp(startr.x, rx, dt), math.lerp(startr.y, ry, dt)
+			pumpernick.left.up, pumpernick.right.up = math.lerp(-vectr.up2, pumpernick.up, dt):normalise(), math.lerp(-vectr.up2, pumpernick.up, dt):normalise();
+			
+			t = t+1;
+			eventu.waitFrames(0);
+		end]]
+		
+		local legsDone = false;
+		
+		eventu.run(	function()
+						local legtime = 48;
+						local t = 0;
+						
+						local startl = vectr.v2(pumpernick.left.x, pumpernick.left.y);
+						local startr = vectr.v2(pumpernick.right.x, pumpernick.right.y);
+						
+						local offsetl = vectr.v2(64,0):rotate(rng.random(360));
+						local offsetr = vectr.v2(64,0):rotate(rng.random(360))
+							
+						while(t <= legtime) do
+							local dt = t/legtime;
+							dt = dt*dt*dt
+							
+							offsetl = offsetl:rotate(rng.random(64));
+							offsetr = offsetr:rotate(rng.random(64));
+							
+							local lx,ly,rx,ry = getLegPos();
+							local lo = offsetl * (1-(2*dt-1)*(2*dt-1));
+							local ro = offsetr * (1-(2*dt-1)*(2*dt-1));
+							if(dt >= 1) then
+								lo = vectr.zero2;
+								ro = vectr.zero2;
+							end
+							pumpernick.left.x, pumpernick.left.y = math.lerp(startl.x, lx, dt) + lo.x, math.lerp(startl.y, ly, dt) + lo.y
+							pumpernick.right.x, pumpernick.right.y = math.lerp(startr.x, rx, dt) + ro.x, math.lerp(startr.y, ry, dt) + ro.y
+							pumpernick.left.up, pumpernick.right.up = math.lerp(-vectr.up2, pumpernick.up, dt):normalise(), math.lerp(-vectr.up2, pumpernick.up, dt):normalise();
+							
+							t = t+1;
+							eventu.waitFrames(0);
+						end
+						legsDone = true;
+					end)
+		
+		pumpernick.eye.state = EYE_OPEN;
+		
+		eventu.waitFrames(32);
+		
+		
+		local s = GROUNDBODY-pumpernick.y;
+		local g = 0.5
+		local falltime = math.sqrt(2*s/g);
+		t = 0;
+		local v = 0;
+		local startl = vectr.v2(pumpernick.left.x, pumpernick.left.y);
+		local startr = vectr.v2(pumpernick.right.x, pumpernick.right.y);
+		local startlup, startrup = pumpernick.left.up, pumpernick.right.up;
+		local startup = pumpernick.up;
+		local hit = false;
+		
+		local legscache = -1;
+		
+		while(t <= falltime + 8) do
+			local dt = math.min(t/falltime, 1);
+			
+			pumpernick.y = pumpernick.y + v;
+			if(pumpernick.y >= GROUNDBODY) then
+				pumpernick.y = GROUNDBODY;
+				if(not hit) then
+					damage(20, 128);
+					Defines.earthquake = 8;
+					hit = true;
+				end
+			end
+			
+			if(legsDone) then
+				if(legscache < 0) then
+					startl = vectr.v2(pumpernick.left.x, pumpernick.left.y);
+					startr = vectr.v2(pumpernick.right.x, pumpernick.right.y);
+					startlup, startrup = pumpernick.left.up, pumpernick.right.up;
+					legscache = dt;
+				end
+				lx,ly,rx,ry = getLegPos();
+				local lt = math.clamp((dt-legscache)/(1-legscache),0,1);
+				if(legscache == 1) then
+					lt = 1;
+				end
+				pumpernick.left.x, pumpernick.left.y = math.lerp(startl.x, lx, lt), math.lerp(startl.y, ly, lt)
+				pumpernick.right.x, pumpernick.right.y = math.lerp(startr.x, rx, lt), math.lerp(startr.y, ry, lt)
+				pumpernick.left.up, pumpernick.right.up = math.lerp(startlup, pumpernick.up, lt):normalise(), math.lerp(startrup, pumpernick.up, lt):normalise();
+			end
+			
+			v = v + g;
+			
+			pumpernick.up = math.lerp(startup, -vectr.up2, dt):normalise();
+			
+			t = t+1;
+			eventu.waitFrames(0);
+		end
+		
+		eventu.waitFrames(128);
+		
+		t = 0;
+		fliptime = 32;
+		startl = vectr.v2(pumpernick.left.x, pumpernick.left.y);
+		startr = vectr.v2(pumpernick.right.x, pumpernick.right.y);
+		startlup, startrup = pumpernick.left.up, pumpernick.right.up;
+		
+		while(t <= fliptime) do
+			local dt = t/fliptime;
+			
+			pumpernick.y = GROUNDBODY - 64*(1-(2*dt-1)*(2*dt-1));
+			
+			pumpernick.up = -vectr.up2:rotate(180*dt*pumpernick.dir);
+			
+			lx,ly,rx,ry = getLegPos();
+			pumpernick.left.x, pumpernick.left.y = math.lerp(startl.x, lx, dt), math.lerp(startl.y, ly, dt)
+			pumpernick.right.x, pumpernick.right.y = math.lerp(startr.x, rx, dt), math.lerp(startr.y, ry, dt)
+			pumpernick.left.up, pumpernick.right.up = math.lerp(startlup, pumpernick.up, dt):normalise(), math.lerp(startrup, pumpernick.up, dt):normalise();
+			
+			t = t+1;
+			eventu.waitFrames(0);
+		end
+		pumpernick.hitboxActive = true;
+		pumpernick.left.x, pumpernick.left.y, pumpernick.right.x, pumpernick.right.y = getLegPos();
+		pumpernick.left.up, pumpernick.right.up = vectr.up2, vectr.up2;
+		
+		eventu.waitFrames(32);
+	end
+	
+	setPhase();
+	
+end
+
+function events.intro()
+	moveBody(lunatime.toTicks(6), pumpernick.x, pumpernick.y - 400);
+	
+	waitForBody();
+	
+	eventu.waitFrames(350);
+	
+	
+	moveBody(lunatime.toTicks(1), pumpernick.x, pumpernick.y + 400);
+	
+	waitForBody();
+	setPhase(phase_pendulum);
+	waitPhase();
+	setPhase(phase_pogo);
+	waitPhase();
+	eventu.waitFrames(64);
+	setPhase(phase_pendulum);
+	waitPhase();
 end
 
 function cutscene.intro_checkpoint()
@@ -529,9 +1166,11 @@ function cutscene.intro_checkpoint()
 	b.left = Zero.x;
 	Section(bossAPI.section).boundary = b;
 	
-	scene.endScene();
 	
 	StartBoss();
+	
+	eventu.waitFrames(64);
+	scene.endScene();
 end
 
 function cutscene.intro()
@@ -600,8 +1239,6 @@ function cutscene.intro()
 	Audio.MusicStopFadeOut(1000);
 	eventu.waitFrames(64);
 	
-	scene.endScene();
-	
 	flash = 1;
 	
 	player.x = Zero.x+96;
@@ -609,6 +1246,9 @@ function cutscene.intro()
 	cp:collect();
 	
 	StartBoss();
+	eventu.waitFrames(64);
+	
+	scene.endScene();
 end
 
 
