@@ -240,21 +240,22 @@ function leeks.onTick()
 	if(leeks.id ~= nil) then
 		local ypos = 0;
 	
-		for k,v in pairs(NPC.get(leeks.id,player.section)) do
+		for k,v in ipairs(NPC.get(leeks.id,player.section)) do
 			local lk = pnpc.wrap(v);
 			if(lk.data.particles == nil) then
 				lk.data.particles = particles.Emitter(v.x,v.y,particleSet);
 				lk.data.particles:Attach(v);
 				lk.data.t = 0;
+				if(not table.icontains(leekObjs,lk)) then
+					table.insert(leekObjs, lk);
+				end
 			end
-			leekObjs[lk] = true;
 			
 			v.speedX = 0;
 			v.speedY = 0;
 			v.x = v:mem(0xA8,FIELD_DFLOAT)
 			v.y = v:mem(0xB0,FIELD_DFLOAT)
 			v.height = 48;
-			v.animationFrame = leekAnimFrame;
 		end
 		
 		local index = player:mem(0x176,FIELD_WORD);
@@ -446,17 +447,22 @@ function leeks.onCameraDraw()
 		end
 	end
 
-	for k,_ in pairs(leekObjs) do
-		if(k.isValid and k.data.particles ~= nil) then
-			if(k:mem(0x146, FIELD_WORD) ~= player.section) then
-				k.data.particles = nil;
+	local k = 1;
+	while(k <= #leekObjs) do
+		local v = leekObjs[k];
+		k = k+1;
+		if(v.isValid and v.data.particles ~= nil) then
+			if(v:mem(0x146, FIELD_WORD) ~= player.section) then
+				v.data.particles = nil;
 			else
-				k.data.particles:Draw(-5);
-				k.data.particles:SetOffset(math.sin(k.data.t)*24,0)
-				k.data.t=k.data.t+(math.pi/(64));
+				v.data.particles:Draw(-5);
+				v.data.particles:SetOffset(math.sin(v.data.t)*24,0)
+				v.data.t=v.data.t+(math.pi/(64));
 			end
-		elseif(not k.isValid) then
-			leekObjs[k] = nil;
+			v.animationFrame = leekAnimFrame;
+		elseif(not v.isValid) then
+			k = k-1;
+			table.remove(leekObjs,k);
 		end
 	end
 	
