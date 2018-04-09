@@ -1516,7 +1516,7 @@ local function phase_spin()
 		v = math.clamp(v+dir*a, -maxspd, maxspd);
 		
 		pumpernick.x = pumpernick.x + v;
-		if(pumpernick.x < Zero.x+64 or pumpernick.x > Zero.x+800-64) then
+		if((pumpernick.x < Zero.x+64 and v < 0) or (pumpernick.x > Zero.x+800-64 and v > 0)) then
 			v = -v;
 		end
 		
