@@ -18,8 +18,6 @@ local ease = API.load("ext/easing");
 
 local playerManager = API.load("playerManager")
 
-local broadsword = API.load("Characters/unclebroadsword")
-
 local audioMaster = API.load("audioMaster");
 
 local panim = API.load("playerAnim");
@@ -43,8 +41,12 @@ pumpernick.x = -199344;
 pumpernick.y = -200064;
 pumpernick.up = vectr.up2;
 
+pumpernick.spd = vectr.zero2;
+pumpernick.lastpos = vectr.v2(pumpernick.x, pumpernick.y);
+
 local GROUNDBODY = -200064;
 local hurt = false;
+local iframes = 0;
 
 local function getLegPos(x,y,u)
 	if(x == nil) then
@@ -96,6 +98,14 @@ pumpernick.turn = function()
 	pumpernick.turncounter = 8;
 end
 
+pumpernick.msg = {x=0,y=0,width=32,height=32}
+
+pumpernick.spin = false;
+pumpernick.spinframe = 0;
+pumpernick.spinspeed = 1.25;
+pumpernick.spincounter = 0;
+
+
 local EYE_OPEN = 0;
 local EYE_CLOSED = 1;
 pumpernick.eye = { state = EYE_OPEN, timer = 0, target = player };
@@ -103,6 +113,8 @@ pumpernick.eye = { state = EYE_OPEN, timer = 0, target = player };
 pumpernick.hitbox = colliders.Poly(0,0,{-32,18},{-54,-8},{-30,-24},{-12,-38},{12,-38},{30,-24},{50,-8},{24,18});
 pumpernick.hitboxAngle = 0;
 pumpernick.hitboxActive = true;
+
+local playerMomentum = 0;
 
 pumpernick.sprites = 
 {
@@ -112,6 +124,8 @@ pumpernick.sprites =
 	eyeball = Graphics.loadImage(Misc.resolveFile("pump_eyeball.png")),
 	pupil = Graphics.loadImage(Misc.resolveFile("pump_pupil.png")),
 	eyelid = Graphics.loadImage(Misc.resolveFile("pump_eyelid.png")),
+	spin = Graphics.loadImage(Misc.resolveFile("pump_shell_spin.png")),
+	spin_eyelid = Graphics.loadImage(Misc.resolveFile("pump_shell_spin_eyelid.png")),
 };
 
 local bullets = {};
@@ -200,6 +214,85 @@ local function updateBullet(b)
 		b.frametimer = 0;
 	end
 end
+
+
+local effects = {}
+
+local effect = { WHIRL = 0 }
+
+effect.img = {};
+effect.img[effect.WHIRL] = Graphics.loadImage(Misc.resolveFile("effect_whirlwind.png"));
+
+local function makeEffect(x,y,typ)
+	local b = {x=x, y=y, typ=typ, frametimer = 0, frametime = 8, frames = 1, frame = 1, alpha = 1};
+	if(typ == effect.WHIRL) then
+		b.frames = 10;
+		b.width = 192;
+		b.height = 128;
+		b.frametime = 2;
+		b.foreground = true;
+		b.looping = true;
+	end
+	
+	b.kill = 	function(b)
+					b.dead = true;
+				end
+	
+	table.insert(effects, b);
+	return b;
+end
+
+local function drawEffect(b)
+	local ft = (b.frame-1)/b.frames;
+	local fb = (b.frame)/b.frames;
+	local fx = 0;
+	if(b.flip) then
+		fx = 1;
+	end
+	
+	local p = -60;
+	if(b.foreground) then
+		p = -5;
+	end
+	
+	local t = 	{	x = b.x-b.width*0.5, y = b.y - b.height*0.5, w = b.width, h = b.height, 
+					textureCoords = {fx,ft,1-fx,ft,1-fx,fb,fx,fb}, 
+					priority = p, sceneCoords = true,
+					texture = effect.img[b.typ],
+					color = {1,1,1,b.alpha}
+				}
+	if(b.additive) then
+		t.vertexColors = {1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0};
+	end
+	Graphics.drawBox(t);
+end
+
+local function updateEffect(b)
+	b.frametimer = b.frametimer + 1;
+	if(b.frametimer > b.frametime) then
+		b.frame = b.frame+1;
+		if(b.frame > b.frames) then
+			if(b.looping) then
+				b.frame = 1;
+			else
+				b.dead = true;
+			end
+		end
+		b.frametimer = 0;
+	end
+	
+	if(b.dead) then
+		for i = 1,#bullets do
+			if(bullets[i] == b) then
+				table.remove(bullets, i);
+				break;
+			end
+		end
+	end
+end
+
+local dustTrail = particles.Emitter(0,0,Misc.resolveFile("p_dust.ini"))
+dustTrail.enabled = false;
 
 local flash = 0;
 
@@ -346,6 +439,7 @@ local function damage(damage, stun)
 		pumpernick.eye.state = EYE_CLOSED;
 		eventu.setFrameTimer(stun, function() pumpernick.eye.state = EYE_OPEN; hurt = false; end);
 	end
+	--iframes = 64;
 	--eyeHitstun = stun;
 	Sound(audio.hurt);
 	--Voice(audio.voice.hurt, 0.75);
@@ -471,44 +565,56 @@ local function drawLeg(leg, priority, flip)
 end
 
 local function drawLegs()
-	drawLeg(pumpernick.left, -45);
-	drawLeg(pumpernick.right, -45, pumpernick.turncounter > 0);
+	if(not pumpernick.spin) then
+		drawLeg(pumpernick.left, -45);
+		drawLeg(pumpernick.right, -45, pumpernick.turncounter > 0);
+	end
 end
 
 local function drawBody()
 	local eyepos = vectr.v2(pumpernick.x, pumpernick.y)-pumpernick.up*14;
-	local eyeframe = 1;
-	if(hurt) then
-		eyeframe = 2;
-	end
-	drawFromVector(pumpernick.up, eyepos, pumpernick.dir, pumpernick.sprites.eyeball, -45, eyeframe, 2);
-	
-	local r = pumpernick.up:rotate(pumpernick.dir*90);
-	
-	if(pumpernick.turncounter > 0) then
-		r = vectr.zero2;
-	end
-	local pupilpos = eyepos - r * 12 - pumpernick.up * 4;
-	
-	local t = vectr.v2(pumpernick.eye.target.x, pumpernick.eye.target.y) - pupilpos;
-	
-	t = t*0.1;
-	
-	local rangelimit = 8;
-	if(t.sqrlength > rangelimit*rangelimit) then
-		t = t:normalise()*rangelimit;
-	end
-	pupilpos = pupilpos+t;
-	Graphics.drawImageToSceneWP(pumpernick.sprites.pupil, pupilpos.x-8, pupilpos.y-8, -45);
-	
-	local f = 1;
-	if(pumpernick.turncounter > 0) then
-		f = 2;
+	if(not pumpernick.spin or pumpernick.eye.state == EYE_OPEN) then
+		local eyeframe = 1;
+		if(hurt) then
+			eyeframe = 2;
+		end
+		
+		drawFromVector(pumpernick.up, eyepos, pumpernick.dir, pumpernick.sprites.eyeball, -45, eyeframe, 2);
+		
+		local r = pumpernick.up:rotate(pumpernick.dir*90);
+		
+		if(pumpernick.turncounter > 0) then
+			r = vectr.zero2;
+		end
+		local pupilpos = eyepos - r * 12 - pumpernick.up * 4;
+		
+		local t = vectr.v2(pumpernick.eye.target.x, pumpernick.eye.target.y) - pupilpos;
+		
+		t = t*0.1;
+		
+		local rangelimit = 8;
+		if(t.sqrlength > rangelimit*rangelimit) then
+			t = t:normalise()*rangelimit;
+		end
+		pupilpos = pupilpos+t;
+		Graphics.drawImageToSceneWP(pumpernick.sprites.pupil, pupilpos.x-8, pupilpos.y-8, -45);
 	end
 	
-	
-	drawFromVector(pumpernick.up, vectr.v2(pumpernick.x, pumpernick.y), pumpernick.dir, pumpernick.sprites.body, -45, f, 2);
-	drawFromVector(pumpernick.up, eyepos, pumpernick.dir, pumpernick.sprites.eyelid, -45, (f-1)*4 + 1 + (math.floor(pumpernick.eye.timer)), 8);
+	if(pumpernick.spin) then
+		local f = pumpernick.spinframe + 1;
+		drawFromVector(pumpernick.up, vectr.v2(pumpernick.x, pumpernick.y)-pumpernick.up*16, pumpernick.dir, pumpernick.sprites.spin, -45, f, 7);
+		if(pumpernick.eye.state == EYE_CLOSED) then
+			drawFromVector(pumpernick.up, eyepos, pumpernick.dir, pumpernick.sprites.spin_eyelid, -45, f, 7);
+		end
+	else
+		local f = 1;
+		if(pumpernick.turncounter > 0) then
+			f = 2;
+		end
+		
+		drawFromVector(pumpernick.up, vectr.v2(pumpernick.x, pumpernick.y), pumpernick.dir, pumpernick.sprites.body, -45, f, 2);
+		drawFromVector(pumpernick.up, eyepos, pumpernick.dir, pumpernick.sprites.eyelid, -45, (f-1)*4 + 1 + (math.floor(pumpernick.eye.timer)), 8);
+	end
 end
 
 function bossAPI.onTick()
@@ -532,6 +638,32 @@ function bossAPI.onTick()
 	--pumpernick.y = pumpernick.y - 0.5;
 	
 	updateHitbox(pumpernick);
+	pumpernick.msg.x, pumpernick.msg.y = pumpernick.x-16,pumpernick.y-32;
+	pumpernick.spd.x, pumpernick.spd.y = pumpernick.x-pumpernick.lastpos.x, pumpernick.y-pumpernick.lastpos.y;
+	pumpernick.lastpos.x, pumpernick.lastpos.y = pumpernick.x, pumpernick.y;
+	
+	player:mem(0x138, FIELD_FLOAT, playerMomentum);
+	
+	local ma = 0.5;
+	if(math.abs(playerMomentum) <= ma) then
+		playerMomentum = 0;
+	else
+		playerMomentum = playerMomentum-math.sign(playerMomentum)*ma;
+	end
+	
+	if(pumpernick.spin) then
+		pumpernick.spincounter = pumpernick.spincounter + 1;
+		if(pumpernick.spincounter > 10/pumpernick.spinspeed) then
+			pumpernick.spinframe = pumpernick.spinframe+1;
+			if(pumpernick.spinframe > 6) then
+				pumpernick.spinframe = 1;
+			end
+			pumpernick.spincounter = 0;
+		end
+	else
+		pumpernick.spinframe = 0;
+	end
+	
 	if(DEBUG and pumpernick.hitboxActive) then
 		pumpernick.hitbox:Draw();
 	end
@@ -543,8 +675,12 @@ function bossAPI.onTick()
 		end
 	end
 	
-	if((pumpernick.left.hitboxActive and colliders.collide(pumpernick.left.hitbox, player)) or (pumpernick.right.hitboxActive and colliders.collide(pumpernick.right.hitbox, player))) then
-		player:harm();
+	if(iframes > 0) then
+		iframes = iframes-1;
+	else
+		if((pumpernick.left.hitboxActive and colliders.collide(pumpernick.left.hitbox, player)) or (pumpernick.right.hitboxActive and colliders.collide(pumpernick.right.hitbox, player))) then
+			player:harm();
+		end
 	end
 	
 	if(pumpernick.turncounter > 0) then
@@ -563,6 +699,10 @@ function bossAPI.onTick()
 	
 	for _,v in ipairs(bullets) do
 		updateBullet(v);
+	end
+	
+	for _,v in ipairs(effects) do
+		updateEffect(v);
 	end
 	
 	updateLegs();
@@ -631,6 +771,11 @@ function bossAPI.onDraw()
 	for _,v in ipairs(bullets) do
 		drawBullet(v);
 	end
+	for _,v in ipairs(effects) do
+		drawEffect(v);
+	end
+	
+	dustTrail:Draw(-60);
 	
 	if(flash > 0) then
 		local c = Color.white;
@@ -937,8 +1082,8 @@ local function phase_pendulum()
 	Audio.playSFX(42);
 	Defines.earthquake = 24;
 	
-	makeBullet(pumpernick.x, GROUNDBODY-32, bullet.SHOCKWAVE, 6*vectr.right2);
-	makeBullet(pumpernick.x, GROUNDBODY-32, bullet.SHOCKWAVE, -6*vectr.right2);
+	makeBullet(pumpernick.x-32, GROUNDBODY-32, bullet.SHOCKWAVE, 6*vectr.right2);
+	makeBullet(pumpernick.x+32, GROUNDBODY-32, bullet.SHOCKWAVE, -6*vectr.right2);
 	
 	falltime = 8;
 	t = 0;
@@ -962,6 +1107,9 @@ local function phase_pendulum()
 	local swingtime = 384;
 	
 	local offset = 0;
+	if(rng.randomInt(1) == 1) then
+		offset = math.pi;
+	end
 	local lastxsign = 0;
 	
 	local hits = 0;
@@ -1281,14 +1429,14 @@ local function phase_noodlewalk()
 		noodle.hitboxActive = false;
 		
 		Audio.playSFX(37);
-		Audio.playSFX(42);
 		Defines.earthquake = 4;
 		
 		local dir = 1;
 		if(player.x + player.width*0.5 < noodle.x) then
 			dir = -1;
 		end
-		makeBullet(noodle.x, GROUNDBODY+20, bullet.MINISHOCK, dir*4*vectr.right2);
+		--makeBullet(noodle.x, GROUNDBODY+20, bullet.MINISHOCK, dir*4*vectr.right2);
+		--Audio.playSFX(42);
 		
 		eventu.waitFrames(16);
 		
@@ -1335,6 +1483,96 @@ local function phase_noodlewalk()
 	setPhase();
 end
 
+local function phase_spin()
+	pumpernick.up = vectr.up2;
+	abortBodyMove();
+	waitAndDo(16, function() pumpernick.eye.state = EYE_CLOSED end);
+	pumpernick.spin = true;
+	pumpernick.spinspeed = 0.75
+	moveBody(32,pumpernick.x,GROUNDBODY+16);
+	waitAndDo(32, function() pumpernick.eye.state = EYE_CLOSED end);
+	
+	local spintime = 768;
+	local t = 0;
+	local v = 0;
+	local a = 0.15;
+	local maxspd = 14;
+	local dir = 1.25;
+	if(player.x + player.width*0.5 < pumpernick.x) then
+		dir = -1.25;
+	end
+	pumpernick.hitboxActive = false;
+	
+	local whirl = makeEffect(pumpernick.x, pumpernick.y,effect.WHIRL);
+	dustTrail.enabled = true;
+	
+	while(t <= spintime) do
+		local px = player.x + player.width*0.5;
+		
+		if(t > 128) then
+			dir = math.sign(px-pumpernick.x);
+		end
+		
+		v = math.clamp(v+dir*a, -maxspd, maxspd);
+		
+		pumpernick.x = pumpernick.x + v;
+		if(pumpernick.x < Zero.x+64 or pumpernick.x > Zero.x+800-64) then
+			v = -v;
+		end
+		
+		whirl.x = pumpernick.x;
+		whirl.alpha = math.clamp(math.abs(v)/10,0,1)
+		
+		dustTrail.x = pumpernick.x;
+		dustTrail.y = pumpernick.y+16;
+		dustTrail:setParam("rate", math.abs(v)/32);
+		
+		if(t < spintime-64) then
+			if(player:mem(0x13E, FIELD_WORD) == 0 and player:mem(0x122, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
+				colliders.bounceResponse(player);
+				if((px > pumpernick.x and v > 0) or (px > pumpernick.x and v < 0)) then
+					playerMomentum = playerMomentum-v;
+				else
+					playerMomentum = playerMomentum+v;
+				end
+			elseif(colliders.collide(player, pumpernick.hitbox)) then
+				player:harm();
+			end
+		else
+			pumpernick.hitboxActive = true;
+		end
+		
+		if(t > spintime-128) then
+			local dt = (1-((spintime-t)/128));
+			v = math.lerp(v,0,dt*dt)
+		end
+		
+		pumpernick.left.x, pumpernick.left.y, pumpernick.right.x, pumpernick.right.y = getLegPos(pumpernick.x, GROUNDBODY, pumpernick.up);
+		
+		pumpernick.spinspeed = math.lerp(0.75, 10, math.clamp(math.abs(v)/10,0,1));
+		
+		t = t+1;
+		eventu.waitFrames(0);
+	end
+	
+	dustTrail.enabled = false;
+	whirl.dead = true;
+	
+	
+	moveBody(32,pumpernick.x,GROUNDBODY);
+	eventu.waitFrames(16);
+	pumpernick.spin = false;
+	pumpernick.eye.state = EYE_OPEN
+	
+	local px = player.x + player.width*0.5;
+	if((pumpernick.dir == 1 and px < pumpernick.x) or (pumpernick.dir == -1 and px > pumpernick.x)) then
+		pumpernick.turn();
+	end
+	eventu.waitFrames(32);
+	
+	setPhase();
+end
+
 function events.intro()
 	moveBody(lunatime.toTicks(6), pumpernick.x, pumpernick.y - 400);
 	
@@ -1346,13 +1584,20 @@ function events.intro()
 	moveBody(lunatime.toTicks(1), pumpernick.x, pumpernick.y + 400);
 	
 	waitForBody();
+	message.showMessageBox {target=pumpernick.msg, text="Here I come!<pause 90>", closeWith = "auto", keepOnscreen = true}
 	setPhase(phase_pogo);
 	waitPhase();
 	eventu.waitFrames(64);
+	message.showMessageBox {target=pumpernick.msg, text="You darn bipeds. This is how dumb you look.<pause 90>", closeWith = "auto", keepOnscreen = true}
 	setPhase(phase_noodlewalk);
 	waitPhase();
 	eventu.waitFrames(64);
+	message.showMessageBox {target=pumpernick.msg, text="Whoop!<pause 60> Floor is lava!<pause 90>", closeWith = "auto", keepOnscreen = true}
 	setPhase(phase_pendulum);
+	waitPhase();
+	eventu.waitFrames(64);
+	message.showMessageBox {target=pumpernick.msg, text="You spin me right round baby! Ahahaha!<pause 90>", closeWith = "auto", keepOnscreen = true}
+	setPhase(phase_spin);
 	waitPhase();
 	eventu.waitFrames(64);
 end
