@@ -28,7 +28,7 @@ boss.SuperTitle = "Maximillion"
 boss.Name = "Pumpernickle"
 boss.SubTitle = "Off Several Rockers"
 
-boss.MaxHP = 150;
+boss.MaxHP = 100;
 
 boss.TitleDisplayTime = 360;
 
@@ -1125,6 +1125,7 @@ local function phase_pendulum()
 	
 	local fall = false;
 	local swingspd = vectr.zero2;
+	local inv = 0;
 	while(true) do
 		local dt = t/swingtime;
 		pumpernick.x = startx+swing.x;
@@ -1154,8 +1155,13 @@ local function phase_pendulum()
 			lastxsign = 0;
 		end
 		
+		if(inv > 0) then
+			inv = inv-1;
+		end
+		
 		if(player:mem(0x13E, FIELD_WORD) == 0 and player:mem(0x122, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
 			colliders.bounceResponse(player);
+			inv = 8;
 			hits = hits+1;
 			legltarget = legltarget - 32;
 			legrtarget = legrtarget + 32;
@@ -1163,7 +1169,7 @@ local function phase_pendulum()
 				fall = true;
 				break;
 			end
-		elseif(colliders.collide(player, pumpernick.hitbox)) then
+		elseif(inv <= 0 and colliders.collide(player, pumpernick.hitbox)) then
 			player:harm();
 		end
 		
@@ -1300,7 +1306,7 @@ local function phase_pendulum()
 			if(pumpernick.y >= GROUNDBODY) then
 				pumpernick.y = GROUNDBODY;
 				if(not hit) then
-					damage(20, 128);
+					damage(10, 128);
 					Defines.earthquake = 8;
 					hit = true;
 				end
@@ -1426,7 +1432,6 @@ local function phase_noodlewalk()
 			t=t+1;
 			eventu.waitFrames(0);
 		end
-		noodle.hitboxActive = false;
 		
 		Audio.playSFX(37);
 		Defines.earthquake = 4;
@@ -1438,7 +1443,11 @@ local function phase_noodlewalk()
 		--makeBullet(noodle.x, GROUNDBODY+20, bullet.MINISHOCK, dir*4*vectr.right2);
 		--Audio.playSFX(42);
 		
-		eventu.waitFrames(16);
+		eventu.waitFrames(2);
+		
+		noodle.hitboxActive = false;
+		
+		eventu.waitFrames(14);
 		
 		local tmp = noodle;
 		noodle = othernoodle;
@@ -1506,6 +1515,8 @@ local function phase_spin()
 	local whirl = makeEffect(pumpernick.x, pumpernick.y,effect.WHIRL);
 	dustTrail.enabled = true;
 	
+	local inv = 0;
+	
 	while(t <= spintime) do
 		local px = player.x + player.width*0.5;
 		
@@ -1517,6 +1528,7 @@ local function phase_spin()
 		
 		pumpernick.x = pumpernick.x + v;
 		if((pumpernick.x < Zero.x+64 and v < 0) or (pumpernick.x > Zero.x+800-64 and v > 0)) then
+			dir = -dir;
 			v = -v;
 		end
 		
@@ -1527,15 +1539,20 @@ local function phase_spin()
 		dustTrail.y = pumpernick.y+16;
 		dustTrail:setParam("rate", math.abs(v)/32);
 		
+		if(inv > 0) then
+			inv = inv-1;
+		end
+		
 		if(t < spintime-64) then
-			if(player:mem(0x13E, FIELD_WORD) == 0 and player:mem(0x122, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
+			if(player:mem(0x13E, FIELD_WORD) == 0 and player:mem(0x122, FIELD_WORD) == 0 and player.y + player.height < GROUNDBODY+8 and colliders.bounce(player, pumpernick.hitbox)) then
 				colliders.bounceResponse(player);
+				inv = 8;
 				if((px > pumpernick.x and v > 0) or (px > pumpernick.x and v < 0)) then
 					playerMomentum = playerMomentum-v;
 				else
 					playerMomentum = playerMomentum+v;
 				end
-			elseif(colliders.collide(player, pumpernick.hitbox)) then
+			elseif(inv <= 0 and colliders.collide(player, pumpernick.hitbox)) then
 				player:harm();
 			end
 		else
@@ -1560,15 +1577,265 @@ local function phase_spin()
 	
 	
 	moveBody(32,pumpernick.x,GROUNDBODY);
+	pumpernick.spinframe = 0;
+	pumpernick.spinspeed = 0;
 	eventu.waitFrames(16);
 	pumpernick.spin = false;
 	pumpernick.eye.state = EYE_OPEN
+	eventu.waitFrames(16);
 	
 	local px = player.x + player.width*0.5;
 	if((pumpernick.dir == 1 and px < pumpernick.x) or (pumpernick.dir == -1 and px > pumpernick.x)) then
 		pumpernick.turn();
 	end
 	eventu.waitFrames(32);
+	
+	setPhase();
+end
+
+local function phase_slam()
+	pumpernick.up = vectr.up2;
+	abortBodyMove();
+	
+	moveBody(32, pumpernick.x, pumpernick.y + 5);
+	waitForBody();
+	
+	local h = GROUNDBODY-400;
+	local jumptime = 64;
+	local t = 0;
+	local g = -2*(h-pumpernick.y)/(jumptime*jumptime);
+	local v = -g*jumptime;
+	while(t <= jumptime) do
+		local dt = t/jumptime;
+		pumpernick.y = pumpernick.y + v;
+		v = v+g;
+		
+		local lx,ly,rx,ry = getLegPos();
+		if(t > jumptime - 32) then
+			lx = Zero.x+400+400*pumpernick.dir;
+			rx = Zero.x+400-400*pumpernick.dir;
+			dt = (t+32-jumptime)/32;
+			ly = ly+32;
+			ry = ry+32;
+			
+			pumpernick.left.up = math.lerp(pumpernick.left.up, pumpernick.dir*vectr.right2, dt);
+			pumpernick.right.up = math.lerp(pumpernick.right.up, -pumpernick.dir*vectr.right2, dt);
+		end
+		pumpernick.left.x, pumpernick.left.y = math.lerp(pumpernick.left.x, lx, dt), math.lerp(pumpernick.left.y, ly, dt)
+		pumpernick.right.x, pumpernick.right.y = math.lerp(pumpernick.right.x, rx, dt), math.lerp(pumpernick.right.y, ry, dt)
+		
+		
+		t = t+1;
+		eventu.waitFrames(0);
+	end
+	
+	local hovertime = 256;
+	t = 0;
+	
+	while(t <= hovertime) do
+		pumpernick.x = math.lerp(pumpernick.x, player.x+player.width*0.5, 0.05);
+		
+		t = t+1;
+		eventu.waitFrames(0);
+	end
+	
+	eventu.waitFrames(64);
+	
+	local basey = pumpernick.y;
+	for i = 1,3 do
+		local slamtime = 16;
+		t = 0;
+		
+		while(t <= slamtime) do
+			local dt = t/slamtime;
+			dt = dt*dt*dt;
+			
+			pumpernick.y = math.lerp(basey, GROUNDBODY+16, dt);
+			
+			t = t+1;
+			eventu.waitFrames(0);
+		end
+		
+		t = 0;
+		slamtime = 48;
+		
+		Audio.playSFX(37);
+		Audio.playSFX(42);
+		Defines.earthquake = 24;
+		
+		makeBullet(pumpernick.x-32, GROUNDBODY-32, bullet.SHOCKWAVE, 6*vectr.right2);
+		makeBullet(pumpernick.x+32, GROUNDBODY-32, bullet.SHOCKWAVE, -6*vectr.right2);
+		
+		while(t <= slamtime) do
+			local dt = t/slamtime;
+			dt = dt*dt*dt;
+			
+			pumpernick.y = math.lerp(basey, GROUNDBODY+16, 1-dt);
+			
+			t = t+1;
+			eventu.waitFrames(0);
+		end
+	
+		eventu.waitFrames(8);
+	end
+	
+	h = GROUNDBODY+5;
+	jumptime = 64;
+	t = 0;
+	g = 2*(h-pumpernick.y)/(jumptime*jumptime);
+	v = 0;
+	while(t < jumptime) do
+		local dt = t/jumptime;
+		dt = dt*dt*dt
+		pumpernick.y = pumpernick.y + v;
+		v = v+g;
+		
+		local lx,ly,rx,ry = getLegPos();
+		ly = ly + (1-dt)*64;
+		ry = ry + (1-dt)*64;
+		pumpernick.left.x, pumpernick.left.y = math.lerp(pumpernick.left.x, lx, dt), math.lerp(pumpernick.left.y, ly, dt)
+		pumpernick.right.x, pumpernick.right.y = math.lerp(pumpernick.right.x, rx, dt), math.lerp(pumpernick.right.y, ry, dt)
+		pumpernick.left.up = math.lerp(pumpernick.left.up, vectr.up2, dt);
+		pumpernick.right.up = math.lerp(pumpernick.right.up, vectr.up2, dt);
+		
+		
+		t = t+1;
+		eventu.waitFrames(0);
+	end
+	
+	pumpernick.y = GROUNDBODY;
+	pumpernick.left.x, pumpernick.left.y, pumpernick.right.x, pumpernick.right.y = getLegPos()
+	pumpernick.y = pumpernick.y+5;
+	
+	moveBody(32, pumpernick.x, GROUNDBODY);
+	waitForBody();
+	
+	setPhase();
+end
+
+local function phase_bounce()
+	pumpernick.up = vectr.up2;
+	abortBodyMove();
+	
+	moveBody(32, pumpernick.x, pumpernick.y + 5);
+	waitForBody();
+	
+	local h = GROUNDBODY-rng.random(200,400);
+	
+	local side = 1;
+	if(pumpernick.x < Zero.x+400) then
+		side = -1;
+	end
+	
+	local start = vectr.v2(pumpernick.x, pumpernick.y);
+	local target = Zero.x+400+side*400-side*32;
+	
+	local jumptime = 32;
+	local t = 0;
+	while(t <= jumptime) do
+		dt = t/jumptime;
+		
+		pumpernick.eye.state = EYE_CLOSED;
+		
+		pumpernick.x,pumpernick.y = math.lerp(start.x, target, dt*dt),math.lerp(start.y, h, dt);
+		pumpernick.up = vectr.up2:rotate(-side*90*dt);
+		
+		local lx,ly,rx,ry = getLegPos();
+		pumpernick.left.x, pumpernick.left.y = math.lerp(pumpernick.left.x, lx, dt), math.lerp(pumpernick.left.y, ly, dt)
+		pumpernick.right.x, pumpernick.right.y = math.lerp(pumpernick.right.x, rx, dt), math.lerp(pumpernick.right.y, ry, dt)
+		pumpernick.left.up, pumpernick.right.up = pumpernick.up, pumpernick.up;
+		
+		t=t+1;
+		eventu.waitFrames(0);
+	end
+	
+	eventu.waitFrames(32);
+	
+	pumpernick.spinspeed = 2;
+	pumpernick.spin = true;
+	
+	eventu.waitFrames(8);
+	
+	local bouncetime = 768;
+	t = 0;
+	local v = vectr.v2(side*rng.random(3,5), 0);
+	local g = 0.5;
+	local a = -side*90;
+	local inv = 0;
+	
+	pumpernick.hitboxActive = false;
+	
+	while(t <= bouncetime) do
+		pumpernick.x, pumpernick.y = pumpernick.x + v.x, pumpernick.y + v.y;
+		
+		v.y = v.y + g;
+		
+		local ta = a%360;
+		local cs = math.cos(math.rad(ta));
+		--local sn = math.sin(math.rad(ta));
+		
+		if(t < bouncetime-64) then
+			pumpernick.up = pumpernick.up:rotate(v.x*side);
+			a = a+v.x*side;
+		else
+			local dt = (bouncetime-t)/64;
+			local adir = math.sign(v.x*side);
+			local todo = (360-ta)%360
+			local da = math.lerp(v.x*side, todo, 1-dt);
+			if((todo > 0 and da > todo) or (todo < 0 and da < todo) or (todo == 0)) then
+				da = todo;
+			end
+			pumpernick.up = pumpernick.up:rotate(da);
+			a = a + da;
+		end
+		
+		if(t > bouncetime - 16) then
+			if(pumpernick.spinframe == 1) then
+				pumpernick.spinspeed = 0;
+				pumpernick.spinframe = 0;
+			end
+			pumpernick.eye.state = EYE_OPEN;
+			if(t > bouncetime-8) then
+				pumpernick.spin = false;
+				pumpernick.left.x, pumpernick.left.y, pumpernick.right.x, pumpernick.right.y = getLegPos();
+				pumpernick.left.up, pumpernick.right.up = pumpernick.up, pumpernick.up;
+			end
+		end
+		
+		if(inv > 0) then
+			inv = inv-1;
+		end
+		
+		if(player:mem(0x13E, FIELD_WORD) == 0 and player:mem(0x122, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
+			colliders.bounceResponse(player);
+			inv = 32;
+		elseif(inv <= 0 and colliders.collide(player, pumpernick.hitbox)) then
+			player:harm();
+		end
+		
+		if(v.y > 0 and pumpernick.y > GROUNDBODY+16*cs*cs) then
+			v.y = rng.random(0.9,1.1)*math.max(-v.y, -16);
+			pumpernick.y = GROUNDBODY+16*cs*cs;
+			Audio.playSFX(37);
+			Defines.earthquake = 4;
+			if(t >= bouncetime) then
+				break;
+			end
+		end
+		
+		if((v.x < 0 and pumpernick.x < Zero.x+32) or (v.x > 0 and pumpernick.x > Zero.x+800-32)) then
+			v.x = -v.x;
+		end
+	
+		if(t < bouncetime) then
+			t=t+1;
+		end
+		eventu.waitFrames(0);
+	end
+	pumpernick.y = GROUNDBODY;
+	pumpernick.left.x, pumpernick.left.y, pumpernick.right.x, pumpernick.right.y = getLegPos();
+	
+	pumpernick.hitboxActive = true;
 	
 	setPhase();
 end
@@ -1600,6 +1867,34 @@ function events.intro()
 	setPhase(phase_spin);
 	waitPhase();
 	eventu.waitFrames(64);
+	message.showMessageBox {target=pumpernick.msg, text="Look at me go!<pause 90>", closeWith = "auto", keepOnscreen = true}
+	setPhase(phase_slam);
+	waitPhase();
+	eventu.waitFrames(64);	
+	setPhase(phase_pendulum);
+	waitPhase();
+	eventu.waitFrames(64);
+	message.showMessageBox {target=pumpernick.msg, text="Watch me get the DROP on you!<pause 90>", closeWith = "auto", keepOnscreen = true}
+	setPhase(phase_bounce);
+	waitPhase();
+	eventu.waitFrames(64);
+	local phases;
+	while(true) do
+		setPhase(phase_pendulum);
+		waitPhase();
+		eventu.waitFrames(64);
+		for i = 1,2 do
+			if(phases == nil or #phases == 0) then
+				phases = {phase_pogo, phase_noodlewalk, phase_spin, phase_slam, phase_bounce};
+			end
+			local i = rng.randomInt(1,#phases);
+			local p = phases[i];
+			table.remove(phases, i);
+			setPhase(p);
+			waitPhase();
+			eventu.waitFrames(64);
+		end
+	end
 end
 
 function cutscene.intro_checkpoint()
