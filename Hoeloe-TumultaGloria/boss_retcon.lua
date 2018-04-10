@@ -2413,7 +2413,7 @@ function events.InitBoss(checkpoint)
 	initPlayerPos.x = player.x+player.width*0.5;
 	initPlayerPos.y = player.y+player.height;
 
-	player.character = CHARACTER_UNCLEBROADSWORD;
+	player:transform(CHARACTER_UNCLEBROADSWORD);
 	player.powerup = 2;
 	player.reservePowerup = 9;
 	

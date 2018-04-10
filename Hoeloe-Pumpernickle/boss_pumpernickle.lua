@@ -1533,6 +1533,7 @@ local function phase_noodlewalk()
 		local tmp = noodle;
 		noodle = othernoodle;
 		othernoodle = tmp;
+		noodleoffset = noodleoffset*pumpernick.dir;
 		moveBody(64, othernoodle.x-noodleoffset, GROUNDBODY-400);
 		local px = player.x + player.width*0.5;
 		if((pumpernick.dir == 1 and px < pumpernick.x) or (pumpernick.dir == -1 and px > pumpernick.x)) then
@@ -2327,6 +2328,9 @@ function events.InitBoss(checkpoint)
 	Zero.x = Section(bossAPI.section).boundary.left;
 	Zero.y = Section(bossAPI.section).boundary.top;
 	
+	player:transform(CHARACTER_DEMO);
+	player.powerup = 2;
+	player.reservePowerup = 9;
 	--[[
 	core_audio.x = Zero.x+400;
 	core_audio.y = Zero.y+300;
