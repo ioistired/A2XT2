@@ -1737,7 +1737,7 @@ local function phase_bounce()
 		
 		pumpernick.eye.state = EYE_CLOSED;
 		
-		pumpernick.x,pumpernick.y = math.lerp(start.x, target, dt*dt),math.lerp(start.y, h, dt);
+		pumpernick.x,pumpernick.y = math.lerp(start.x, target, dt*dt*dt*dt),math.lerp(start.y, h, math.sqrt(dt));
 		pumpernick.up = vectr.up2:rotate(-side*90*dt);
 		
 		local lx,ly,rx,ry = getLegPos();

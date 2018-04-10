@@ -7,7 +7,7 @@ local imagic = API.load("imagic")
 local pnpc = API.load("pnpc")
 local colliders = API.load("colliders")
 local defs = API.load("expandedDefines")
-local console = API.load("console")
+--local console = API.load("console")
 
 local rng = API.load("rng")
 
@@ -518,17 +518,17 @@ function a2xt_message.textLogToConsole ()
 	if  SaveData.textLog ~= nil  then
 
 		local currentName = SaveData.textLog[1].name
-		console.print(currentName..":")
+	--	console.print(currentName..":")
 
 		for  _,v in ipairs(SaveData.textLog)  do
 			-- Write the current name
 			if  v.name ~= currentName  then
 				local nameStr = v.name  or  ""
-				console.print(" ")
-				console.print(nameStr..":")
+			--	console.print(" ")
+			--	console.print(nameStr..":")
 				currentName = v.name
 			end
-			console.print(v.text)
+			--console.print(v.text)
 		end
 	end
 end
