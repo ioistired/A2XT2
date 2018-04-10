@@ -314,6 +314,7 @@ audio.spin = Misc.resolveFile("pump_spin.ogg")
 audio.rocket = Misc.resolveFile("pump_rocket.ogg")
 audio.crack = Misc.resolveFile("pump_crack.ogg")
 audio.die = Misc.resolveFile("pump_die.ogg")
+audio.pop = Misc.resolveFile("pump_pop.ogg")
 
 
 local events = {};
@@ -1124,6 +1125,7 @@ local function phase_pendulum()
 		t = t+1;
 		eventu.waitFrames(0);
 	end
+	Sound(audio.pop)
 	pumpernick.y = Zero.y + 24 + 32;
 	pumpernick.up = -vectr.up2;
 	
@@ -1696,6 +1698,7 @@ local function phase_slam()
 	local t = 0;
 	local g = -2*(h-pumpernick.y)/(jumptime*jumptime);
 	local v = -g*jumptime;
+	local sound = false;
 	while(t <= jumptime) do
 		local dt = t/jumptime;
 		pumpernick.y = pumpernick.y + v;
@@ -1711,6 +1714,10 @@ local function phase_slam()
 			
 			pumpernick.left.up = math.lerp(pumpernick.left.up, pumpernick.dir*vectr.right2, dt);
 			pumpernick.right.up = math.lerp(pumpernick.right.up, -pumpernick.dir*vectr.right2, dt);
+			if(not sound and dt > 0.5) then
+				Sound(audio.pop);
+				sound = true;
+			end
 		end
 		pumpernick.left.x, pumpernick.left.y = math.lerp(pumpernick.left.x, lx, dt), math.lerp(pumpernick.left.y, ly, dt)
 		pumpernick.right.x, pumpernick.right.y = math.lerp(pumpernick.right.x, rx, dt), math.lerp(pumpernick.right.y, ry, dt)
@@ -1798,6 +1805,7 @@ local function phase_slam()
 	pumpernick.left.x, pumpernick.left.y, pumpernick.right.x, pumpernick.right.y = getLegPos()
 	pumpernick.y = pumpernick.y+5;
 	
+	Audio.playSFX(37)
 	moveBody(32, pumpernick.x, GROUNDBODY);
 	waitForBody();
 	
@@ -1836,6 +1844,9 @@ local function phase_bounce()
 		
 		local lx,ly,rx,ry = getLegPos(target, h, vectr.right2*side);
 		local ldt = math.clamp(dt*2,0,1);
+		if(t == math.floor(jumptime*0.5)) then
+			Sound(audio.pop);
+		end
 		pumpernick.left.x, pumpernick.left.y = math.lerp(startl.x, lx, ldt*ldt), math.lerp(startl.y, ly, ldt)
 		pumpernick.right.x, pumpernick.right.y = math.lerp(startr.x, rx, ldt*ldt), math.lerp(startr.y, ry, ldt)
 		pumpernick.left.up, pumpernick.right.up = vectr.up2:rotate(-side*90*ldt), vectr.up2:rotate(-side*90*ldt);
