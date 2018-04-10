@@ -47,6 +47,9 @@ pumpernick.lastpos = vectr.v2(pumpernick.x, pumpernick.y);
 local GROUNDBODY = -200064;
 local hurt = false;
 local iframes = 0;
+local bossdead = false;
+
+local mainloop;
 
 local function getLegPos(x,y,u)
 	if(x == nil) then
@@ -300,12 +303,17 @@ end
 local dustTrail = particles.Emitter(0,0,Misc.resolveFile("p_dust.ini"))
 dustTrail.enabled = false;
 
+local shellCrack;
+local gasBurst;
+
 local flash = 0;
 
 local audio = {};
 audio.hurt = Misc.resolveFile("pump_hurt.ogg")
 audio.spin = Misc.resolveFile("pump_spin.ogg")
 audio.rocket = Misc.resolveFile("pump_rocket.ogg")
+audio.crack = Misc.resolveFile("pump_crack.ogg")
+audio.die = Misc.resolveFile("pump_die.ogg")
 
 
 local events = {};
@@ -440,7 +448,7 @@ local function StartBoss()
 	starttime = lunatime.time();
 	boss.Start();
 	
-	eventu.run(events.intro);
+	_, mainloop = eventu.run(events.intro);
 end
 
 local function Sound(name, volume, tags)
@@ -660,21 +668,11 @@ function bossAPI.onTick()
 		end
 	end
 	
-	--pumpernick.y = pumpernick.y - 0.5;
+	pumpernick.msg.x, pumpernick.msg.y = pumpernick.x-16,pumpernick.y-32;
 	
 	updateHitbox(pumpernick);
-	pumpernick.msg.x, pumpernick.msg.y = pumpernick.x-16,pumpernick.y-32;
 	pumpernick.spd.x, pumpernick.spd.y = pumpernick.x-pumpernick.lastpos.x, pumpernick.y-pumpernick.lastpos.y;
 	pumpernick.lastpos.x, pumpernick.lastpos.y = pumpernick.x, pumpernick.y;
-	
-	player:mem(0x138, FIELD_FLOAT, playerMomentum);
-	
-	local ma = 0.5;
-	if(math.abs(playerMomentum) <= ma) then
-		playerMomentum = 0;
-	else
-		playerMomentum = playerMomentum-math.sign(playerMomentum)*ma;
-	end
 	
 	if(pumpernick.spin) then
 		pumpernick.spincounter = pumpernick.spincounter + 1;
@@ -698,27 +696,42 @@ function bossAPI.onTick()
 		pumpernick.spinframe = 0;
 		pumpernick.rocketframe = 0;
 	end
-	
-	if(DEBUG and pumpernick.hitboxActive) then
-		pumpernick.hitbox:Draw();
-	end
-	
-	if(pumpernick.hitboxActive) then
-		doBounce(function() 
-					if(pumpernick.eye.state == EYE_OPEN and pumpernick.eye.timer == 0) then
-						damage(1);
-					end
-				end);
-	end
-	
-	if(iframes > 0) then
-		iframes = iframes-1;
-	else
-		if((pumpernick.left.hitboxActive and colliders.collide(pumpernick.left.hitbox, player)) or (pumpernick.right.hitboxActive and colliders.collide(pumpernick.right.hitbox, player))) then
-			player:harm();
+		
+	if(boss.Active)then
+		player:mem(0x138, FIELD_FLOAT, playerMomentum);
+		
+		local ma = 0.5;
+		if(math.abs(playerMomentum) <= ma) then
+			playerMomentum = 0;
+		else
+			playerMomentum = playerMomentum-math.sign(playerMomentum)*ma;
+		end
+		
+		if(DEBUG and pumpernick.hitboxActive) then
+			pumpernick.hitbox:Draw();
+		end
+		
+		if(pumpernick.hitboxActive) then
+			doBounce(function() 
+						if(pumpernick.eye.state == EYE_OPEN and pumpernick.eye.timer == 0) then
+							damage(1);
+						end
+					end);
+		end
+		
+		if(iframes > 0) then
+			iframes = iframes-1;
+		else
+			if((pumpernick.left.hitboxActive and colliders.collide(pumpernick.left.hitbox, player)) or (pumpernick.right.hitboxActive and colliders.collide(pumpernick.right.hitbox, player))) then
+				player:harm();
+			end
+		end
+		
+		if(boss.isDefeated()) then
+			events.finish();
 		end
 	end
-	
+		
 	if(pumpernick.turncounter > 0) then
 		pumpernick.turncounter = pumpernick.turncounter-1;
 		if(pumpernick.turncounter <= 0) then
@@ -796,8 +809,15 @@ end
 
 local function DrawBoss()
 	DrawBG();
-	drawLegs();
-	drawBody();
+	
+	if(not bossdead) then
+		drawLegs();
+		drawBody();
+	else
+		local f = pumpernick.spinframe + 1;
+		drawFromVector(pumpernick.up, vectr.v2(pumpernick.x, pumpernick.y)-pumpernick.up*16, -1, pumpernick.sprites.spin, -45, f, 7);
+	end
+	
 	
 end
 
@@ -812,6 +832,14 @@ function bossAPI.onDraw()
 	end
 	
 	dustTrail:Draw(-60);
+	
+	if(shellCrack ~= nil) then
+		shellCrack:Draw(-5);
+	end
+	
+	if(gasBurst ~= nil) then
+		gasBurst:Draw(-60);
+	end
 	
 	if(flash > 0) then
 		local c = Color.white;
@@ -928,6 +956,17 @@ local function phase_idle()
 	local t = 0;
 	while(true) do
 		pumpernick.up = pumpernick.up:rotate(0.4*math.cos(t/20));
+		t = t+1;
+		eventu.waitFrames(0);
+	end
+end
+
+local function phase_wounded()
+	pumpernick.up = vectr.up2:rotate(-15);
+	local py = pumpernick.y;
+	local t = 0;
+	while(true) do
+		pumpernick.y = py - 2*math.sin(t/40)*math.sin(t/40);
 		t = t+1;
 		eventu.waitFrames(0);
 	end
@@ -2061,6 +2100,121 @@ function events.intro()
 			eventu.waitFrames(64);
 		end
 	end
+end
+
+function events.finish()
+	flash = 1;
+	pumpernick.eye.state = EYE_OPEN;
+	Audio.MusicStop();
+	nomusic = true;
+	pumpernick.hitboxActive = false;
+	pumpernick.left.hitboxActive = false;
+	pumpernick.right.hitboxActive = false;
+	
+	pumpernick.x = Zero.x+800-128;
+	pumpernick.y = GROUNDBODY;
+	pumpernick.up = vectr.up2;
+	pumpernick.left.x,pumpernick.left.y,pumpernick.right.x,pumpernick.right.y = getLegPos();
+	pumpernick.left.up,pumpernick.right.up = vectr.up2,vectr.up2;
+	
+	if(pumpernick.dir == 1) then
+		pumpernick.flip();
+	end
+	
+	setPhase(phase_wounded);
+	eventu.abort(mainloop);
+	
+	player.speedX = 1;
+	player.speedY = 0;
+	player.direction = 1;
+	player.keys.right = true;
+	player.x = Zero.x+256;
+	player.y = Zero.y+600-32-player.height;
+	
+	boss.Active = false;
+	
+	eventu.run(function() eventu.waitFrames(0); scene.startScene{scene=cutscene.finish, noletterbox=true} end)
+end
+
+function cutscene.finish()
+
+	eventu.waitFrames(64);
+	
+	local demo = {x = player.x+64, y = player.y, width = player.width, height = player.height};
+	local iris = {x = player.x+32, y = player.y, width = player.width, height = player.height}
+	local raocow = {x = player.x+0, y = player.y, width = player.width, height = player.height}
+	local kood = {x = player.x-32, y = player.y, width = player.width, height = player.height}
+	local sheath = {x = player.x-64, y = player.y, width = player.width, height = player.height}
+	local ub = {x = Zero.x-64, y = player.y, width = player.width, height = player.height}
+	
+	local pump = {x = pumpernick.x-96, y = pumpernick.y-32, width = 64, height = 64};
+	
+	shellCrack = particles.Emitter(pumpernick.x, pumpernick.y, Misc.resolveFile("p_shell.ini"));
+
+	message.showMessageBox {target=pump, text="Well, that certainly didn't go as I'd hoped."}
+	message.waitMessageEnd();
+	eventu.waitFrames(16);
+	shellCrack:Emit(8);
+	Sound(audio.crack);
+	eventu.waitFrames(96);
+	message.showMessageBox {target=pump, text="Still, this is far from over!"}
+	message.waitMessageEnd();
+	eventu.waitFrames(16);
+	shellCrack.x = shellCrack.x-24
+	shellCrack:Emit(8);
+	Sound(audio.crack);
+	eventu.waitFrames(96);
+	local m = message.showMessageBox {target=pump, text="You may have won this battle, but the war has only just begun!", closeWith = "auto"}
+	
+	eventu.waitFrames(116);
+	m:closeSelf();
+	pumpernick.y = GROUNDBODY-32;
+	pumpernick.up = vectr.up2;
+	flash = 1;
+	gasBurst = particles.Emitter(pumpernick.x, pumpernick.y, Misc.resolveFile("p_gasburst.ini"));
+	gasBurst:setPrewarm(0.5);
+	Sound(audio.die)
+	Defines.earthquake = 128;
+	bossdead = true;
+	eventu.abort(current_phase);
+	
+	pumpernick.spin = true;
+	pumpernick.spinframe = 1;
+	pumpernick.spinspeed = 10;
+	
+	local t = 0;
+	waitAndDo(416, 	function()
+						if(t == 320) then 
+							gasBurst.enabled = false;
+						end
+						pumpernick.spinspeed = math.lerp(10,0,t/416);
+						t = t+1;
+					end);
+					
+	pumpernick.spinspeed = 0;
+	
+	local v = 0;
+	local g = 0.9;
+	while(pumpernick.y < GROUNDBODY+16) do
+		pumpernick.y = pumpernick.y + v;
+		v = v + g;
+		eventu.waitFrames(0);
+	end
+	
+	Audio.playSFX(37);
+	Defines.earthquake=4;
+	
+	eventu.waitFrames(96);
+	message.showMessageBox {target=kood, text="We... we did it!  We saved the universe! ...Again!"}
+	message.waitMessageEnd();
+	eventu.waitFrames(32);
+	message.showMessageBox {target=iris, text="Weren't you just boasting about our track record?  Why are you surprised?"}
+	message.waitMessageEnd();
+	eventu.waitFrames(32);
+	message.showMessageBox {target=ub, text="Congratulations!", keepOnscreen = true}
+	message.waitMessageEnd();
+	
+	scene.endScene();
 end
 
 function cutscene.intro_checkpoint()

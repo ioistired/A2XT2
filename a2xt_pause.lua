@@ -40,6 +40,8 @@ local quitting = false;
 
 local sfxvolume = 1;
 
+local earthquakeCache = 0;
+
 local function confirmBox(func)
 	confirm = func;
 	Audio.playSFX(30);
@@ -214,6 +216,7 @@ local function drawPause(priority)
 			if(pause_blend < 0) then
 				game_paused = false;
 				pause_blend = 0;
+				Defines.earthquake = earthquakeCache;
 				Misc.unpause();
 				return;
 			end
@@ -360,6 +363,8 @@ function pause.onInputUpdate()
 			pause_option = 0;
 			confirm = nil;
 			confirm_alpha = 0;
+			earthquakeCache = Defines.earthquake;
+			Defines.earthquake = 0;
 			buffer:captureAt(pause_priority);
 			Misc.pause();
 			Audio.playSFX(30);
