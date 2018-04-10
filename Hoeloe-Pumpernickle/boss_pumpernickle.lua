@@ -28,7 +28,7 @@ boss.SuperTitle = "Maximillion"
 boss.Name = "Pumpernickle"
 boss.SubTitle = "Off Several Rockers"
 
-boss.MaxHP = 100;
+boss.MaxHP = 90;
 
 boss.TitleDisplayTime = 360;
 
@@ -105,6 +105,11 @@ pumpernick.spinframe = 0;
 pumpernick.spinspeed = 1.25;
 pumpernick.spincounter = 0;
 
+pumpernick.rocket = false;
+pumpernick.rocketframe = 0;
+pumpernick.rocketspeed = 1.25;
+pumpernick.rocketcounter = 0;
+
 
 local EYE_OPEN = 0;
 local EYE_CLOSED = 1;
@@ -126,6 +131,7 @@ pumpernick.sprites =
 	eyelid = Graphics.loadImage(Misc.resolveFile("pump_eyelid.png")),
 	spin = Graphics.loadImage(Misc.resolveFile("pump_shell_spin.png")),
 	spin_eyelid = Graphics.loadImage(Misc.resolveFile("pump_shell_spin_eyelid.png")),
+	rocket = Graphics.loadImage(Misc.resolveFile("pump_shell_rocket.png")),
 };
 
 local bullets = {};
@@ -338,6 +344,16 @@ function bossAPI.GetCheckpoint()
 	return cp;
 end
 
+local function doBounce(f)
+	if(player:mem(0x13E, FIELD_WORD) == 0 and player:mem(0x122, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
+		colliders.bounceResponse(player);
+		if(f ~= nil) then
+			f();
+		end
+		return true;
+	end
+	return false;
+end
 
 local tesseract = API.load("CORE/tesseract");
 local backgrounds = API.load("CORE/core_bg");
@@ -565,7 +581,7 @@ local function drawLeg(leg, priority, flip)
 end
 
 local function drawLegs()
-	if(not pumpernick.spin) then
+	if(not pumpernick.spin and not pumpernick.rocket) then
 		drawLeg(pumpernick.left, -45);
 		drawLeg(pumpernick.right, -45, pumpernick.turncounter > 0);
 	end
@@ -607,12 +623,19 @@ local function drawBody()
 			drawFromVector(pumpernick.up, eyepos, pumpernick.dir, pumpernick.sprites.spin_eyelid, -45, f, 7);
 		end
 	else
+	
 		local f = 1;
-		if(pumpernick.turncounter > 0) then
-			f = 2;
+		if(pumpernick.rocket) then
+			f = pumpernick.rocketframe + 1;
+			drawFromVector(pumpernick.up, vectr.v2(pumpernick.x, pumpernick.y)-pumpernick.up*16, pumpernick.dir, pumpernick.sprites.rocket, -45, f, 6);
+			f = 1;
+		else
+			if(pumpernick.turncounter > 0) then
+				f = 2;
+			end
+			
+			drawFromVector(pumpernick.up, vectr.v2(pumpernick.x, pumpernick.y), pumpernick.dir, pumpernick.sprites.body, -45, f, 2);
 		end
-		
-		drawFromVector(pumpernick.up, vectr.v2(pumpernick.x, pumpernick.y), pumpernick.dir, pumpernick.sprites.body, -45, f, 2);
 		drawFromVector(pumpernick.up, eyepos, pumpernick.dir, pumpernick.sprites.eyelid, -45, (f-1)*4 + 1 + (math.floor(pumpernick.eye.timer)), 8);
 	end
 end
@@ -660,19 +683,30 @@ function bossAPI.onTick()
 			end
 			pumpernick.spincounter = 0;
 		end
+	elseif(pumpernick.rocket) then
+		pumpernick.rocketcounter = pumpernick.rocketcounter + 1;
+		if(pumpernick.rocketcounter > 10/pumpernick.rocketspeed) then
+			pumpernick.rocketframe = pumpernick.rocketframe+1;
+			if(pumpernick.rocketframe > 5) then
+				pumpernick.rocketframe = 2;
+			end
+			pumpernick.rocketcounter = 0;
+		end
 	else
 		pumpernick.spinframe = 0;
+		pumpernick.rocketframe = 0;
 	end
 	
 	if(DEBUG and pumpernick.hitboxActive) then
 		pumpernick.hitbox:Draw();
 	end
 	
-	if(pumpernick.hitboxActive and player:mem(0x13E, FIELD_WORD) == 0 and player:mem(0x122, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
-		colliders.bounceResponse(player);
-		if(pumpernick.eye.state == EYE_OPEN and pumpernick.eye.timer == 0) then
-			damage(1);
-		end
+	if(pumpernick.hitboxActive) then
+		doBounce(function() 
+					if(pumpernick.eye.state == EYE_OPEN and pumpernick.eye.timer == 0) then
+						damage(1);
+					end
+				end);
 	end
 	
 	if(iframes > 0) then
@@ -914,6 +948,7 @@ local function setPhase(phase, args)
 	local _,c = eventu.run(phase, args)
 	current_phase = c;
 end
+
 
 local function phase_pogo()
 	pumpernick.up = vectr.up2;
@@ -1159,19 +1194,24 @@ local function phase_pendulum()
 			inv = inv-1;
 		end
 		
-		if(player:mem(0x13E, FIELD_WORD) == 0 and player:mem(0x122, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
-			colliders.bounceResponse(player);
-			inv = 8;
-			hits = hits+1;
-			legltarget = legltarget - 32;
-			legrtarget = legrtarget + 32;
-			if(hits >= 3) then
-				fall = true;
-				break;
-			end
-		elseif(inv <= 0 and colliders.collide(player, pumpernick.hitbox)) then
+		local breaker = false;
+		if(not doBounce(
+			function()
+				inv = 8;
+				hits = hits+1;
+				legltarget = legltarget - 32;
+				legrtarget = legrtarget + 32;
+				if(hits >= 3) then
+					fall = true;
+					breaker = true;
+				end
+			end)
+		and inv <= 0 and colliders.collide(player, pumpernick.hitbox)) then
 			player:harm();
 		end
+		if(breaker) then 
+			break 
+		end;
 		
 		if(t >= swingtime) then
 			if(swingspd.y < -1.7) then
@@ -1530,6 +1570,8 @@ local function phase_spin()
 		if((pumpernick.x < Zero.x+64 and v < 0) or (pumpernick.x > Zero.x+800-64 and v > 0)) then
 			dir = -dir;
 			v = -v;
+			Audio.playSFX(37);
+			Audio.playSFX(9);
 		end
 		
 		whirl.x = pumpernick.x;
@@ -1544,15 +1586,18 @@ local function phase_spin()
 		end
 		
 		if(t < spintime-64) then
-			if(player:mem(0x13E, FIELD_WORD) == 0 and player:mem(0x122, FIELD_WORD) == 0 and player.y + player.height < GROUNDBODY+8 and colliders.bounce(player, pumpernick.hitbox)) then
-				colliders.bounceResponse(player);
-				inv = 8;
-				if((px > pumpernick.x and v > 0) or (px > pumpernick.x and v < 0)) then
-					playerMomentum = playerMomentum-v;
-				else
-					playerMomentum = playerMomentum+v;
-				end
-			elseif(inv <= 0 and colliders.collide(player, pumpernick.hitbox)) then
+			local b = false;
+			if(player.y + player.height < GROUNDBODY+8) then
+				b = doBounce(function() 
+								inv = 8;
+								if((px > pumpernick.x and v > 0) or (px > pumpernick.x and v < 0)) then
+									playerMomentum = playerMomentum-v;
+								else
+									playerMomentum = playerMomentum+v;
+								end
+							end);
+			end
+			if(not b and inv <= 0 and colliders.collide(player, pumpernick.hitbox)) then
 				player:harm();
 			end
 		else
@@ -1810,10 +1855,7 @@ local function phase_bounce()
 			inv = inv-1;
 		end
 		
-		if(player:mem(0x13E, FIELD_WORD) == 0 and player:mem(0x122, FIELD_WORD) == 0 and colliders.bounce(player, pumpernick.hitbox)) then
-			colliders.bounceResponse(player);
-			inv = 32;
-		elseif(inv <= 0 and colliders.collide(player, pumpernick.hitbox)) then
+		if(not doBounce(function() inv=32 end) and inv <= 0 and colliders.collide(player, pumpernick.hitbox)) then
 			player:harm();
 		end
 		
@@ -1844,6 +1886,101 @@ local function phase_bounce()
 	setPhase();
 end
 
+local function phase_rocket()
+	pumpernick.up = vectr.up2;
+	abortBodyMove();
+	
+	pumpernick.rocket = true;
+	pumpernick.rocketspeed = 1;
+	
+	moveBody(128, pumpernick.x, pumpernick.y-192)
+	waitForBody();
+	
+	waitAndDo(64, function() pumpernick.eye.state = EYE_CLOSED; end);
+
+	local rockettime = 512;
+	local t = 0;
+	local v = vectr.zero2;
+	local d = -vectr.up2;
+	local a = 0.2;
+	local maxspd = 12;
+	pumpernick.hitboxActive = false;
+	while(t <= rockettime) do
+		pumpernick.x, pumpernick.y = pumpernick.x+v.x, pumpernick.y+v.y
+		
+		v = v+d*a;
+		
+		if(v.sqrlength > maxspd*maxspd) then
+			v = v:normalise()*maxspd;
+		end
+		
+		local bnc = false;
+		if((pumpernick.x < Zero.x+64 and v.x < 0) or (pumpernick.x > Zero.x+800-64 and v.x > 0)) then
+			v.x = -v.x;
+			bnc = true;
+		end
+		if((pumpernick.y < Zero.y+64 and v.y < 0) or (pumpernick.y > Zero.y+568-64 and v.y > 0)) then
+			v.y = -v.y;
+			bnc = true;
+		end
+		
+		if(bnc) then
+			Defines.earthquake=4;
+			Audio.playSFX(37);
+		end
+		
+		local tg = vectr.v2(player.x + player.width*0.5, player.y+player.height*0.25);
+		local dp = tg-vectr.v2(pumpernick.x, pumpernick.y);
+		local ta = math.atan2(dp.y, dp.x) - math.atan2(d.y,d.x); --[[math.atan2(1, 0)]]
+		while (ta < -math.pi) do
+			ta = ta+2*math.pi;
+		end
+		while (ta > math.pi) do
+			ta = ta-2*math.pi;
+		end
+		
+		local inv = 0;
+		if(not doBounce(function() inv = 32 end) and inv <= 0 and v.sqrlength > 1 and colliders.collide(player, pumpernick.hitbox)) then
+			player:harm();
+		end
+		
+		d=d:rotate(ta);
+		pumpernick.up = math.lerp(pumpernick.up, -v:normalise(), 0.5):normalise();
+		
+		if(t > rockettime-64) then
+			local dt = ((rockettime-t)/64);
+			v = v*dt*dt;
+			dt = 1-dt;
+			pumpernick.up = math.lerp(pumpernick.up, vectr.up2, dt):normalise();
+		end
+	
+		t = t+1;
+		eventu.waitFrames(0);
+	end
+	
+	pumpernick.hitboxActive = true;
+	
+	pumpernick.eye.state = EYE_OPEN;
+	moveBody(128, pumpernick.x, GROUNDBODY);
+	waitForBody();
+	
+	pumpernick.rocketspeed = 0;
+	pumpernick.rocketframe = 0;
+	eventu.waitFrames(16);
+	pumpernick.rocket = false;
+	
+	pumpernick.left.x,pumpernick.left.y,pumpernick.right.x,pumpernick.right.y = getLegPos();
+	
+	local px = player.x + player.width*0.5;
+	if((px < pumpernick.x and pumpernick.dir == 1) or (px > pumpernick.x and pumpernick.dir == -1)) then
+		pumpernick.turn();
+	end
+	
+	eventu.waitFrames(16);
+	
+	setPhase();
+end
+
 function events.intro()
 	moveBody(lunatime.toTicks(6), pumpernick.x, pumpernick.y - 400);
 	
@@ -1855,6 +1992,7 @@ function events.intro()
 	moveBody(lunatime.toTicks(1), pumpernick.x, pumpernick.y + 400);
 	
 	waitForBody();
+	eventu.waitFrames(64);
 	message.showMessageBox {target=pumpernick.msg, text="Here I come!<pause 90>", closeWith = "auto", keepOnscreen = true}
 	setPhase(phase_pogo);
 	waitPhase();
@@ -1882,6 +2020,10 @@ function events.intro()
 	setPhase(phase_bounce);
 	waitPhase();
 	eventu.waitFrames(64);
+	message.showMessageBox {target=pumpernick.msg, text="Mars ain't the kind of place to raise your kids.<pause 90>", closeWith = "auto", keepOnscreen = true}
+	setPhase(phase_rocket);
+	waitPhase();
+	eventu.waitFrames(64);
 	local phases;
 	while(true) do
 		setPhase(phase_pendulum);
@@ -1889,7 +2031,7 @@ function events.intro()
 		eventu.waitFrames(64);
 		for i = 1,2 do
 			if(phases == nil or #phases == 0) then
-				phases = {phase_pogo, phase_noodlewalk, phase_spin, phase_slam, phase_bounce};
+				phases = {phase_pogo, phase_noodlewalk, phase_spin, phase_slam, phase_bounce, phase_rocket};
 			end
 			local i = rng.randomInt(1,#phases);
 			local p = phases[i];
