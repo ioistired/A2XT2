@@ -304,6 +304,8 @@ local flash = 0;
 
 local audio = {};
 audio.hurt = Misc.resolveFile("pump_hurt.ogg")
+audio.spin = Misc.resolveFile("pump_spin.ogg")
+audio.rocket = Misc.resolveFile("pump_rocket.ogg")
 
 
 local events = {};
@@ -1581,6 +1583,10 @@ local function phase_spin()
 		dustTrail.y = pumpernick.y+16;
 		dustTrail:setParam("rate", math.abs(v)/32);
 		
+		if(pumpernick.spinframe == 2 and pumpernick.spincounter == 0) then
+			Sound(audio.spin, math.lerp(0.5,1,whirl.alpha));
+		end
+		
 		if(inv > 0) then
 			inv = inv-1;
 		end
@@ -1893,8 +1899,17 @@ local function phase_rocket()
 	pumpernick.rocket = true;
 	pumpernick.rocketspeed = 1;
 	
+	local rocketSound = audioMaster.Create{	sound = audio.rocket, 
+											volume = 0, 
+											x = Zero.x+400, y = Zero.y+300, 
+											falloffRadius = 800, falloffType = audioMaster.FALLOFF_NONE
+										  };
+	
 	moveBody(128, pumpernick.x, pumpernick.y-192)
-	waitForBody();
+	
+	waitAndDo(128, function() 
+						rocketSound.volume = rocketSound.volume+(1/128);
+					end);
 	
 	waitAndDo(64, function() pumpernick.eye.state = EYE_CLOSED; end);
 
@@ -1962,7 +1977,12 @@ local function phase_rocket()
 	
 	pumpernick.eye.state = EYE_OPEN;
 	moveBody(128, pumpernick.x, GROUNDBODY);
-	waitForBody();
+	
+	waitAndDo(128, function() 
+						rocketSound.volume = rocketSound.volume-(1/128);
+					end);
+					
+	rocketSound:Destroy();
 	
 	pumpernick.rocketspeed = 0;
 	pumpernick.rocketframe = 0;
