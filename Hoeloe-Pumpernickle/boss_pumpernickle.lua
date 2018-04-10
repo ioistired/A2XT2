@@ -1730,7 +1730,10 @@ local function phase_bounce()
 	local start = vectr.v2(pumpernick.x, pumpernick.y);
 	local target = Zero.x+400+side*400-side*32;
 	
-	local jumptime = 32;
+	local startl = vectr.v2(pumpernick.left.x, pumpernick.left.y)
+	local startr = vectr.v2(pumpernick.right.x, pumpernick.right.y)
+	
+	local jumptime = 64;
 	local t = 0;
 	while(t <= jumptime) do
 		dt = t/jumptime;
@@ -1740,10 +1743,11 @@ local function phase_bounce()
 		pumpernick.x,pumpernick.y = math.lerp(start.x, target, dt*dt*dt*dt),math.lerp(start.y, h, math.sqrt(dt));
 		pumpernick.up = vectr.up2:rotate(-side*90*dt);
 		
-		local lx,ly,rx,ry = getLegPos();
-		pumpernick.left.x, pumpernick.left.y = math.lerp(pumpernick.left.x, lx, dt), math.lerp(pumpernick.left.y, ly, dt)
-		pumpernick.right.x, pumpernick.right.y = math.lerp(pumpernick.right.x, rx, dt), math.lerp(pumpernick.right.y, ry, dt)
-		pumpernick.left.up, pumpernick.right.up = pumpernick.up, pumpernick.up;
+		local lx,ly,rx,ry = getLegPos(target, h, vectr.right2*side);
+		local ldt = math.clamp(dt*2,0,1);
+		pumpernick.left.x, pumpernick.left.y = math.lerp(startl.x, lx, ldt*ldt), math.lerp(startl.y, ly, ldt)
+		pumpernick.right.x, pumpernick.right.y = math.lerp(startr.x, rx, ldt*ldt), math.lerp(startr.y, ry, ldt)
+		pumpernick.left.up, pumpernick.right.up = vectr.up2:rotate(-side*90*ldt), vectr.up2:rotate(-side*90*ldt);
 		
 		t=t+1;
 		eventu.waitFrames(0);
