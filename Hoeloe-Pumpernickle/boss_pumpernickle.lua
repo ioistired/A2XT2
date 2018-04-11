@@ -417,9 +417,49 @@ function bossAPI.Begin(fromCheckpoint)
 	end
 end
 
+local function BG_ragtime(target)
+
+end
+
+local intermission = Graphics.loadImage(Misc.resolveFile("BG_intermission.png"))
+local function BG_toothpaste(target)
+	local r = Audio.MusicClock();
+	if(r > 8.5 and r < 12.5) then
+		Graphics.drawScreen{target=target, texture=intermission}
+	end
+end
+
+local catplanet = particles.Emitter(Zero.x+400, Zero.y+300, Misc.resolveFile("p_catplanet.ini"));
+catplanet.enabled = false;
+local function BG_catplanet(target)
+	catplanet.x = Zero.x+400;
+	catplanet.y = Zero.y+300;
+	local r = Audio.MusicClock();
+	catplanet.enabled = r <= 6;
+	local d = r<7.25;
+	
+	r = (math.clamp(r,0,6)/6)
+	r = (math.sin(2*math.pi*(r-0.25))+1)*0.5
+	
+	if(d) then
+		catplanet:setParam("rate", math.lerp(5,100,r*r*r))
+		catplanet:Draw(-70,true,target);
+	else
+		catplanet:KillParticles();
+	end
+end
+
+local function BG_geddan(target)
+
+end
+
 local musicList = {};
 local audiotimer = 0;
 local audioTimes = {68.672, 35.335, 13.154, 14.401, 85.829}
+
+local currentMusicBG;
+
+local musicBackgrounds = {nil, BG_ragtime, BG_toothpaste, BG_catplanet, BG_geddan}
 
 local function shuffleMusic()
 	local t = table.ishuffle{2,3,4};
@@ -437,6 +477,7 @@ local function progressMusic()
 	Audio.MusicVolume(128);
 	Audio.MusicOpen(Misc.resolveFile("entropyelemental_"..n..".ogg"));
 	Audio.MusicPlay();
+	currentMusicBG = musicBackgrounds[n];
 	audiotimer = audioTimes[n];
 end
 
@@ -763,6 +804,7 @@ function bossAPI.onTick()
 end
 
 local glasstarget = Graphics.CaptureBuffer(800,600);
+local screentarget = Graphics.CaptureBuffer(800,600);
 
 local function drawReflection()
 
@@ -803,6 +845,12 @@ local function DrawBG()
 	--drawReflection();
 	glasstarget:captureAt(0);
 	
+	screentarget:clear(0);
+	if(currentMusicBG ~= nil) then
+		currentMusicBG(screentarget);
+	end
+	
+	Graphics.drawBox{texture=screentarget,x=Zero.x,y=Zero.y,priority=-70,sceneCoords=true,w=800,h=600, color = {1,1,1,0.75}};
 	Graphics.drawBox{texture=glasstarget,x=Zero.x+30,y=Zero.y,priority=-70,sceneCoords=true,w=740,h=580, color = {0.9,0.95,1,0.2}};
 	Graphics.drawImageToSceneWP(bgwindow,Zero.x,Zero.y,-70);
 end
@@ -969,6 +1017,7 @@ local function phase_wounded()
 	while(true) do
 		pumpernick.y = py - 2*math.sin(t/40)*math.sin(t/40);
 		pumpernick.left.x,pumpernick.left.y,pumpernick.right.x,pumpernick.right.y = getLegPos(pumpernick.x, GROUNDBODY, vectr.up2);
+		pumpernick.left.up, pumpernick.right.up = vectr.up2, vectr.up2;
 		t = t+1;
 		eventu.waitFrames(0);
 	end
