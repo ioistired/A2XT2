@@ -80,12 +80,12 @@ local aerial_atk_stall = false		-- Should the player stall in the air when swipi
 -- Attack configuration ----------------------------------------------------------------------
 local DURATION = {					-- Frame durations for attack state
 	[ATKSTATE.CHARGING] =		70,	-- Time required to fully charge a lunge
-	[ATKSTATE.STALLED] = 		45,	-- Time after a stall-and-fall during which input is blocked
-	[ATKSTATE.PAUSE1] =			20,	-- Pause length between swipes
-	[ATKSTATE.PAUSE2] =			20, 
-	[ATKSTATE.COOLDOWN] =		20,	-- Time required after attacking before you can attack again
-	[ATKSTATE.SWIPE1] =			3,	-- (x3)
-	[ATKSTATE.SWIPE2] =			3,	-- (x3)
+	[ATKSTATE.STALLED] = 		30,	-- Time after a stall-and-fall during which input is blocked
+	[ATKSTATE.PAUSE1] =			12,	-- Pause length between swipes
+	[ATKSTATE.PAUSE2] =			12, 
+	[ATKSTATE.COOLDOWN] =		3,	-- Time required after attacking before you can attack again
+	[ATKSTATE.SWIPE1] =			2,	-- (x3)
+	[ATKSTATE.SWIPE2] =			2,	-- (x3)
 	[ATKSTATE.LUNGE_COMBO] =	30,	-- Time required to perform a full combo lunge
 	[ATKSTATE.LUNGE_CHARGE] =	40	-- Time required to perform a full charged lunge
 }
@@ -521,7 +521,8 @@ local function AttackPhysics() -------------------------------------------------
 	-- Boost player forward slightly when swiping in the air
 	if airborne() then
 		if attack_state == ATKSTATE.SWIPE1 or attack_state == ATKSTATE.SWIPE2 then
-			player.speedX = player:mem(0x106, FIELD_WORD)*1
+			--player.speedX = player:mem(0x106, FIELD_WORD)*1
+			player.speedY = math.min(player.speedY, 1)
 		end
 	end
 	
@@ -535,6 +536,9 @@ local function AttackPhysics() -------------------------------------------------
 		-- Set parameters
 		if attack_state == ATKSTATE.LUNGE_COMBO then
 			t = attack_timer - LUNGELAG_COMBO
+			if(attack_timer > tmax) then
+				player.speedY = 0
+			end
 			xmax = LUNGEDIST_COMBO
 		elseif attack_state == ATKSTATE.LUNGE_CHARGE then
 			t = attack_timer - LUNGELAG_CHARGE
