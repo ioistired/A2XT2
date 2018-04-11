@@ -968,6 +968,7 @@ local function phase_wounded()
 	local t = 0;
 	while(true) do
 		pumpernick.y = py - 2*math.sin(t/40)*math.sin(t/40);
+		pumpernick.left.x,pumpernick.left.y,pumpernick.right.x,pumpernick.right.y = getLegPos(pumpernick.x, GROUNDBODY, vectr.up2);
 		t = t+1;
 		eventu.waitFrames(0);
 	end
@@ -1611,7 +1612,7 @@ local function phase_spin()
 		v = math.clamp(v+dir*a, -maxspd, maxspd);
 		
 		pumpernick.x = pumpernick.x + v;
-		if((pumpernick.x < Zero.x+64 and v < 0) or (pumpernick.x > Zero.x+800-64 and v > 0)) then
+		if((pumpernick.x < Zero.x+32 and v < 0) or (pumpernick.x > Zero.x+800-32 and v > 0)) then
 			dir = -dir;
 			v = -v;
 			Audio.playSFX(37);
@@ -2122,19 +2123,21 @@ function events.finish()
 	pumpernick.hitboxActive = false;
 	pumpernick.left.hitboxActive = false;
 	pumpernick.right.hitboxActive = false;
-	
-	pumpernick.x = Zero.x+800-128;
-	pumpernick.y = GROUNDBODY;
-	pumpernick.up = vectr.up2;
-	pumpernick.left.x,pumpernick.left.y,pumpernick.right.x,pumpernick.right.y = getLegPos();
-	pumpernick.left.up,pumpernick.right.up = vectr.up2,vectr.up2;
+	hurt = false;
 	
 	if(pumpernick.dir == 1) then
 		pumpernick.flip();
 	end
 	
+	pumpernick.x = Zero.x+800-128;
+	pumpernick.y = GROUNDBODY;
+	pumpernick.up = vectr.up2;
+	
 	setPhase(phase_wounded);
 	eventu.abort(mainloop);
+	
+	pumpernick.left.x,pumpernick.left.y,pumpernick.right.x,pumpernick.right.y = getLegPos(pumpernick.x, GROUNDBODY, vectr.up2);
+	pumpernick.left.up,pumpernick.right.up = vectr.up2,vectr.up2;
 	
 	player.speedX = 1;
 	player.speedY = 0;
