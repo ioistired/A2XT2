@@ -5,6 +5,15 @@ local rng = API.load("rng");
 
 local Q_L = Graphics.loadImage(Misc.resolveFile("q.png"));
 local Q_S = Graphics.loadImage(Misc.resolveFile("q_s.png"));
+
+local Q_Star = Graphics.loadImage(Misc.resolveFile("Qstar.png"));
+
+local qheads = {}
+for i=1,2 do
+	qheads[i] = Graphics.loadImage(Misc.resolveFile("q-"..i..".png"))
+end
+local qdeath = Graphics.loadImage(Misc.resolveFile("death-q.png"));
+
 local paused = false;
 local Qdone = false;
 
@@ -37,10 +46,25 @@ local floorfall = false;
 
 local spikesTimer;
 
+local function setPlayerQ(isQhead)
+	if(isQhead) then
+		for i=1,2 do
+			Graphics.sprites.mario[i].img = qheads[i];
+		end
+		Graphics.sprites.effect[3].img = qdeath;
+	else
+		Graphics.sprites.effect[3].img = nil;
+		Player.setCostume(CHARACTER_MARIO, nil, true)
+		Player.setCostume(CHARACTER_MARIO, "Demo-Centered", true)
+	end
+end
+
 function onStart()
 	noisechunk = Audio.SfxOpen("noise.ogg");
 	Audio.SfxVolume(17,0);
 	noisechannel = Audio.SfxPlayCh(17, noisechunk, -1);
+	
+	Graphics.sprites.npc[97].img = Q_Star;
 	
 	eventu.setTimer(noiseTime/128,
 	function()
@@ -64,17 +88,30 @@ function onStart()
 		player.y = -200160 - player:mem(0xD0,FIELD_DFLOAT) + 32;
 		player:mem(0x15A,FIELD_WORD,0);
 		Player.setCostume(CHARACTER_MARIO, "Demo-Centered", true)
+		
+		if(player.reservePowerup > 0) then
+			boxCache = player.reservePowerup
+			player.reservePowerup = 0;
+		end
+		if(player.powerup > PLAYER_BIG) then
+			powerupCache = player.powerup;
+			player.powerup = PLAYER_BIG;
+			player:mem(0x16C, FIELD_BOOL, false);
+			player:mem(0x16E, FIELD_BOOL, false);
+			player:mem(0x120, FIELD_WORD, 0);
+		end
 	end);
 end
 
 function onLoadSection2()
-	player:mem(0xF0,FIELD_WORD,1);
+	setPlayerQ(false);
 	MusicStopFadeOut(1);
 	eventu.setTimer(0.5,function() triggerEvent("Serac1"); end);
 end
 
 function onLoadSection3()
 	Qs = {};
+	Graphics.sprites.npc[97].img = nil;
 end
 
 local startTrail = -190592;
@@ -233,7 +270,7 @@ local function updateSplitQs()
 end
 
 
-function updateFallingQs()
+local function updateFallingQs()
 	for _,v in ipairs(NPC.get(79,player.section)) do
 		local w = pnpc.wrap(v)
 		if(w.data.shake == nil or w.data.shake == 0) then
@@ -274,34 +311,25 @@ function updateFallingQs()
 	end
 end
 
-function updateSpeech()
+local function updateSpeech()
 	if(player.section ~= 1) then return; end;
 	
-	if(player.x > -179800 + speechPos*600) then
+	if(player.x > -179700 + speechPos*600) then
 		triggerEvent("Speech"..speechPos);
 		speechPos = speechPos + 1;
 	end
 end
 
+function onExitLevel()
+	if(boxCache > 0) then
+		player.reservePowerup = boxCache;
+	end
+	if(powerupCache > player.powerup) then
+		player.powerup = powerupCache;
+	end
+end
+
 function onTick()
-	if(winState == 0 and player:mem(0x158,FIELD_WORD) > 0) then
-		boxCache = player:mem(0x158,FIELD_WORD);
-		player:mem(0x158,FIELD_WORD,0);
-	end
-	if(player.powerup > PLAYER_BIG and winState() == 0) then
-		if(player.powerup > powerupCache) then
-			powerupCache = player.powerup;
-		end
-		player.powerup = PLAYER_BIG;
-	end
-	
-	if(winState() > 0) then
-			if(player.powerup < powerupCache) then
-				 player.powerup = powerupCache;
-			end
-			player:mem(0x158,FIELD_WORD,boxCache);
-	end
-	
 	if(spikesTimer ~= nil) then
 		if(player:mem(0x122,FIELD_WORD) == 0 or player:mem(0x122,FIELD_WORD) == 7 or player:mem(0x122,FIELD_WORD) == 500) then
 			eventu.resumeTimer(spikesTimer);
@@ -317,7 +345,7 @@ function onTick()
 			end
 			first = false;
 	
-			for _,v in pairs(findnpcs(94,player.section)) do
+			for _,v in ipairs(NPC.get(94,player.section)) do
 				if(v.x > -195200) then -- and v.x < -193600) then
 					table.insert(qHeads,pnpc.wrap(v));
 				end
@@ -339,49 +367,50 @@ function onTick()
 	
 	updateSpeech();
 	
-	for _,v in ipairs(NPC.get(97,player.section)) do
-		if(not levelend and colliders.speedCollide(player,v)) then
-			triggerEvent("FinalSpeech");
-			levelend = true;
+	for _,v in ipairs(NPC.get({97, 89, 94},player.section)) do
+		--Star
+		if(v.id == 97 and player.section == 1) then
+			if(not levelend and colliders.speedCollide(player,v)) then
+				triggerEvent("FinalSpeech");
+				levelend = true;
+			end
+		--RinkQ
+		elseif(v.id == 89) then
+			local b,s = colliders.bounce(player,v);
+			if(b and s) then
+				colliders.bounceResponse(player);
+			elseif(colliders.collide(player,v)) then
+				player:harm();
+			end
+			if(v.speedY == 0) then
+				v.speedY = 1.5;
+			end
+			local speed = 1;
+			if(v.collidesBlockBottom) then
+				v.speedY = -speed;
+			end
+			if(v.collidesBlockLeft) then
+				v.direction = -v.direction
+				v.speedX = speed;
+			end
+			if(v.collidesBlockUp) then
+				v.speedY = speed;
+			end
+			if(v.collidesBlockRight) then
+				v.direction = -v.direction
+				v.speedX = -speed;
+			end
+		--Q-head
+		elseif(v.id == 94) then
+			if(player.x < v.x) then
+				v.direction = DIR_LEFT;
+			elseif(player.x > v.x) then
+				v.direction = DIR_RIGHT;
+			end
 		end
 	end
 	
-	
-	for _,v in ipairs(NPC.get(89,player.section)) do
-		local b,s = colliders.bounce(player,v);
-		if(b and s) then
-			colliders.bounceResponse(player);
-		elseif(colliders.collide(player,v)) then
-			player:harm();
-		end
-		if(v.speedY == 0) then
-			v.speedY = 1.5;
-		end
-		local speed = 1;
-		if(v:mem(0x0A, FIELD_WORD) == 2) then
-			v.speedY = -speed;
-		end
-		if(v:mem(0x0C, FIELD_WORD) == 2) then
-			v.direction = -v.direction
-			v.speedX = speed;
-		end
-		if(v:mem(0x0E, FIELD_WORD) == 2) then
-			v.speedY = speed;
-		end
-		if(v:mem(0x10, FIELD_WORD) == 2) then
-			v.direction = -v.direction
-			v.speedX = -speed;
-		end
-	end
-	
-	for _,v in ipairs(NPC.get(94,player.section)) do
-		if(player.x < v.x) then
-			v.direction = DIR_LEFT;
-		elseif(player.x > v.x) then
-			v.direction = DIR_RIGHT;
-		end
-	end
-	
+	--Initial Q
 	if(player.section == 0 and player.x > -199200 and not paused and not Qdone) then
 		paused = true;
 		Misc.pause();
@@ -398,9 +427,6 @@ function onTick()
 	end
 	
 	if(player.section == 3) then
-		for _,v in ipairs(NPC.get(97,3)) do
-			v:mem(0xE2,FIELD_WORD,196);
-		end
 		if(not floorfall) then
 			eventu.setTimer(1, function()
 				Defines.earthquake = 16;
@@ -422,8 +448,10 @@ end
 function onEvent(name)
 	if(name == "BecomeQ") then
 		if(not firstQ) then
-			player:mem(0xF0,FIELD_WORD,2);
-			eventu.setTimer(1, function() player:mem(0xF0,FIELD_WORD,1); end);
+			eventu.setFrameTimer(64, function() 
+										setPlayerQ(true);
+										eventu.setTimer(1, function() setPlayerQ(false); end);
+									 end);
 			firstQ = true;
 		end
 		qHeads[6].msg = string.gsub(qHeads[6].msg.str,"%a","q");
@@ -453,28 +481,28 @@ function onEvent(name)
 	end
 	
 	if(name == "Speech5") then
-			player:mem(0xF0,FIELD_WORD,2);
-			eventu.setTimer(1, function() player:mem(0xF0,FIELD_WORD,1); end);
+			setPlayerQ(true);
+			eventu.setTimer(1, function() setPlayerQ(false); end);
 	end
 	
 	if(name == "Speech7") then
-			player:mem(0xF0,FIELD_WORD,2);
-			eventu.setTimer(0.75, function() player:mem(0xF0,FIELD_WORD,1); end);
-			eventu.setTimer(1.25, function() player:mem(0xF0,FIELD_WORD,2); end);
-			eventu.setTimer(1.5, function() player:mem(0xF0,FIELD_WORD,1); end);
+			setPlayerQ(true);
+			eventu.setTimer(0.75, function() setPlayerQ(false); end);
+			eventu.setTimer(1.25, function() setPlayerQ(true); end);
+			eventu.setTimer(1.5, function() setPlayerQ(false); end);
 	end
 	
 	if(name == "Speech9") then
-			player:mem(0xF0,FIELD_WORD,2);
-			eventu.setTimer(0.5, function() player:mem(0xF0,FIELD_WORD,1); end);
-			eventu.setTimer(0.75, function() player:mem(0xF0,FIELD_WORD,2); end);
-			eventu.setTimer(1, function() player:mem(0xF0,FIELD_WORD,1); end);
-			eventu.setTimer(1.15, function() player:mem(0xF0,FIELD_WORD,2); end);
-			eventu.setTimer(1.25, function() player:mem(0xF0,FIELD_WORD,1); end);
+			setPlayerQ(true);
+			eventu.setTimer(0.5, function() setPlayerQ(false); end);
+			eventu.setTimer(0.75, function() setPlayerQ(true); end);
+			eventu.setTimer(1, function() setPlayerQ(false); end);
+			eventu.setTimer(1.15, function() setPlayerQ(true); end);
+			eventu.setTimer(1.25, function() setPlayerQ(false); end);
 	end
 	
 	if(name == "Speech10") then
-			eventu.setTimer(1, function() player:mem(0xF0,FIELD_WORD,2); end);
+			eventu.setTimer(1, function() setPlayerQ(true); end);
 	end
 	
 	if(switchhits < 4) then
@@ -524,7 +552,7 @@ function onEvent(name)
 	end
 	
 	if(name=="LevelEnd1") then
-		eventu.setTimer(4, function()
+		eventu.setFrameTimer(lunatime.toTicks(4), function()
 			winState(1);
 		end);
 	end

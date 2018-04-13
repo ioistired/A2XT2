@@ -1,5 +1,6 @@
-jumphurt=1
-nogravity=1
+nogravity=true
 frames=4
 framespeed=12
 framestyle=0
+jumphurt=false
+spinjumpsafe=false
