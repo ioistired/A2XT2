@@ -1,0 +1,5 @@
+jumphurt=1
+nogravity=1
+frames=4
+framespeed=12
+framestyle=0
