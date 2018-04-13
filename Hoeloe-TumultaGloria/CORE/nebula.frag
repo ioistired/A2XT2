@@ -89,7 +89,7 @@ void main()
 	
 	
 	vec3 backCol2 = vec3(0);
-	for (int r=0; r<volsteps; r++) 
+	for (float r=0; r<volsteps; r++) 
 	{
 		vec3 p3=(from+(s3+zoffset)*dir )* (1.9/zoom);
 		
@@ -101,7 +101,7 @@ void main()
 		v+=fade;
 		
 		// fade out samples as they approach the camera and fade in samples as they approach from the distance
-		fade *= mix(1.0 - sampleShift, 1.0, clamp(r,0,1)) * mix(sampleShift, 1.0, 1-clamp(r-(volsteps-2),0,1));
+		fade *= mix(1.0 - sampleShift, 1.0, clamp(r,0.0,1.0)) * mix(sampleShift, 1.0, 1-clamp(r-(volsteps-2),0.0,1.0));
 		backCol2 += mix(0.4, 1.0, 1.0) * vec3(0.20 * t3 * t3 * t3, 0.4 * t3 * t3, t3 * 0.7) * fade;
 
 		s3 += stepsize;
