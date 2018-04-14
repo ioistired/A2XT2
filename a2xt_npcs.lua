@@ -17,7 +17,7 @@ if(not isOverworld) then
 
 	local starman = API.load("starman")
 	if(isTownLevel()) then
-		starman.start = function(p) p.reservePowerup = starman.id; Audio.playSFX(12); end;
+		starman.start = function(p) p = p or player; p.reservePowerup = starman.id; Audio.playSFX(12); end;
 		starman.startTheStar = starman.start;
 
 		local localstarman = {}

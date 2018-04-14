@@ -67,6 +67,7 @@ local smoke = Graphics.loadImage(Misc.resolveFile("puff.png"));
 local hand = Graphics.loadImage(Misc.resolveFile("hand.png"));
 
 local noise = Graphics.loadImage(Misc.resolveFile("noise.png"));
+local noise2 = Graphics.loadImage(Misc.resolveFile("noise2.png"));
 
 local anges = Graphics.loadImage(Misc.resolveFile("anges.png"));
 
@@ -2772,7 +2773,8 @@ local function DrawBG()
 											gSpeedMult = t,
 											gColBase = {gradcol.r,gradcol.g,gradcol.b},
 											gColAdd = {0.3,0.4,0.6},
-											gBossPos = {x-Camera.get()[1].x,y-Camera.get()[1].y}
+											gBossPos = {x-Camera.get()[1].x,y-Camera.get()[1].y},
+											noise = noise2
 										 }, priority = -65};
 	end
 end

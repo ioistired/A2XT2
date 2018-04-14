@@ -1993,6 +1993,7 @@ local function phase_bounce()
 	setPhase();
 end
 
+local rocketSound;
 local function phase_rocket()
 	pumpernick.up = vectr.up2;
 	abortBodyMove();
@@ -2000,7 +2001,7 @@ local function phase_rocket()
 	pumpernick.rocket = true;
 	pumpernick.rocketspeed = 1;
 	
-	local rocketSound = audioMaster.Create{	sound = audio.rocket, 
+	rocketSound = audioMaster.Create{	sound = audio.rocket, 
 											volume = 0, 
 											x = Zero.x+400, y = Zero.y+300, 
 											falloffRadius = 800, falloffType = audioMaster.FALLOFF_NONE
@@ -2084,6 +2085,7 @@ local function phase_rocket()
 					end);
 					
 	rocketSound:Destroy();
+	rocketSound = nil;
 	
 	pumpernick.rocketspeed = 0;
 	pumpernick.rocketframe = 0;
@@ -2181,6 +2183,12 @@ function events.finish()
 	pumpernick.x = Zero.x+800-128;
 	pumpernick.y = GROUNDBODY;
 	pumpernick.up = vectr.up2;
+	
+	if(rocketSound) then
+		rocketSound:Destroy();
+	end
+	pumpernick.spin = false;
+	pumpernick.rocket = false;
 	
 	setPhase(phase_wounded);
 	eventu.abort(mainloop);
