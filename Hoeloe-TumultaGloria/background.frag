@@ -10,7 +10,7 @@ uniform vec3	  gColAdd;
    
 #define gSpeed 1
 #define StarQuality 7
-#define DustQuality 0.25
+#define DustQuality 0.3125
 
 mat2 GetRotation()
 {
@@ -67,7 +67,7 @@ vec3 GenDust(vec2 uv)
     vec3 init = vec3 (0.25 + sin(time * 0.001) * 0.4, 0.25, floor(time) * 0.0008);
     
     float intensity = mix(1.0, 10.0, 1.0 - DustQuality);
-	for (float s = 0; s < DustQuality; s += .01) 
+	for (float s = 0; s < DustQuality; s += .0125) 
 	{
 		vec3 p = init + s * vec3(uv, 0.143);
 		p.z = mod(p.z, 2.0);
@@ -76,7 +76,7 @@ vec3 GenDust(vec2 uv)
 			p = abs(p * 2.04) / dot(p, p) - 0.75;
 		}
 		
-		v += dot(p,p) * smoothstep(0.0, 0.5, 0.9 - s) * .002;
+		v += dot(p,p) * 1.25 * smoothstep(0.0, 0.5, 0.9 - s) * .002;
 		accum +=  vec3(gColBase.r - s * gColAdd.r, gColBase.g + v * gColAdd.g,  gColBase.b + v * gColAdd.b) * v * 0.013;
 	}
     
