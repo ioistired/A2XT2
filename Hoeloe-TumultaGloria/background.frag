@@ -128,11 +128,22 @@ vec3 bloom(vec3 c)
 	
 }
 
+vec3 Starfield()
+{
+	vec3 accum = GenStarfield(GetUV(gl_FragCoord.xy))*3.0;
+	for(int i = -1; i <= 1; i+=2)
+	{
+		accum += GenStarfield(GetUV(gl_FragCoord.xy + vec2(0,i*0.01))) + GenStarfield(GetUV(gl_FragCoord.xy + vec2(i*0.01, 0)));
+	}
+	return accum*0.2;
+}
+
 void main( )
 {
 	vec2 uv = GetUV(gl_FragCoord.xy);
     vec3 dust = bloom(GenDust(gl_FragCoord.xy, GetRevUV(vec2(0.0)))) * 0.5;
 	vec3 stars = bloom(GenStarfield(uv)) * 0.25;
+	//vec3 stars = bloom(Starfield()) * 0.25;
 	
     vec2 pos = ((gl_FragCoord.xy + 1.0) * 0.5 * iResolution.xy);
     
