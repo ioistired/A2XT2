@@ -8,24 +8,16 @@ uniform vec2	  gBossPos;
 uniform vec3	  gColBase;
 uniform vec3	  gColAdd;
    
-const float gSpeed = 1;     
-const int StarQuality = 5;
-const int DustQuality = 35;
-
-vec2 WarpUV(vec2 buv, vec2 uv, float f)
-{
-    return uv; // Comment this line for black hole effect, its not soo good
-    float d = distance(buv / iResolution.xy, vec2(0.5, 0.5));
-    uv *= 1.0 - pow(0.007, d);
-    return uv;
-}
+#define gSpeed 1
+#define StarQuality 7
+#define DustQuality 0.25
 
 mat2 GetRotation()
 {
     // Reverse the rotation effect
-    float time = iGlobalTime*65;
-    time *= -0.005;
-    return mat2(cos(time), sin(time), -sin(time), cos(time));
+    float cs = cos(-iGlobalTime*0.325);
+    float sn = sin(-iGlobalTime*0.325);
+    return mat2(cs, sn, -sn, cs);
 }
 
 vec2 GetUV(vec2 BaseUV)
@@ -34,22 +26,19 @@ vec2 GetUV(vec2 BaseUV)
     vec2 uv = (BaseUV.xy / iResolution.xy) * 2.0 - 1.0;
     uv.x = (uv.x * iResolution.x / iResolution.y) + sin(time*0.005) * 0.5;
     uv *= GetRotation();
-    uv = WarpUV(BaseUV, uv, 1.5);
     return uv;
 }
 
-vec3 GenStarfield(vec2 BaseUV)
+vec3 GenStarfield(vec2 uv)
 {
-    vec3 r = vec3(GetUV(BaseUV), 1.0);
-    
-    float opac = sin(gSpeed);
+    vec3 r = vec3(uv, 1.0);
     float mspeed = gSpeed * gSpeedMult;
     
     float d = 0.5 * iGlobalTime;
     float s2 = mspeed;
     float s = s2 + 0.1; // add a small offset
     
-    d += d*gSpeed*gSpeedMult*0.96;
+    d += d*mspeed*0.96;
     
     vec3 accum = vec3(0,0,0);
     vec3 spp = r/max(abs(r.x),abs(r.y));
@@ -66,31 +55,29 @@ vec3 GenStarfield(vec2 BaseUV)
 		p += spp;
     }
     
-    return pow(accum, vec3(1.0/2.2))*opac;
+    return pow(accum, vec3(0.454545)) * /*sin(gSpeed)*/0.85; 
 }
 
-vec3 GenDust(vec2 BaseUV)
+vec3 GenDust(vec2 uv)
 {
     float time = iGlobalTime*65;
     
-    float s = 0.0;
     float v = 0.0;
-    vec2 uv = GetUV(BaseUV);
     vec3 accum = vec3(0);
     vec3 init = vec3 (0.25 + sin(time * 0.001) * 0.4, 0.25, floor(time) * 0.0008);
     
-    float intensity = mix(1.0, 10.0, 1.0 - (float(DustQuality)*0.01));
-	for (int r = 0; r < DustQuality; r++) 
+    float intensity = mix(1.0, 10.0, 1.0 - DustQuality);
+	for (float s = 0; s < DustQuality; s += .01) 
 	{
 		vec3 p = init + s * vec3(uv, 0.143);
 		p.z = mod(p.z, 2.0);
 		for (int i=0; i < 10; i++)
-		{			
+		{	
 			p = abs(p * 2.04) / dot(p, p) - 0.75;
-		}		
-		v += length(p * p) * smoothstep(0.0, 0.5, 0.9 - s) * .002;
+		}
+		
+		v += dot(p,p) * smoothstep(0.0, 0.5, 0.9 - s) * .002;
 		accum +=  vec3(gColBase.r - s * gColAdd.r, gColBase.g + v * gColAdd.g,  gColBase.b + v * gColAdd.b) * v * 0.013;
-		s += .01;
 	}
     
     return accum*intensity*2;
@@ -98,8 +85,9 @@ vec3 GenDust(vec2 BaseUV)
 
 void main( )
 {
-    vec3 dust = GenDust(gl_FragCoord.xy) * 0.5;
-	vec3 stars = GenStarfield(gl_FragCoord.xy) * 0.25;
+	vec2 uv = GetUV(gl_FragCoord.xy);
+    vec3 dust = GenDust(uv) * 0.5;
+	vec3 stars = GenStarfield(uv) * 0.25;
 	
     vec2 pos = ((gl_FragCoord.xy + 1.0) * 0.5 * iResolution.xy);
     
