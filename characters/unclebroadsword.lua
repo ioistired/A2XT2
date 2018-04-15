@@ -253,7 +253,7 @@ function unclebroadsword.onKeyDown(keycode, playerIndex)
 		elseif (keycode == KEY_LEFT or keycode == KEY_RIGHT) and (attack_state == ATKSTATE.CHARGING or attack_state == ATKSTATE.CHARGED) then
 			SetCooldown()
 		-- Falling statue
-		elseif player.powerup == PLAYER_TANOOKIE and keycode == KEY_RUN and not grounded() then
+		elseif player.powerup == PLAYER_TANOOKIE and keycode == KEY_RUN and not grounded() and not mounted() then
 			attack_state = ATKSTATE.STATUEFALL
 			can_stallnfall = false
 		-- Double jump
@@ -486,8 +486,11 @@ local function UpdateAttackState() ---------------------------------------------
 	end
 	
 	-- Cancel state if necessary
-	if submerged() or sliding() or climbing() or mounted() or holding() or pickingup() or warping() then
+	if submerged() or sliding() or climbing() or (statued() and mounted()) --[[or holding() or pickingup() or warping()]] then
 		attack_state = ATKSTATE.NONE
+		if(statued() and mounted()) then
+			player:mem(0x4a, FIELD_WORD, 0)
+		end
 		can_aerial = true
 		can_stallnfall = true
 		doublejump_ready = true
