@@ -19,6 +19,8 @@ local Qdone = false;
 
 local Qs = {}
 local Qtrails = {}
+local maxQtrails = 8000;
+local trailPointer = 1;
 local qHeads = {}
 
 local first = true;
@@ -180,20 +182,23 @@ end
 local function updateQs()
 	local c = Camera.get()[1]
 	
-	for i = #Qtrails,1,-1 do
+	--[[for i = #Qtrails,1,-1 do
 		local v = Qtrails[i];
-		if(v.x > c.x + c.width + 128 or v.x < c.x - 128 or
-		   v.y > c.y + c.height + 128 or v.y < c.y - 128) then
+		if(v.x > c.x + c.width or v.x < c.x - 32 or
+		   v.y > c.y + c.height or v.y < c.y - 32) then
 			table.remove(Qtrails[i]);
+			trailPointer = #Qtrails + 1;
 		end
-	end
+	end]]
 	for k,v in ipairs(Qs) do
 		if(not paused) then
 			if(v.trailtimer > 0) then
 				v.trailtimer = v.trailtimer-1;
 				if(v.trailtimer == 0) then
 					v.trailtimer = getTrailTimer();
-					table.insert(Qtrails, {x = v.x, y = v.y})
+					
+					Qtrails[trailPointer] = {x = v.x, y = v.y};
+					trailPointer = (trailPointer%maxQtrails)+1;
 				end
 			end
 			v.x = v.x + v.speedX;
@@ -206,10 +211,36 @@ local function updateQs()
 	end
 end
 
+local trailverts = {};
+local trailtxs = {};
+
 local function drawQs()
-	for _,v2 in ipairs(Qtrails) do
-		Graphics.drawImageToSceneWP(Q_S,v2.x,v2.y,-70);
+	local i = 1;
+	for _,v in ipairs(Qtrails) do
+		trailverts[i], 		trailverts[i+1] 	= v.x, 		v.y;
+		trailverts[i+2], 	trailverts[i+3] 	= v.x+32, 	v.y;
+		trailverts[i+4], 	trailverts[i+5] 	= v.x, 		v.y+32;
+		trailverts[i+6], 	trailverts[i+7]		= v.x, 		v.y+32;
+		trailverts[i+8], 	trailverts[i+9]		= v.x+32, 	v.y;
+		trailverts[i+10], 	trailverts[i+11] 	= v.x+32, 	v.y+32;
+		
+		trailtxs[i], 	trailtxs[i+1] 	= 0, 0;
+		trailtxs[i+2], 	trailtxs[i+3] 	= 1, 0;
+		trailtxs[i+4], 	trailtxs[i+5] 	= 0, 1;
+		trailtxs[i+6], 	trailtxs[i+7]	= 0, 1;
+		trailtxs[i+8], 	trailtxs[i+9]	= 1, 0;
+		trailtxs[i+10], trailtxs[i+11] 	= 1, 1;
+		
+		i = i+12;
 	end
+	
+	for j=#trailverts,i,-1 do
+		table.remove(trailverts,i);
+		table.remove(trailtxs,i);
+	end
+	
+	Graphics.glDraw{vertexCoords = trailverts, textureCoords=trailtxs, sceneCoords = true, texture = Q_S, priority = -70};
+	
 	for k,v in ipairs(Qs) do
 		Graphics.drawImageToSceneWP(Q_S,v.x,v.y,-70);
 	end

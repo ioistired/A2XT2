@@ -44,6 +44,13 @@ LEVEL:Mikkofier-raocowsWorkday
 	Type=LEVEL
 	Exit=CASH
 	Chars=R
+LEVEL:Hoeloe-qqqqqq
+	Name=qqqqqq
+	Author=Hoeloe
+	Type=LEVEL
+	Exit=LEEK
+	Secret=ROULETTE
+	Chars=D
 LEVEL:ztarwuff-TheUpsAndDownsOfADemo
 	Name=The Ups and Downs of a Demo
 	Author=ztarwuff

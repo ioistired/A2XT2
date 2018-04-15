@@ -3,11 +3,15 @@ uniform sampler2D iChannel0;
 uniform vec3 iResolution;
 uniform float blend;
 
+#define mSize 11
+#define kSize ((mSize-1)/2)
+
 float normpdf(in float x, in float sigma)
 {
 	return 0.39894*exp(-0.5*x*x/(sigma*sigma))/sigma;
 }
 
+float kernel[mSize];
 
 void main()
 {
@@ -15,9 +19,6 @@ void main()
 	vec3 c = texture2D(iChannel0, uv).rgb;
 		
 	//declare stuff
-	const int mSize = 11;
-	const int kSize = (mSize-1)/2;
-	float kernel[mSize];
 	vec3 final_colour = vec3(0.0);
 		
 	//create the 1-D kernel

@@ -9,213 +9,105 @@ local icon_demo = Graphics.loadImage("demoIcon.png")
 local icon_iris = Graphics.loadImage("irisIcon.png")
 local icon_ub = Graphics.loadImage("broadswordIcon.png")
 
-local blockReplacementList = {
+local blockReplacementList = 
+		{
             [229] = {229, 237},
             [234] = {234, 236},
             [247] = {247, 249},
             [248] = {248, 250},
             [263] = {263, 265},
             [264] = {264, 266}
-}
+		}
 local blockReplacementIDs = {229,234,247,248,263,264}
 
-local bgoReplacementList = {
+local sizeableReplacementList = 
+		{
+			[575] = Graphics.loadImage(Misc.resolveFile("sizeable-1.png"));
+		}
+		
+local sizeableReplacementIDs = {575}
+
+local sizeables = {};
+
+local bgoReplacementList = 
+		{
             [42] = {42, 43, 44},
+			[80] = {80, 81, 67, 85, 58, 94, 59, 95, 62, 52, 63, 53, 54, 55, 56, 57},
             [86] = {89, 90, 91, 42, 43, 44},
             [96]  = {96, 152, 131, 133},
             [116] = {116, 118, 120},
             [121] = {121, 119, 117},
             [122] = {122, 124, 128},
             [153] = {153, 130, 151, 132, 129}
-}
-local bgoReplacementIDs = {42,86,96,116,121,122,153}
+		}
+local bgoReplacementIDs = {42,80,86,96,116,121,122,153}
 
 local function randomiseTileset()
+	rng.seed = 57
 	for k,v in ipairs(Block.get(blockReplacementIDs)) do
 		v.id = rng.irandomEntry(blockReplacementList[v.id])
 	end
 	for k,v in ipairs(BGO.get(bgoReplacementIDs)) do
 		v.id = rng.irandomEntry(bgoReplacementList[v.id])
 	end
-end
-
-local secondaryCharacterTable = {}
-local initialisingCams = true
-local hasJustSwitched = false
-local shouldSwitch = 0
-
-local leftCycle = {
-            [CHARACTER_MARIO] = CHARACTER_UNCLEBROADSWORD,
-            [CHARACTER_LUIGI] = CHARACTER_MARIO,
-  [CHARACTER_UNCLEBROADSWORD] = CHARACTER_LUIGI,
-}
-
-local rightCycle = {
-            [CHARACTER_MARIO] = CHARACTER_LUIGI,
-            [CHARACTER_LUIGI] = CHARACTER_UNCLEBROADSWORD,
-  [CHARACTER_UNCLEBROADSWORD] = CHARACTER_MARIO,
-}
-
-local memWhitelist = {
-        0x02, --sparkles, why not
-        0x0C, --fairy state
-        0x16, --hearts
-        0x40, --climbing
-        0x38, --underwater stroke timer
-        0x3C, --sliding
-        0x44, --rainbow shell
-        0x4A, --tanooki
-        0x4C, --statue timer
-        0x4E, --frames spent as statue
-        0x50, --spinjumping
-        0x52, --spinjumping
-        0x54, --spinjumping
-        0x56, --kill combo
-        0x60, --has jumped
-        0xE0, --xspeed
-		0xE2,
-		0xE4,
-		0xE6,
-        0xE8, --yspeed
-		0xEA,
-		0xEC,
-		0xEE,
-       0x108, --mount
-       0x10A, --mount color
-       0x114, --sprite index
-       0x11C, --jump force
-       0x122, --forced animation state
-       0x124, --forced animation timer
-       0x12E, --ducking
-       0x140, --blinking timer
-       0x154, --held item
-       0x158, --reserve item
-       0x1FA, --section
-       0x160, --projectile timer
-       0x164, --tail swipe timer
-       0x16E, --flight
-       0x170, --flight remaining
-}
-
-local function addCharacter(id, props)
-	if not props then props = {} end
-	local entry = {}
-	entry.memSave = {}
-    for _, i in ipairs(memWhitelist) do
-        entry.memSave[i] = player:mem(i,FIELD_WORD)
-    end
-	entry.width = player.width
-	entry.height = player.height
-	entry.x = props.x
-	entry.y = props.y
-	entry.powerup = props.powerup
-	entry.memSave[0x15A]= props.section or entry.memSave[0x15A]
-	entry.sfx = props.sfx
-	
-	entry.buffer = Graphics.CaptureBuffer(800,600)
-	entry.bufferTimer = 1
-	entry.npcSave = {}
-	secondaryCharacterTable[id] = entry
-end
-
-local function switchDelay(id)
-	hasJustSwitched = true
-	local character = player.character
-    for _, i in ipairs(memWhitelist) do
-        secondaryCharacterTable[character].memSave[i] = player:mem(i,FIELD_WORD)
-    end
-	secondaryCharacterTable[character].npcSave = {}
-	for k,v in ipairs(NPC.get(-1, player.section)) do
-		if v:mem(0x12A, FIELD_WORD) > 0 then
-			v = pnpc.wrap(v)
-			local entry = {}
-			for i=0x00,0x156,0x02 do
-				entry[i] = v:mem(i,FIELD_WORD);
-			end
-			entry.data = table.clone(v.data)
-			if v.data._basegame then
-				entry._basegame = table.clone(v.data._basegame)
-			end
-			secondaryCharacterTable[character].npcSave[v] = entry
-		end
-	end
-	
-	secondaryCharacterTable[character].width = player.width
-	secondaryCharacterTable[character].height = player.height
-	secondaryCharacterTable[character].powerup = player.powerup
-	secondaryCharacterTable[character].x = player.x
-	secondaryCharacterTable[character].y = player.y
-	eventu.waitFrames(1, true)
-	player.character = id
-    for _, i in ipairs(memWhitelist) do
-        player:mem(i,FIELD_WORD, secondaryCharacterTable[id].memSave[i])
-    end
-	
-	if not initialisingCams then
-		Audio.playSFX(secondaryCharacterTable[id].sfx)
-	end
-	
-	player:mem(0x15A, FIELD_WORD, secondaryCharacterTable[id].memSave[0x15A])
-	player.powerup = secondaryCharacterTable[id].powerup
-	player.width = secondaryCharacterTable[id].width
-	player.height = secondaryCharacterTable[id].height
-	player.x = secondaryCharacterTable[id].x
-	player.y = secondaryCharacterTable[id].y
-	
-	for k,v in ipairs(NPC.get(-1, player.section)) do
-		v = pnpc.wrap(v)
-		for l,w in pairs(secondaryCharacterTable[id].npcSave) do
-			if l == v then
-				for i=0x00,0x156,0x02 do
-					v:mem(i, FIELD_WORD, w[i])
-				end
-				v.data = w.data
-				if w._basegame then
-					v.data._basegame = w._basegame
-				end
-				break
+	for k,v in ipairs(Block.get(sizeableReplacementIDs)) do
+		local t = {verts = {}, txs = {}, img = sizeableReplacementList[v.id]};
+		local tw = math.ceil(v.width/32);
+		local th = math.ceil(v.height/32);
+		
+		local frms = t.img.height/32;
+		
+		for i = 1,tw do
+			local x1 = v.x + (i-1)*32;
+			local x2 = math.min(x1+32, v.width);
+			for j = 1,th do
+				local y1 = v.y + (j-1)*32;
+				local y2 = math.min(y1+32, v.height);
+				
+				local f = rng.randomInt(frms-1);
+				local t1 = f/frms;
+				local t2 = (f+1)/frms;
+				
+				table.insert(t.verts, x1);
+				table.insert(t.verts, y1);
+				table.insert(t.verts, x2);
+				table.insert(t.verts, y1);
+				table.insert(t.verts, x1);
+				table.insert(t.verts, y2);
+				table.insert(t.verts, x1);
+				table.insert(t.verts, y2);
+				table.insert(t.verts, x2);
+				table.insert(t.verts, y1);
+				table.insert(t.verts, x2);
+				table.insert(t.verts, y2);
+				
+				table.insert(t.txs, 0);
+				table.insert(t.txs, t1);
+				table.insert(t.txs, 1);
+				table.insert(t.txs, t1);
+				table.insert(t.txs, 0);
+				table.insert(t.txs, t2);
+				table.insert(t.txs, 0);
+				table.insert(t.txs, t2);
+				table.insert(t.txs, 1);
+				table.insert(t.txs, t1);
+				table.insert(t.txs, 1);
+				table.insert(t.txs, t2);
 			end
 		end
+		
+		table.insert(sizeables, t);
+		v:remove();
 	end
-	
-	for k,v in pairs(secondaryCharacterTable[id].npcSave) do
-		if not k.isValid then
-			local newK = NPC.spawn(1,1,1,1)
-			for i=0x00,0x156,0x02 do
-				newK:mem(i, FIELD_WORD, v[i])
-			end
-			newK = pnpc.wrap(newK)
-			newK.data = v.data
-			if v._basegame then
-				newK.data._basegame = v._basegame
-			end
-			
-		end
-	end
-	
-	eventu.waitFrames(1, true)
-	hasJustSwitched = false
-	eventu.waitFrames(3, true)
-	eventu.signal("switched")
-end
-
-local function switchCharacter(id)
-	
-	local character = player.character
-	for k,v in pairs(secondaryCharacterTable) do
-		v.bufferTimer = 1
-	end
-	secondaryCharacterTable[character].buffer:captureAt(0)
-	secondaryCharacterTable[character].bufferTimer = 0
-	eventu.run(switchDelay, id)
 end
 
 local function openingCutscene()
 	for i=1, 65 do
 		player.rightKeyPressing = true
+		player.leftKeyPressing = false
 		eventu.waitFrames(1)
 	end
-	eventu.waitFrames(25)
+	eventu.waitFrames(12)
 	for i=1, 4 do
 		Layer.get("gate"..i):show(false)
 		Audio.playSFX(37)
@@ -233,79 +125,16 @@ local function openingCutscene()
 	intercom.queueMessage{icon=icon_iris, frames=2, text="Alfred."}
 end
 
-local function initCams()
-	inputs.locked[1].all = true
-	player.character = 1
-	addCharacter(CHARACTER_MARIO,
-	            {    x=-199552,
-				     y=-200250,
-					 powerup = 2,
-					 section = 0,
-					 sfx = "sfx_demoswitch.ogg"
-				}
-	)
-	eventu.waitFrames(1)
-	addCharacter(CHARACTER_LUIGI,
-	            {    x=-179712,
-				     y=-180224,
-					 powerup = 2,
-					 section = 1,
-					 sfx = "sfx_irisswitch.ogg"
-				}
-	)
-	eventu.waitFrames(1)
-	switchCharacter(CHARACTER_LUIGI)
-	eventu.waitSignal("switched")
-	eventu.waitFrames(1)
-	addCharacter(CHARACTER_UNCLEBROADSWORD,
-	            {    x=-159808,
-				     y=-160192,
-					 powerup = 2,
-					 section = 2,
-					 sfx = "sfx_broadswordswitch.ogg"
-				}
-	)
-	eventu.waitFrames(1)
-	switchCharacter(CHARACTER_UNCLEBROADSWORD)
-	eventu.waitSignal("switched")
-	eventu.waitFrames(1)
-	switchCharacter(CHARACTER_MARIO)
-	eventu.waitSignal("switched")
-	eventu.waitFrames(1)
-	for k,v in pairs(secondaryCharacterTable) do
-		v.bufferTimer = 1
-	end
-	initialisingCams = false
-	
+function onStart()
 	if player.section == 0 then
-		openingCutscene()
+		eventu.run(openingCutscene);
 	else
 		inputs.locked[1].all = false
 	end
-end
-
-function onStart()
-	eventu.run(initCams)
 	randomiseTileset()
 	
 	for k,v in ipairs(NPC.get()) do
 		pnpc.wrap(v)
-	end
-end
-
-local function charSwitch()
-	if player.keys.altRun == KEYS_PRESSED then
-		Misc.pause()
-	elseif player.keys.altRun == SPAGHETTI_AND_MEATBALLS then
-		Misc.unpause()
-	end
-	
-	if player.keys.altRun then
-		if player.keys.left == KEYS_PRESSED then
-			shouldSwitch = -1
-		elseif player.keys.right == KEYS_PRESSED then
-			shouldSwitch = 1
-		end
 	end
 end
 
@@ -353,31 +182,8 @@ local function drawMonitor(id, dir)
 	}
 end
 
-function onInputUpdate()
-	if not initialisingCams then
-		charSwitch()
-	end
-end
-
 function onDraw()
-	if initialisingCams then
-		Graphics.drawScreen{color=Color.black, priority=10}
-	else
-		if shouldSwitch ~= 0 then
-			if shouldSwitch < 0 then
-				switchCharacter(leftCycle[player.character])
-			else
-				switchCharacter(rightCycle[player.character])
-			end
-			shouldSwitch = 0
-		end
-		if hasJustSwitched then
-			Graphics.drawScreen{color=Color.grey, priority=10}
-		end
-		if player.keys.altRun then
-			Graphics.drawScreen{color={0,0,0,0.5}, priority=0}
-		end
-		drawMonitor(leftCycle[player.character], -1)
-		drawMonitor(rightCycle[player.character], 1)
+	for _,v in ipairs(sizeables) do
+		Graphics.glDraw{vertexCoords = v.verts, textureCoords = v.txs, texture = v.img, sceneCoords = true, priority = -95.01}
 	end
 end
