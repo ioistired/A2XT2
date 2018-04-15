@@ -1,7 +1,8 @@
+local particles = API.load("particles");
+
 local maxx;
 local snowStart = -197548;
 local snowEnd = -195000;
-local npcconfig = API.load("npcconfig");
 local basex = -190624;
 local endx = -170000;
 
@@ -9,13 +10,15 @@ local trees = {{4,700},{1,1700}, {1,2300}, {4,3000}, {1,3900}, {1,4600},{4,5200}
 local treetypes = {Graphics.loadImage("tree_bare_1.png"), Graphics.loadImage("tree_bare_2.png"), Graphics.loadImage("tree_bare_3.png"),Graphics.loadImage("tree_green_1.png"),Graphics.loadImage("tree_green_2.png"),Graphics.loadImage("tree_green_3.png")}
 local parallaxFactor = 1.2;
 
-local snows = {Graphics.loadImage("snow_1.png"), Graphics.loadImage("snow_2.png"), Graphics.loadImage("snow_3.png")};
+local snows = {particles.Emitter(0,0,Misc.resolveFile("particles/p_snow.ini")), Graphics.loadImage("snow_2.png"), Graphics.loadImage("snow_3.png")};
+snows[1]:AttachToCamera(Camera.get()[1]);
+snows[1]:setParam("limit", 4000);
 local snowStr = 0;
 local snowOffset = 0;
 local snowTimer = 0;
 
 local bird = Graphics.loadImage("bird.png");
-local birds = {{x = -199904, y = -200352, frame = 0, flap = 3, flapTime = 5, speedX = 9, speedY = 5}, {x = -199712, y = -200384, frame = 0, flap = 4, flapTime = 7, speedX = 8, speedY = 6}}
+local birds = {{x = -200128, y = -200352, frame = 0, flap = 3, flapTime = 5, speedX = 9, speedY = 5}, {x = -200032, y = -200384, frame = 0, flap = 4, flapTime = 7, speedX = 8, speedY = 6}}
 local birdspawns = {{x = -199056, y = -200352, frame = 0, flap = 3, flapTime = 5, speedX = 12, speedY = 4}, {x = -197472, y = -200320, frame = 0, flap = 3, flapTime = 5, speedX = 12, speedY = 4}, {x = -195776, y = -200256, frame = 0, flap = 3, flapTime = 5, speedX = 9, speedY = 4}};
 
 Audio.playSFX("birds.ogg");
@@ -31,6 +34,8 @@ function onTick()
 	
 	local spdMult =  math.min(1,(math.max(0,1-((maxx-basex)/(endx-basex)))));
 	
+	spdMult = math.lerp(0.7, 1, spdMult*spdMult);
+	
 	player.speedX = player.speedX * spdMult;
 	if(player2 ~= nil) then player2.speedX = player2.speedX * spdMult; end
 	
@@ -45,9 +50,9 @@ function onTick()
 		end
 	end
 	
-	npcconfig[1].speed = spdMult;
-	npcconfig[109].speed = spdMult;
-	npcconfig[117].speed = spdMult;
+	NPC.config[1].speed = spdMult;
+	NPC.config[109].speed = spdMult;
+	NPC.config[117].speed = spdMult;
 	
 	for k,v in ipairs(birdspawns) do
 		if(maxx > v.x+400) then
@@ -58,7 +63,7 @@ function onTick()
 	end
 end
 
-function onHUDDraw()
+function onDraw()
 	for k,v in ipairs(birds) do
 		DrawBird(v.x,v.y,v.frame);
 		v.x = v.x + v.speedX;
@@ -117,12 +122,16 @@ function onHUDDraw()
 		Graphics.drawImageWP(snows[2], -(spd*snowTimer%800), spd*snowTimer%600 - 600, math.min(snowStr - 1,1), 0.9)
 		Graphics.drawImageWP(snows[2], 800-(spd*snowTimer%800), spd*snowTimer%600 - 600, math.min(snowStr - 1,1), 0.9)
 	end
-	
 	if(snowStr > 0) then
+		local r = math.floor(math.lerp(1, 1000, math.clamp(snowStr*snowStr,0,1)));
+		snows[1]:setParam("rate", tostring(r)..":"..tostring(4*r));
+		snows[1]:Draw(0.9);
+		--[[
 		Graphics.drawImageWP(snows[1], -(snowTimer%800), snowTimer%600, math.min(snowStr,1), 0.9)
 		Graphics.drawImageWP(snows[1], 800-(snowTimer%800), snowTimer%600, math.min(snowStr,1), 0.9)
 		Graphics.drawImageWP(snows[1], -(snowTimer%800), snowTimer%600 - 600, math.min(snowStr,1), 0.9)
 		Graphics.drawImageWP(snows[1], 800-(snowTimer%800), snowTimer%600 - 600, math.min(snowStr,1), 0.9)
+		]]
 		
 		snowTimer = snowTimer + 1;
 	end

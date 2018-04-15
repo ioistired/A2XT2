@@ -1,5 +1,7 @@
 local map3d = API.load("map3d");
 map3d.HUDMode = map3d.HUD_NONE;
+map3d.Skybox = Graphics.loadImage(Misc.resolveFile("graphics/extra/skybox.png"));
+map3d.CameraSettings.farclip = 8000;
 
 local vectr = API.load("vectr");
 
