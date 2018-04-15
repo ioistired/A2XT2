@@ -21,12 +21,18 @@ boss.MaxHP = 100;
 boss.TitleDisplayTime = 360;
 
 local bossBegun = false;
+
+--contains the top left corner of the boss section, useful for positioning
 local Zero = vectr.v2(0,0);
 
+--store event sequences here
 local events = {};
+
+--store cutscene sequences here
 local cutscene = {};
 
-local bossSection = 20;
+local bossSection = 0;
+local mainloop;
 
 local cp = checkpoints.create{x = 0, y = 0, section = bossSection, actions = 
 				function()
@@ -37,8 +43,6 @@ local cp = checkpoints.create{x = 0, y = 0, section = bossSection, actions =
 					
 				end}
 				
-
-
 local bossmt = {};
 function bossmt.__index(tbl, k)
 	if(k == "section") then
@@ -62,6 +66,7 @@ function bossAPI.GetCheckpoint()
 	return cp;
 end
 
+--Called by the level luna code to start the boss
 function bossAPI.Begin(fromCheckpoint)
 	if(not bossBegun) then
 		registerEvent(bossAPI, "onTick");
@@ -77,11 +82,34 @@ function bossAPI.Begin(fromCheckpoint)
 	end
 end
 
+--coroutine containing the main boss event loop
+local function EventLoop()
+end
+
+--use this to abort all the boss coroutines for when the fight is over
+local function AbortEvents()
+	eventu.abort(mainloop); --abort the boss event loop
+end
+
+--initialises the boss library and starts the event loop
 local function StartBoss()
 	boss.Start();
+	--start the event loop
+	_,mainloop = eventu.run(EventLoop);
 end
 
 local function DrawBoss()
+end
+
+function bossAPI.onTick()
+	if(boss.Active) then --only run code while the boss is active
+		if(boss.isDefeated()) then
+			boss.Active = false; --hides HP bar
+			AbortEvents(); --abort all the boss events
+			
+			--end boss events
+		end
+	end
 end
 
 function bossAPI.onDraw()
@@ -94,7 +122,7 @@ function bossAPI.onCameraUpdate()
 	end
 end
 
-
+--waitAndDo is a useful coroutine function - it waits t frames and performs func() every frame
 local function waitAndDo(t, func)
 	while(t > 0) do
 		t = t-1;
@@ -103,18 +131,16 @@ local function waitAndDo(t, func)
 	end
 end
 
+--cutscene to play when entering from the checkpoint
 function cutscene.intro_checkpoint()
-	--INTRO CUTSCENE WITH CHECKPOINT
 	
 	scene.endScene();
 	
 	StartBoss();
 end
 
+--cutscene to play when starting the boss for the first time
 function cutscene.intro()
-
-	--INTRO CUTSCENE
-	
 	scene.endScene();
 	
 	cp:collect();
@@ -122,6 +148,7 @@ function cutscene.intro()
 	StartBoss();
 end
 
+--Initial setup, should more or less be kept alone in most cases
 function events.InitBoss(checkpoint)
 	Zero.x = Section(bossAPI.section).boundary.left;
 	Zero.y = Section(bossAPI.section).boundary.top;
