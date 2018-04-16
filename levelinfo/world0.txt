@@ -1,6 +1,8 @@
-LEVEL:Mata Hari - Totally Trollied
-	Name=Totally Trollied
-	Author=Mata Hari
+LEVEL:Pyro-Tutorial Area Region Place Zone
+	Name=Tutorial Area Region Place Zone
+	Author=Pyro
 	Type=LEVEL
 	Exit=ROULETTE
-	Raocoins=true
+	Raocoins=false
+	Chars=D
+	FilterPowers

@@ -80,7 +80,7 @@ local aerial_atk_stall = false		-- Should the player stall in the air when swipi
 -- Attack configuration ----------------------------------------------------------------------
 local DURATION = {					-- Frame durations for attack state
 	[ATKSTATE.CHARGING] =		70,	-- Time required to fully charge a lunge
-	[ATKSTATE.STALLED] = 		30,	-- Time after a stall-and-fall during which input is blocked
+	[ATKSTATE.STALLED] = 		24,	-- Time after a stall-and-fall during which input is blocked
 	[ATKSTATE.PAUSE1] =			12,	-- Pause length between swipes
 	[ATKSTATE.PAUSE2] =			12, 
 	[ATKSTATE.COOLDOWN] =		3,	-- Time required after attacking before you can attack again
@@ -89,10 +89,10 @@ local DURATION = {					-- Frame durations for attack state
 	[ATKSTATE.LUNGE_COMBO] =	30,	-- Time required to perform a full combo lunge
 	[ATKSTATE.LUNGE_CHARGE] =	40	-- Time required to perform a full charged lunge
 }
-local LUNGEDIST_COMBO = 64			-- Distance travelled during a combo lunge
+local LUNGEDIST_COMBO = 96			-- Distance travelled during a combo lunge
 local LUNGEDIST_CHARGE = 192		-- Distance travelled during a charged lunge
 local LUNGELAG_COMBO = 10			-- Frames of end lag after a combo lunge
-local LUNGELAG_CHARGE = 30			-- Frames of end lag after a charged lunge
+local LUNGELAG_CHARGE = 25			-- Frames of end lag after a charged lunge
 local CHARGING_SOUND_DURATION = 44	-- Duration of "charging" sound effect		===== DO NOT CHANGE =====
 local FALLSPEED = 40				-- Maximum speed of stall-and-fall
 local AFTERIMAGE_COUNT = 5			-- How many afterimages does the stall-and-falla leave?
@@ -172,7 +172,7 @@ local knockback = true				-- Should knockback be delivered?
 
 -- Entity typing -----------------------------------------------------------------------------
 local BLOCK_PLAYERSWITCH = {622,623,624,625,631,639,641,643,645,647,649,651,653,655,657,659,661,663}
-local BLOCK_BRICK = {4,60,188,226,293}
+local BLOCK_BRICK = {4,60,188,226,293,90}
 local BLOCK_BOUNCY = {55, 682}
 local NPC_BONUS = {10,33,88,103,138,152,240,248,251,252,253,258,274}
 local NPC_POWERUP = {9,14,34,90,153,169,170,182,183,184,185,186,187,188,249,250,254,264,273,277,287,287,293}
@@ -208,7 +208,7 @@ local function BlockMovement() -------------------------------------------------
 		return;
 	end
 	
-	if is_hurt or not ducking() then player.downKeyPressing = false end
+	if is_hurt or (not ducking() and not airborne()) then player.downKeyPressing = false end
 	player.leftKeyPressing = false
 	player.rightKeyPressing = false
 	player.jumpKeyPressing = false
@@ -220,7 +220,7 @@ local function SetCooldown() ---------------------------------------------------
 	attack_timer = DURATION[ATKSTATE.COOLDOWN]
 end
 function unclebroadsword.onKeyDown(keycode, playerIndex)
-	if player.character == CHARACTER_UNCLEBROADSWORD then
+	if player.character == CHARACTER_UNCLEBROADSWORD and not is_hurt and not inforcedanim() then
 		-- If pressing the attack key
 		if keycode == KEY_X and not (is_hurt or statued()) then
 			-- Prevent attacking when submerged, sliding, climbing, spinjumping, mounted, holding, or picking up something
@@ -526,6 +526,8 @@ local function AttackPhysics() -------------------------------------------------
 		if attack_state == ATKSTATE.SWIPE1 or attack_state == ATKSTATE.SWIPE2 then
 			--player.speedX = player:mem(0x106, FIELD_WORD)*1
 			player.speedY = math.min(player.speedY, 1)
+		elseif attack_state == ATKSTATE.LUNGE_COMBO then
+			aerial_atk_stall = true;
 		end
 	end
 	
@@ -549,8 +551,16 @@ local function AttackPhysics() -------------------------------------------------
 		end
 		if t < 0 then t = 0 end
 		
+		if airborne() then
+			can_stallnfall = true
+		end
+		
 		-- Set speed
-		player.speedX = player:mem(0x106, FIELD_WORD)*2*xmax/tmax/tmax*t
+		player.speedX = player.direction*2*xmax/tmax/tmax*t
+	end
+		
+	if mounted() or statued() then
+		can_stallnfall = false
 	end
 	
 	-- Lose momentum when swiping
