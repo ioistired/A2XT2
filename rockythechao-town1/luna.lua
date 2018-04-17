@@ -48,7 +48,7 @@ message.presetSequences.sportsball = function(args)
 	message.promptChosen = false
 	while  not message.promptChosen  or  (message.promptChoice ~= 1  and  message.promptChoice ~= 3)  do
 		message.promptChosen = false
-		message.showMessageBox {target=talker, text="Hey there, [gal/gal/guy/guy/gal]!  Wanna basket some sportsball?", closeWith="prompt"}
+		message.showMessageBox {target=talker, text=message.quickparse("Hey there, [gal/gal/guy/guy/gal]!  Wanna basket some sportsball?"), closeWith="prompt"}
 		message.waitMessageDone()
 
 		message.showPrompt{options={message.getYesOption(),"How do I play?",message.getNoOption()}}
@@ -67,7 +67,7 @@ message.presetSequences.sportsball = function(args)
 		message.showMessageBox {target=talker, text="Arrighty then.  Have a <wave>sportstacular</wave> day!"}
 		message.waitMessageEnd()
 	end
-	message.waitMessageEnd()
+	
 	eventu.waitSeconds(0.1)
 
 	scene.endScene()
