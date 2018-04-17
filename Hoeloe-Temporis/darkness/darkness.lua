@@ -22,14 +22,6 @@ darkness.Priority.DISTANCE = 0;
 darkness.Priority.SIZE = 1;
 darkness.Priority.BRIGHTNESS = 2;
 
-
-local function readAll(file)
-    local f = io.open(file, "r");
-    local content = f:read("*all");
-    f:close();
-    return content;
-end
-
 local fragShader = Misc.resolveFile("darkness/darkfilter.frag");
 
 local capture1 = Graphics.CaptureBuffer(800,600);
@@ -64,31 +56,6 @@ function Light:SetColour(colour)
 end
 
 local nullLight = darkness.Light(0,0,0,0,0);
-
-local function getShaderHeader(field, falloff, shadow)
-	local s = "const int _MAXLIGHTS="..field.maxLights..";\n";
-	s = s..readAll(falloff).."\n\n";
-	s = s..readAll(shadow).."\n";
-	return s;
-end
-
-local function readLightShader(field, fragment, lightfunc, shadowfunc)
-
-	local f = io.open(fragment, "r");
-	local s = "";
-	
-	for v in f:lines() do
-		s = s..v.."\n";
-		if(v:match("%s*#version%s+.+")) then
-			s = s..getShaderHeader(field, lightfunc,shadowfunc).."\n";
-		end
-	end
-	
-	f:close();
-		
-	return s;
-end
-
 
 local Field = {};
 Field.__index = Field;
@@ -205,7 +172,7 @@ local function lightSort(a, b)
 end
 
 function Field:RebuildShader()
-	self.shader:compileFromSource(nil, readLightShader(self, fragShader, self.falloff or darkness.Falloff.DEFAULT, self.shadows or darkness.Shadow.DEFAULT));
+	self.shader:compileFromFile(nil, fragShader, { _MAXLIGHTS = self.maxLights, FALLOFF = self.falloff or darkness.Falloff.DEFAULT, SHADOWS = self.shadows or darkness.Shadow.DEFAULT });
 end
 
 local function GetPriority(ptype, light, centre)

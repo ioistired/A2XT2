@@ -11,6 +11,9 @@ uniform vec4 bounds;
 uniform float useBounds = 0;
 uniform float boundBlend = 64;
 
+#include FALLOFF
+#include SHADOWS
+
 void main()
 {
 	vec4 c = texture2D( iChannel0, gl_TexCoord[0].xy);

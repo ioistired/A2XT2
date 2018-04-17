@@ -1,9 +1,10 @@
 local map3d = API.load("map3d");
+local vectr = API.load("vectr");
+
 map3d.HUDMode = map3d.HUD_NONE;
 map3d.Skybox = Graphics.loadImage(Misc.resolveFile("graphics/extra/skybox.png"));
 map3d.CameraSettings.farclip = 8000;
-
-local vectr = API.load("vectr");
+map3d.Light.direction = vectr.forward3:rotate(65,-35, 0);
 
 local settings = API.load("a2xt_settings");
 local leveldata = API.load("a2xt_leveldata");
