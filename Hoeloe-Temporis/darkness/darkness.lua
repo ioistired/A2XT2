@@ -155,15 +155,33 @@ function Field:Draw()
 			uniforms[k] = v;
 		end
 		
-		Graphics.glDraw{
-			vertexCoords = {0, 0, 800, 0, 800, 600, 0, 600 },
-			textureCoords = { 0,0,1,0,1,1,0,1},
-			primitive = Graphics.GL_TRIANGLE_FAN, 
-			texture = capture1,
-			shader = self.shader,
-			uniforms = uniforms,
-			priority = -0.01
-			};
+		if(useBounds == 0) then
+			Graphics.drawScreen { texture = capture1, shader = self.shader, uniforms = uniforms, priority = -0.01 };
+		else       
+			local b1x = math.max(b[1]-cam.x, 0);
+			local b1y = math.max(b[2]-cam.y, 0);
+			local b2x = math.min(b[3]-cam.x, 800);
+			local b2y = math.min(b[4]-cam.y, 600);
+			
+			if(b2x <= b1x or b2y <= b1y) then
+				return;
+			end
+			
+			local t1x, t1y = b1x/800, b1y/600;
+			local t2x, t2y = b2x/800, b2y/600;
+			
+			Graphics.glDraw
+				{
+				vertexCoords = 	{ b1x, b1y, b2x, b1y, b2x, b2y, b1x, b2y },
+				textureCoords = { t1x, t1y, t2x, t1y, t2x, t2y, t1x, t2y },
+				primitive = Graphics.GL_TRIANGLE_FAN,
+				texture = capture1,
+				shader = self.shader,
+				uniforms = uniforms,
+				priority = -0.01,
+				sceneCoords = false
+				};
+		end
 	end
 end
 

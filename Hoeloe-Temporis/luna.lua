@@ -1582,10 +1582,13 @@ function onCameraDraw()
 	elseif(player.section == 0 or player.section == 12) then
 		for _,v in ipairs(torchExplorers) do
 			v.data.torch.x = v.x + v.width*0.5 - 6*v.direction;
-			v.data.torch:Draw(-44);
 			
-			v.data.light.radius = rng.random(v.data.lightRadius-10,v.data.lightRadius+10);
-			v.data.light.brightness = rng.random(0.95,1.05)
+			if(v.data.torch.x > cam.x - 64 and v.data.torch.x < cam.x + 864 and v.data.torch.y > cam.y - 64 and v.data.torch.y < cam.y + 664) then
+				v.data.torch:Draw(-44);
+			
+				v.data.light.radius = rng.random(v.data.lightRadius-10,v.data.lightRadius+10);
+				v.data.light.brightness = rng.random(0.95,1.05)
+			end
 		end
 	end
 	

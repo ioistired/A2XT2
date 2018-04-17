@@ -22,17 +22,13 @@ void main()
 	
 	light.rgb = vec3(mix(0, smoothstep(bounds.x+boundBlend, bounds.x, pos.x) + smoothstep(bounds.z-boundBlend, bounds.z, pos.x) + smoothstep(bounds.y+boundBlend, bounds.y, pos.y) + smoothstep(bounds.w-boundBlend, bounds.w, pos.y), useBounds));
 	
-	
-	if(light.r + light.g + light.b < 3)
+	for (int i = 0; i < lightNum; i++)
 	{
-		for (int i = 0; i < lightNum; i++)
+		float d = abs(length(pos - lightPos[i].xy));
+		if(d < lightPos[i].z)
 		{
-			float d = abs(length(pos - lightPos[i].xy));
-			if(d < lightPos[i].z)
-			{
-				vec3 agg = shadow(falloff(lightCol[i], d, lightPos[i].z), lightPos[i].xy, pos);
-				light.rgb += agg;
-			}
+			vec3 agg = shadow(falloff(lightCol[i], d, lightPos[i].z), lightPos[i].xy, pos);
+			light.rgb += agg;
 		}
 	}
 		
