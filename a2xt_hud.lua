@@ -194,12 +194,17 @@ local function drawHUD(priority)
 		--Draw overworld-specific hud pieces
 		if(isOverworld) then
 			local lvlobj = getOWLevelObj();
+			local lastfile = lvlfile;
 			if(lunatime.tick() > 0 and (lvlobj or lvlalpha > 0)) then
 				if(lvlobj) then
 					lvlfile = lvlobj.filename;
 				elseif(lvlfile == nil) then
 					levelbg = nil;
 					return;
+				end
+				
+				if(lvlfile ~= lastfile) then
+					levelbg = nil;
 				end
 				
 				local data = leveldata.GetData(lvlfile);
