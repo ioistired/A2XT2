@@ -49,6 +49,7 @@ LEVEL:Darkonius64-Frightening_Factory
 	Author=Darkonius Mavakar
 	Type=LEVEL
 	Exit=LEEK
+	Chars=DI
 LEVEL:Axon-IndustrialPandemonium
 	Name=Industrial Pandemonium
 	Author=Axon

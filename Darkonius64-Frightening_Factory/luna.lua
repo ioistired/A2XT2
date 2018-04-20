@@ -13,11 +13,3 @@ function onLoadSection4()
 		triggerEvent("start")
 	end
 end
-
-function onStart()
-	if (player.isValid) then
-		if(player.character ~= CHARACTER_MARIO and player.character ~= CHARACTER_LUIGI) then
-			player.character = CHARACTER_LUIGI
-		end
-	end
-end

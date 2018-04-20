@@ -4,12 +4,6 @@ LEVEL:Hoeloe-Towards the New World
 	Type=LEVEL
 	Exit=ROULETTE
 	Raocoins=true
-LEVEL:duvi0 - Iceberg Backyard
-	Name=Iceberg Backyard
-	Author=duvi0
-	Type=LEVEL
-	Exit=TAPE
-	Raocoins=true
 LEVEL:7NameSam-Irradiated Ice
 	Name=Irradiated Ice
 	Author=7NameSam

@@ -6,10 +6,8 @@ NPCMemSet,137,0xE2,163,0,0,w
 
 PlayerMemSet,0,0x16C,0,0,0,w
 PlayerMemSet,0,0x16E,0,0,0,w
-FilterPlayer,0,5,1,0,0,0
 OnPlayerMem,0xF0,3,0,2000,0,w
 OnPlayerMem,0xF0,4,0,2001,0,w
-FilterMount,0,0,0,0,2,0
 
 IfNPC,274,2,0,2002,0,once
 

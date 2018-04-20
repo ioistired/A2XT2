@@ -1,28 +1,27 @@
-function onLoop()
-	if (Player(1).section==1) then
-		local lavaSplashes = Animation.get(13)
-		for k,v in pairs(lavaSplashes) do
+function onTick()
+	if (player.section == 1) then
+		for k,v in ipairs(Animation.get(13)) do
 			v.x = 0
 			v.y = 0
 		end
 	end
 end
 
-funtion onLoadSection0()
+function onLoadSection0()
 	_G["ManualTitle"] = "Subway"
 	_G["ManualArtist"] = "Wohlstand"
 end
-funtion onLoadSection1()
+function onLoadSection1()
 	_G["ManualTitle"] = nil
 	_G["ManualArtist"] = nil
 
 end
-funtion onLoadSection2()
+function onLoadSection2()
 	_G["ManualTitle"] = nil
 	_G["ManualArtist"] = nil
 
 end
-funtion onLoadSection3()
+function onLoadSection3()
 	_G["ManualTitle"] = nil
 	_G["ManualArtist"] = nil
 

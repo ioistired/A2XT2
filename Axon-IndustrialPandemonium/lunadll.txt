@@ -1,9 +1,3 @@
-#-1
-FilterPlayer,0,2,1,0,0,0
-FilterPlayer,0,3,1,0,0,0
-FilterPlayer,0,4,1,0,0,0
-FilterPlayer,0,5,1,0,0,0
-
 #0
 //sets section 2 right screen edge so you can't just move it by yourself
 PushScreenBoundary,2,3,0,0,2,-5600

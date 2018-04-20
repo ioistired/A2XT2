@@ -1,4 +1,4 @@
-function onLoad()
+function onStart()
 	_G["ManualTitle"] = "Underworld 2"
 	_G["ManualArtist"] = "Toshiaki Takimoto"
 	_G["ManualAlbum"] = "Neutopia II"

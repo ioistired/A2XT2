@@ -4,19 +4,13 @@ LEVEL:raocow-rocksstickingoutofalake
 	Type=LEVEL
 	Exit=JAR
 	Raocoins=true
-LEVEL:duvi0-Coral Climb
-	Name=Coral Climb
-	Author=duvi0
-	Type=LEVEL
-	Exit=JAR
-	Secret=LEEK
-	Raocoins=true
 LEVEL:ztarwuff-AmazingPlumberNightmare64
 	Name=Amazing Plumber Nightmare 64
 	Author=ztarwuff
 	Type=LEVEL
 	Exit=TAPE
 	Raocoins=true
+	FilterMounts
 LEVEL:Validon98-shrineunderthesea
 	Name=The Shrine Under the Sea
 	Author=Validon98
@@ -40,6 +34,8 @@ LEVEL:Unaniem-It is 5 AM
 	Author=Unaniem
 	Type=LEVEL
 	Exit=TAPE
+	FilterPowers
+	FilterMounts
 LEVEL:Holy-Sunrise
 	Name=Sunrise
 	Author=Holy

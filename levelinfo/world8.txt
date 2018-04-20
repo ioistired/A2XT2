@@ -23,6 +23,9 @@ LEVEL:Axon-PanicAttackInHighAltitude
 	Author=Axon
 	Type=LEVEL
 	Exit=JAR
+	FilterBig
+	FilterPowers
+	FilterMounts
 LEVEL:cramps-man-Sky Block Castle
 	Name=Sky Block Castle
 	Author=cramps-man
@@ -43,6 +46,8 @@ LEVEL:WestonSmith-NightLightFright
 	Type=LEVEL
 	Exit=LEEK
 	Chars=DRS
+	FilterBig
+	FilterPowers
 	FilterMounts
 LEVEL:cramps-man-Flip Block Skyway
 	Name=Flip Block Skyway

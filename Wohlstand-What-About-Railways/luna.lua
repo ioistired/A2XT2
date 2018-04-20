@@ -1,17 +1,15 @@
-
-
 function onEvent(eventName)
 	-- Train start sound
 	if (eventName=="Train_Prepare (snd start)") then
-		playSFX("train-start.ogg");
+		Audio.playSFX("train-start.ogg");
 	end
 	-- Train ridnig sound
 	if (eventName=="Train11 (snd ride)") then
-		playSFX("train-ride.ogg");
+		Audio.playSFX("train-ride.ogg");
 	end
 	-- Train stop sound
 	if (eventName=="TrainS1 [do slow speed] (snd stop)") then
-		playSFX("train-stop.ogg");
+		Audio.playSFX("train-stop.ogg");
 	end
 end
 

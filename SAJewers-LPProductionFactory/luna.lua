@@ -1,8 +1,6 @@
+function onTick()
 
-timer = 0;
-function onLoop()
-
-	for  k,v in pairs(NPC.get(37, -1))  do
+	for  k,v in ipairs(NPC.get(37, -1))  do
 
 		if (v.ai1 == 0) then
 			v.ai1 = 1;
@@ -13,8 +11,7 @@ function onLoop()
 				timer = timer + 1
 				v.ai1 = 0
 			end]]
-		end
-		if (v.ai1 == 3) then
+		elseif (v.ai1 == 3) then
 			v.speedY = v.speedY / 1.5
 		end
 

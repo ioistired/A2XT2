@@ -12,6 +12,7 @@ LEVEL:kitikami-Hakugyokurou
 	Type=LEVEL
 	Exit=ROULETTE
 	Chars=DI
+	FilterMounts
 LEVEL:Pyro-Super Cyclops Girl
 	Name=Super Cyclops Girl
 	Author=Pyro

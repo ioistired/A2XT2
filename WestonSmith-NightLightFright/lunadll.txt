@@ -1,8 +1,0 @@
-#-1
-FilterPlayer,0,2,1,0,0,0
-FilterPlayer,0,3,1,0,0,0
-FilterReservePowerup,0,0,0,0,0,0
-FilterToSmall,0,0,0,0,0,0
-FilterMount,0,0,0,0,0,0
-#END
-

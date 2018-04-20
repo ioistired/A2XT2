@@ -4,6 +4,7 @@ LEVEL:Mikkofier-Monoland
 	Type=LEVEL
 	Exit=LEEK
 	Raocoins=true
+	FilterMounts
 LEVEL:castlepokemetroid-shoezone3
 	Name=Shoe Zone 3
 	Author=CastlePokeMetroid
@@ -17,6 +18,7 @@ LEVEL:Holy-Merano
 	Type=LEVEL
 	Exit=LEEK
 	Chars=D
+	FilterBig
 	FilterPowers
 LEVEL:arabsalmon - Bog Standard
 	Name=Bog Standard

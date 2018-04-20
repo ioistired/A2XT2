@@ -3,19 +3,15 @@ function onStart()
 	_G["ManualTitle"] = "Bonus Stage 1"
 	_G["ManualArtist"] = "Toshiaki Sakoda"
 	_G["ManualAlbum"] = "Alien Crush"
-	if (player.isValid) then
-			player.character = CHARACTER_MARIO
-
-	end
 end
 
 local timer = 0
 local sounded = false
-function onLoop()
+function onTick()
 
-	for  k,v in pairs(NPC.get(37, -1))  do
-		Cam = Camera.get()
-		if ((Cam[1].x < v.x + 800 and (Cam[1].x + 800) > v.x)) and (Cam[1].y < v.y + 600 and (Cam[1].y + 600 > v.y)) then
+	local Cam = Camera.get()[1];
+	for  k,v in ipairs(NPC.get(37, -1))  do
+		if ((Cam.x < v.x + 800 and (Cam.x + 800) > v.x)) and (Cam.y < v.y + 600 and (Cam.y + 600 > v.y)) then
 		--v.underwater = false
 	--Text.print(v.speedY,100,100)
 	--Text.print(v.underwater,200,100)
@@ -47,12 +43,12 @@ function onLoop()
 			end
 
 			if (v.ai1 == 0 and sounded == false) then
-				playSFX(37)
+				Audio.playSFX(37)
 				sounded = true
 			end
 
 			if (v.ai1 == 2 and sounded == false) then
-				playSFX(37)
+				Audio.playSFX(37)
 				sounded = true
 			end
 		end

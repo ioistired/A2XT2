@@ -10,6 +10,7 @@ LEVEL:Holy-Ectoplasmania
 	Author=Holy
 	Type=LEVEL
 	Exit=CASH
+	Chars=D
 LEVEL:SpoonyBard-MangroveCavern
 	Name=Mangrove Cavern
 	Author=SpoonyBardOL
@@ -23,12 +24,7 @@ LEVEL:Oddwrath-BatAnEye
 	Type=LEVEL
 	Exit=LEEK
 	Chars=DIR
-LEVEL:duvi0-Sheath's Journey to Sheol
-	Name=Sheath's Journey to Sheol
-	Author=duvi0
-	Type=LEVEL
-	Exit=LEEK
-	Chars=S
+	FilterMounts
 LEVEL:MrSecurity-Glum
 	Name=Glum
 	Author=MrSecurity/SAJewers
