@@ -21,12 +21,6 @@ LEVEL:Pyro-Super Cyclops Girl
 	Chars=D
 	FilterPowers
 	FilterMounts
-LEVEL:duvi0-Frenzy Citadel
-	Name=Frenzy Citadel
-	Author=duvi0
-	Type=LEVEL
-	Exit=LEEK
-	Chars=DIRK
 LEVEL:Unaniem-Claustrophobia
 	Name=Claustrophobia
 	Author=Unaniem
@@ -45,16 +39,13 @@ LEVEL:128Up-Break the Needle Cyclops
 	Chars=D
 	FilterPowers
 	FilterMounts
-LEVEL:duvi0-Fire Production Land
-	Name=Fire Production Land
-	Author=duvi0
-	Type=LEVEL
-	Exit=CASH
 LEVEL:Friendly Dictator-SKULLDUGGERY
 	Name=SKULLDUGGERY
 	Author=Friendly Dictator
 	Type=LEVEL
 	Exit=LEEK
+	Chars=I
+	FilterPowers
 LEVEL:XutaWoo-DAMNage_and_Damnation
 	Name=DAMNage and Damnation
 	Author=XutaWoo/Pyro
