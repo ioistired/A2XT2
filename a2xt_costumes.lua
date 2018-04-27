@@ -39,8 +39,8 @@ end
 
 -- Properties for each costume
 costumes.info = {}
-for  _,v1 in ipairs(Misc.listDirectories(Misc.episodePath().."graphics/costumes"))  do
-	for  _,v2 in ipairs(Misc.listDirectories(Misc.episodePath().."/graphics/costumes/"..v1))  do
+for  _,v1 in ipairs(Misc.listDirectories(Misc.episodePath().."costumes"))  do
+	for  _,v2 in ipairs(Misc.listDirectories(Misc.episodePath().."/costumes/"..v1))  do
 		local costume_id = reference[v2];
 		
 		if(costume_id) then
@@ -54,7 +54,7 @@ for  _,v1 in ipairs(Misc.listDirectories(Misc.episodePath().."graphics/costumes"
 			table.insert(charList, costume_id);
 
 			local info = {
-				path = "graphics/costumes/"..v1.."/"..v2,
+				path = "costumes/"..v1.."/"..v2,
 				id = costume_id,
 				costume = v2,
 				name = costumes.data[costume_id].name,

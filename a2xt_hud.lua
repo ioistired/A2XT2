@@ -147,7 +147,7 @@ local function drawHUD(priority)
 		Graphics.drawImageWP(saveImage, 800-24, 600-24, (saveTimer/saveDisplayTime), 10);
 		saveTimer = saveTimer - 1;
 	end
-	if((isOverworld and showhud == WHUD_ALL) or (not isOverworld and showhud)) then
+	if(showhud) then
 		Graphics.drawImageWP(HUD_IMG.demos,400-sideoffset-64,20,priority);
 		Text.printWP(GLOBAL_DEMOS, 1, 400-sideoffset-64, 39,priority)
 		
@@ -267,21 +267,16 @@ end
 
 local function renderHUD(idx, priority)
 	showhud = Graphics.isHudActivated();
-		
+	drawHUD(priority);
+end
+
+local function renderOWHUD(priority)
+	showhud = true;
 	drawHUD(priority);
 end
 
 Graphics.overrideHUD(renderHUD);
-
-function hud.onDraw()
-	if(isOverworld) then
-		showhud = Graphics.getOverworldHudState();
-		Graphics.activateOverworldHud(WHUD_NONE);
-		drawHUD(5);
-	else
-		showhud = Graphics.isHudActivated();
-	end
-end
+Graphics.overrideOverworldHUD(renderOWHUD);
 
 function hud.onDrawEnd()
 	if(isOverworld) then

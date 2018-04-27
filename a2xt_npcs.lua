@@ -583,7 +583,7 @@ function costumeobj:onDrawNPC()
 				local inipath = Misc.resolveFile(a2xt_costumes.info[self.data.costume].path.."/"..a2xt_costumes.info[self.data.costume].characterName.."-2.ini");
 				if(inipath == nil) then
 					local nms = {"DEMO", "IRIS", "KOOD", "RAOCOW", "SHEATH"};
-					inipath = Misc.resolveFile("graphics/costumes/"..a2xt_costumes.info[self.data.costume].characterName.."/"..nms[a2xt_costumes.info[self.data.costume].character].."-CENTERED/"..a2xt_costumes.info[self.data.costume].characterName.."-2.ini");
+					inipath = Misc.resolveFile("costumes/"..a2xt_costumes.info[self.data.costume].characterName.."/"..nms[a2xt_costumes.info[self.data.costume].character].."-CENTERED/"..a2xt_costumes.info[self.data.costume].characterName.."-2.ini");
 				end
 				self.data.sprite = Graphics.loadImage(path);
 				self.data.spritexoffset,self.data.spriteyoffset,self.data.spritewidth,self.data.spriteheight = parseCostumeIni(inipath);
@@ -864,9 +864,9 @@ local function updateDemoKrewHitbox(self, c)
 	self.data.powerup = temps[c].powerup;
 		
 	local basenames = {"mario", "luigi", "peach", "toad", "link"};
-	local inipath = Misc.resolveFile("graphics/costumes/"..basenames[c].."/"..self.data.costume.."/"..basenames[c].."-"..self.data.powerup..".ini");
+	local inipath = Misc.resolveFile("costumes/"..basenames[c].."/"..self.data.costume.."/"..basenames[c].."-"..self.data.powerup..".ini");
 	if(inipath == nil) then
-		inipath = Misc.resolveFile("graphics/costumes/"..basenames[c].."/"..krewInfo.names[self.id]:upper().."-CENTERED/"..basenames[c].."-"..self.data.powerup..".ini");
+		inipath = Misc.resolveFile("costumes/"..basenames[c].."/"..krewInfo.names[self.id]:upper().."-CENTERED/"..basenames[c].."-"..self.data.powerup..".ini");
 	end
 	
 	self.data.offsetL,self.data.offsetR,self.data.w,self.data.h = parseCharIni(inipath);
