@@ -19,7 +19,7 @@ local a2xt_rewards = API.load("a2xt_rewards");
 local a2xt_pause = API.load("a2xt_pause");
 local a2xt_hud = API.load("a2xt_hud");
 local npcmanager = API.load("npcmanager")
-local darkness = API.load("darkness/darkness")
+local darkness = API.load("darkness")
 
 local textblox = API.load("textblox");
 
@@ -75,17 +75,17 @@ for _,v in ipairs(idolIDs) do
 	idolsDone[v] = false;
 end
 
-audio.Create{sound="waterfall.ogg", x = -172672, y = -179774, type = audio.SOURCE_BOX, sourceWidth = 1024, sourceHeight = 1408, falloffRadius = 1600, volume = 2};
+SFX.create{sound="waterfall.ogg", x = -172672, y = -179774, type = SFX.SOURCE_BOX, sourceWidth = 1024, sourceHeight = 1408, falloffRadius = 1600, volume = 2};
 
 local waterY = -179088;
 local waterWid = 3264;
 local splashes = {};
 
-audio.Create{sound="waterfall.ogg", x = -173184 - waterWid*0.5, y = waterY + 24, type = audio.SOURCE_BOX, sourceWidth = waterWid, sourceHeight = 48, falloffRadius = 800, volume = 1};
+SFX.create{sound="waterfall.ogg", x = -173184 - waterWid*0.5, y = waterY + 24, type = SFX.SOURCE_BOX, sourceWidth = waterWid, sourceHeight = 48, falloffRadius = 800, volume = 1};
 
 
 local waterwheel = imagic.Create{x = -175872 + 16, y = -179488 + 16, width = 1024, height = 1024, primitive = imagic.TYPE_BOX, texture = Graphics.loadImage("waterwheel.png"), align = imagic.ALIGN_CENTRE, scene = true}
-local wheelAudio = audio.Create{sound="waterwheel.ogg", x = waterwheel.x, y = waterwheel.y, type = audio.SOURCE_CIRCLE, sourceRadius = 512, falloffRadius = 800, volume = 1};
+local wheelAudio = SFX.create{sound="waterwheel.ogg", x = waterwheel.x, y = waterwheel.y, type = SFX.SOURCE_CIRCLE, sourceRadius = 512, falloffRadius = 800, volume = 1};
 
 local wheelParticles = particles.Emitter(waterwheel.x,waterY,Misc.resolveFile("p_waterwheel.ini"));
 local wheelRadius = 512-32;
@@ -94,7 +94,7 @@ local wheelBlocks = 289;
 
 local mini_wheel = imagic.Create{x = 0, y = 0, width = 70, height = 70, primitive = imagic.TYPE_BOX, texture = Graphics.loadImage("background-3.png"), align = imagic.ALIGN_CENTRE, scene = true}
 local mini_wheel_smoke = particles.Emitter(120504,119743,Misc.resolveFile("p_tinysmoke.ini"));
-local mini_wheel_audio = audio.Create{sound="mini-wheel.ogg", x = -999999, y = -999999, type = audio.SOURCE_POINT, falloffRadius = 800, volume = 0.75};
+local mini_wheel_audio = SFX.create{sound="mini-wheel.ogg", x = -999999, y = -999999, type = SFX.SOURCE_POINT, falloffRadius = 800, volume = 0.75};
 
 local cavebg = paralx2.Background(1, {left = -176480, top = -180320, right=-173186, bottom=-179008},
 {img=Graphics.loadImage("cave_0.png"), depth = INFINITE, alignY = paralx2.align.BOTTOM, x = -4992, y = -76, repeatX = true},
@@ -113,24 +113,27 @@ local default_cave_bounds = {left=present_cave.x-1600, top=present_cave.y-600,ri
 
 local darknessSettings = {
 					maxLights = 200;
-					falloff=darkness.Falloff.INV_SQR,
-					shadows=darkness.Shadow.NONE, 
+					falloff=darkness.falloff.INV_SQR,
+					shadows=darkness.shadow.RAYMARCH, 
+					priority = -0.5,
 					uniforms = 
 					{ 
 					}
 					};
 
-local cave_darkness = darkness.Field(table.join(darknessSettings, 
+local cave_darkness = darkness.create(table.join(darknessSettings, 
 					{
 						ambient=Color.white,
 						bounds = table.clone(default_cave_bounds),
-						boundBlendLength=600
+						boundBlendLength=600,
+						section = 0
 					}));
 						
 				
-local cave_darkness_indoors = darkness.Field(table.join(darknessSettings, 
+local cave_darkness_indoors = darkness.create(table.join(darknessSettings, 
 					{
-						ambient=ambientLight;
+						ambient=ambientLight,
+						sections = {12,14}
 					}));
 
 --Copy cave background to new section and reposition
@@ -178,7 +181,7 @@ local torchExplorers = {};
 local grabtorches = {};
 local fireballs = {};
 
-local fireballColours = {[13]=0xFF9900, [265]=0x0099FF, [266]=0xFFFFFF}
+local fireballColours = {[13]=Color.fromHexRGB(0xFF9900), [265]=Color.fromHexRGB(0x0099FF), [266]=Color.fromHexRGB(0xFFFFFF)}
 local fireballIDs = {}
 for k,_ in pairs(fireballColours) do
 	table.insert(fireballIDs, k);
@@ -1052,19 +1055,18 @@ function onStart()
 	
 	for _,v in ipairs(BGO.get(21)) do
 		local p = particles.Emitter(v.x+16,v.y-4,Misc.resolveFile("particles/p_flame_small.ini"));
-		audio.Create{sound="torches.ogg", x = v.x+16, y=v.y, falloffRadius = 500, volume = 0.5};
+		SFX.create{sound="torches.ogg", x = v.x+16, y=v.y, falloffRadius = 500, volume = 0.5};
 		table.insert(torches, p);
 	end
 	
 	for _,v in ipairs(NPC.get(101)) do
 		local p = particles.Emitter(v.x+24,v.y+6,Misc.resolveFile("particles/p_flame_small.ini"));
-		audio.Create{sound="torches.ogg", x = v.x+16, y=v.y+10, falloffRadius = 500, volume = 0.5};
+		SFX.create{sound="torches.ogg", x = v.x+16, y=v.y+10, falloffRadius = 500, volume = 0.5};
 		v = pnpc.wrap(v);
 		v.data.torch = p;
-		v.data.light = darkness.Light(p.x,p.y,300,1,0xFF9900);
+		v.data.light = darkness.light(p.x,p.y,300,1,Color.fromHexRGB(0xFF9900));
 		v.data.lightRadius = 300;
-		cave_darkness:AddLight(v.data.light);
-		cave_darkness_indoors:AddLight(v.data.light);
+		darkness.addLight(v.data.light);
 		table.insert(torchExplorers, v)
 	end
 end
@@ -1218,9 +1220,9 @@ function onTick()
 					if(px > cam.x - 32 and px < cam.x + cam.width + 32 and py > cam.y - 32 and py < cam.y + cam.height + 32) then
 						table.insert(splashes, {x = px-16, y = waterY-32, frame = 0, timer = 8});
 						if(sy > 11 and v.width >= 24) then
-							audio.PlaySound{sound = "splash-big.ogg", volume = 2}
+							SFX.playSound{sound = "splash-big.ogg", volume = 2}
 						else
-							audio.PlaySound{sound = "splash-small.ogg", volume = 1}
+							SFX.playSound{sound = "splash-small.ogg", volume = 1}
 						end
 					end
 				end
@@ -1602,12 +1604,11 @@ function onCameraDraw()
 			
 			v.data.particles = p;
 			
-			v.data.light = darkness.Light(p.x,p.y,256,1,0xFF9900);
+			v.data.light = darkness.light(p.x,p.y,256,1,Color.fromHexRGB(0xFF9900));
 			v.data.lightRadius = 256;
-			cave_darkness:AddLight(v.data.light);
-			cave_darkness_indoors:AddLight(v.data.light);
+			darkness.addLight(v.data.light);
 			
-			v.data.sound = audio.Create{sound="torches.ogg", parent = v, x = v.x+16, y=v.y, falloffRadius = 400, volume = 0.4};
+			v.data.sound = SFX.create{sound="torches.ogg", parent = v, x = v.x+16, y=v.y, falloffRadius = 400, volume = 0.4};
 			table.insert(grabtorches,v)
 		end
 	end
@@ -1615,10 +1616,9 @@ function onCameraDraw()
 	for _,v in ipairs(NPC.get(fireballIDs)) do
 		v = pnpc.wrap(v);
 		if(v.data.light == nil) then
-			v.data.light = darkness.Light(v.x,v.y,32,1,fireballColours[v.id]);
+			v.data.light = darkness.light(v.x,v.y,32,1,fireballColours[v.id]);
 			v.data.lightRadius = 32;
-			cave_darkness:AddLight(v.data.light);
-			cave_darkness_indoors:AddLight(v.data.light);
+			darkness.addLight(v.data.light);
 			table.insert(fireballs,v)
 		end
 	end
@@ -1632,8 +1632,7 @@ function onCameraDraw()
 			v.data.light.radius = rng.random(v.data.lightRadius-5,v.data.lightRadius+5);
 			v.data.light.brightness = rng.random(0.95,1.05)
 		else
-			cave_darkness:RemoveLight(v.data.light);
-			cave_darkness_indoors:RemoveLight(v.data.light);
+			v.data.light:destroy();
 			table.remove(fireballs,i);
 		end
 	end
@@ -1668,8 +1667,7 @@ function onCameraDraw()
 			v.data.sound.y = cam.y+cam.height*0.5 + (v.data.particles.y-player.y+player.height*0.5);
 		else
 			v.data.particles:KillParticles();
-			cave_darkness:RemoveLight(v.data.light);
-			cave_darkness_indoors:RemoveLight(v.data.light);
+			v.data.light:destroy();
 			v.data.sound:Destroy()
 			table.remove(grabtorches,i);
 		end
@@ -1726,9 +1724,10 @@ function onCameraDraw()
 			end
 		end
 		
+		--[[
 		if(cave_darkness.ambient ~= Color.white) then
 			cave_darkness:Draw();
-		end
+		end]]
 		
 		if(haze_blend > 0) then
 			local haze_p = 0
@@ -1758,7 +1757,7 @@ function onCameraDraw()
 		mini_wheel:Draw(-64);
 		mini_wheel:Rotate(1);
 	elseif(player.section == 12 or player.section == 14) then
-		cave_darkness_indoors:Draw();
+		--cave_darkness_indoors:Draw();
 	end
 end
 
