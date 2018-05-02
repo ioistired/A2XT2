@@ -27,7 +27,7 @@ function isGamePaused()
 end
 
 local shader_blur;
-local buffer = Graphics.CaptureBuffer(800,600);
+local buffer = Graphics.CaptureBuffer(800,600,true);
 
 local pause_priority = 10;
 local pause_option = 0;
