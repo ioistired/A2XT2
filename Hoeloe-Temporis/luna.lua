@@ -185,6 +185,7 @@ local fireballColours = {[13]=Color.fromHexRGB(0xFF9900), [265]=Color.fromHexRGB
 local fireballIDs = {}
 for k,_ in pairs(fireballColours) do
 	table.insert(fireballIDs, k);
+	darkness.objects.npcs[k] = nil;
 end
 
 local function getGender(p)
