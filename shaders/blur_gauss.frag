@@ -40,7 +40,7 @@ void main()
 	{
 		for (int j=-kSize; j <= kSize; ++j)
 		{
-			final_colour += kernel[kSize+j]*kernel[kSize+i]*texture2D(iChannel0, (uv+vec2(float(i),float(j)) / (2*iResolution.xy))).rgb;
+			final_colour += kernel[kSize+j] * kernel[kSize+i] * texture2D(iChannel0, clamp(uv+vec2(float(i),float(j)) / (2*iResolution.xy), 0, 1)).rgb;
 	
 		}
 	}

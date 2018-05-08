@@ -28,6 +28,7 @@ end
 
 local shader_blur;
 local buffer = Graphics.CaptureBuffer(800,600,true);
+local buffer_blur = Graphics.CaptureBuffer(400,300,true);
 
 local pause_priority = 10;
 local pause_option = 0;
@@ -206,10 +207,6 @@ local function drawConfirmBox(priority, alpha)
 end
 
 local function drawPause(priority)
-	if(shader_blur == nil) then
-		shader_blur = Shader();
-		shader_blur:compileFromFile(nil, Misc.resolveFile("shaders/blur_gauss.frag"));
-	end
 	if(game_paused) then
 		if(unpausing) then
 			pause_blend = pause_blend-0.1;
@@ -225,6 +222,13 @@ local function drawPause(priority)
 		end
 		pause_blend = math.min(math.max(pause_blend,0),1);
 		
+		Graphics.drawScreen{texture=buffer, priority = priority};
+		
+		
+		if(pause_blend > 0) then
+			Graphics.drawScreen{texture=buffer_blur, priority = priority, color = Color(1,1,1,pause_blend)};
+		end
+		--[[
 		Graphics.glDraw{
 			vertexCoords = {0,0,800,0,800,600,0,600},
 			textureCoords = {0,0,1,0,1,1,0,1},
@@ -237,7 +241,7 @@ local function drawPause(priority)
 				iResolution = {800,600,0},
 				blend = pause_blend
 			}
-		}
+		}]]
 		
 		local alpha = math.floor(pause_blend*255);
 		local bga = alpha*0.75;
@@ -366,6 +370,23 @@ function pause.onInputUpdate()
 			earthquakeCache = Defines.earthquake;
 			Defines.earthquake = 0;
 			buffer:captureAt(pause_priority);
+			
+			if(shader_blur == nil) then
+				shader_blur = Shader();
+				shader_blur:compileFromFile(nil, Misc.resolveFile("shaders/blur_gauss.frag"));
+			end
+	
+			Graphics.drawBox{x=0,y=0,width=buffer_blur.width,height=buffer_blur.height,
+			texture = buffer,
+			shader = shader_blur,
+			target = buffer_blur,
+			priority = pause_priority;
+			uniforms =
+			{
+				iResolution = {buffer_blur.width,buffer_blur.height,0},
+				blend = 1
+			}};
+		
 			Misc.pause();
 			Audio.playSFX(30);
 		end
