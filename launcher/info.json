@@ -1,5 +1,6 @@
 {
 	"mainPage": "index.html",
 	"characterNames": ["Demo", "Iris", "Kood", "Raocow", "Sheath"],
-	"allowTwoPlayer": false
+	"allowTwoPlayer": false,
+	"episodeIcon": "icon.png"
 }
