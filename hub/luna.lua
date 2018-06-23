@@ -13,50 +13,16 @@ local sanctuary = API.load("a2xt_leeksanctuary");
 sanctuary.world = 3;
 
 
-message.presetSequences.MessageTest = function(args)
-	local talker = args.npc
 
-	message.showMessageBox {target=talker, text="Testing sign messages.", type="sign"}
-	message.waitMessageEnd();
-
-	message.showMessageBox {target=talker, text="Testing bubble messages."}
-	message.waitMessageEnd();
-
-	message.showMessageBox {target=talker, text="Testing system messages.", type="system"}
-	message.waitMessageEnd();
-
-	message.showMessageBox {target=talker, text="Testing boxless messages.", type="textonly"}
-	message.waitMessageEnd();
-
-	message.showMessageBox {target=talker, text="Testing intercom messages.", type="intercom"}
-	message.waitMessageEnd();
-
-	message.endMessage();
-	scene.endScene();
-end
-
-
-message.presetSequences.archiveReset = function(args)
-	local talker = args.npc
-	message.showMessageBox {target=talker, text="<gt>All profile notifications reset.", type="system"}
-	message.waitMessageEnd();
-
-	SaveData.biosRead = {}
-
-	message.endMessage();
-	scene.endScene();
-end
-
-
-message.presetSequences.archiveChars = function(args)
+local function archiveSection (args, group, folderName)
 	local talker = args.npc
 
 	message.promptChosen = false
-	message.showMessageBox {target=talker, text="<gt>Accessing character profiles...<pause 0.1>", type="system", closeWith="prompt"}
+	message.showMessageBox {target=talker, text="<gt>Accessing "..folderName.."...<pause 0.1>", type="system", closeWith="prompt"}
 	message.waitMessageDone();
 
 	-- Set up prompt
-	local keys,names,bios = archives.GetUnlockedBios()
+	local keys,names,bios = archives.GetUnlockedBios(group)
 
 	local namePages = {}
 	if  #names > 8  then
@@ -110,8 +76,8 @@ message.presetSequences.archiveChars = function(args)
 			local keyIndex = (currentPage-1)*7 + message.promptChoice
 			local key = keys[keyIndex]
 
-			archives.UpdateBioReadExtent(key,leveldata.GetWorldsCleared())
-			names[keyIndex] = archives.GetBioProperty (key,"name")
+			archives.UpdateBioReadExtent(group,key)
+			names[keyIndex] = archives.GetBioProperty (group,key,"name")
 			namePages[currentPage][message.promptChoice] = names[keyIndex]
 
 			message.showMessageBox{target=talker, text=bios[keyIndex], type="system", bloxProps={autosizeRatio=10/3}}
@@ -135,7 +101,7 @@ message.presetSequences.archiveChars = function(args)
 			end
 
 			message.promptChosen = false
-			message.showMessageBox {target=talker, text="<gt>Accessing character profiles...<pause 0.1>", type="system", closeWith="prompt"}
+			message.showMessageBox {target=talker, text="<gt>Accessing "..folderName.."...<pause 0.1>", type="system", closeWith="prompt"}
 		end
 
 		-- Yield
@@ -145,6 +111,90 @@ message.presetSequences.archiveChars = function(args)
 
 	message.endMessage();
 	scene.endScene();
+end
+
+
+
+
+message.presetSequences.MessageTest = function(args)
+	local talker = args.npc
+
+	message.showMessageBox {target=talker, text="Testing sign messages.", type="sign"}
+	message.waitMessageEnd();
+
+	message.showMessageBox {target=talker, text="Testing bubble messages."}
+	message.waitMessageEnd();
+
+	message.showMessageBox {target=talker, text="Testing system messages.", type="system"}
+	message.waitMessageEnd();
+
+	message.showMessageBox {target=talker, text="Testing boxless messages.", type="textonly"}
+	message.waitMessageEnd();
+
+	message.showMessageBox {target=talker, text="Testing intercom messages.", type="intercom"}
+	message.waitMessageEnd();
+
+	message.endMessage();
+	scene.endScene();
+end
+
+
+message.presetSequences.archiveDebug = function(args)
+	local talker = args.npc
+
+	message.promptChosen = false
+	message.showMessageBox {target=talker, text="<gt>Accessing admin tools...<pause 0.1>", type="system", closeWith="prompt"}
+	message.waitMessageDone();
+
+
+	-- Set up the prompt
+	local optionsList = {"Reset notifications", "Reset world override"}
+	for  i=2,10  do
+		optionsList[#optionsList+1] = "Set world override to "..tostring(i)
+	end
+	local cancelNum = -1
+	optionsList[#optionsList+1] = message.getCancelOption()
+	cancelNum = #optionsList
+
+
+	-- Show the prompt
+	message.showPrompt{options=optionsList, sideX=-1}
+	message.waitPrompt()
+
+	-- Reset notifications
+	if  message.promptChoice == 1  then
+		message.showMessageBox {target=talker, text="<gt>All profile notifications reset.", type="system"}
+		message.waitMessageEnd();
+
+		SaveData.biosRead = {}
+
+	-- Reset override
+	elseif  message.promptChoice == 2  then
+		message.showMessageBox {target=talker, text="<gt>World assumption reset.", type="system"}
+		message.waitMessageEnd();
+		archives.SetBioDebugWorld(nil)
+
+	-- Cancel
+	elseif  message.promptChoice == cancelNum  then
+		
+
+	-- Set override
+	else
+		message.showMessageBox {target=talker, text="<gt>Assuming the player is in world "..tostring(message.promptChoice-1)..".  All bios up to this world are now unlocked.", type="system"}
+		message.waitMessageEnd();
+		archives.SetBioDebugWorld(message.promptChoice-1)
+	end
+
+	message.endMessage();
+	scene.endScene();
+end
+
+message.presetSequences.archiveChars = function(args)
+	return archiveSection (args, "characters", "character profiles")
+end
+
+message.presetSequences.archiveSpecies = function(args)
+	return archiveSection (args, "species", "specie files")
 end
 
 
