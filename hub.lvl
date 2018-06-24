@@ -8758,7 +8758,7 @@
 1
 151
 #FALSE#
-"{name='Species',event='archiveChars'}"
+"{name='Species',event='archiveSpecies'}"
 #TRUE#
 #FALSE#
 #FALSE#
@@ -8818,7 +8818,7 @@
 -1
 151
 #FALSE#
-"{name='Reset Profile Progress',event='archiveReset'}"
+"{name='Profile Debug',event='archiveDebug'}"
 #TRUE#
 #FALSE#
 #FALSE#
@@ -8848,7 +8848,7 @@
 -1
 118
 #FALSE#
-""
+"{name='Jukebox',event='jukebox'}"
 #TRUE#
 #TRUE#
 #FALSE#

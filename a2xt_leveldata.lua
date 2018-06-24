@@ -577,7 +577,7 @@ local function findEpisode()
 	local EP_LIST_PTR = mem(0x00B250FC, FIELD_DWORD)
 	for indexer = 1, EP_LIST_COUNT do
 		local name = tostring(mem(EP_LIST_PTR + (indexer - 1) * 0x18 + 0x0, FIELD_STRING))
-		if name == "A2XT2" then
+		if name == "A2XT Episode 2: Digital Groove" then
 			episodeIndex = indexer
 			hasFound = true
 			break
@@ -604,6 +604,8 @@ function leveldata.LoadLevel(filename, warpIdx)
 		mem(0x00B2C89C, FIELD_WORD, 0)  -- GM_CREDITS_MODE
 		mem(0x00B2C620, FIELD_WORD, 0)  -- GM_INTRO_MODE
 		mem(0x00B2C5B4, FIELD_WORD, -1) -- GM_EPISODE_MODE (set to leave level)
+	else
+		--windowDebug("A2XT2 episode directory not found.  Index returned: '"..tostring(episodeIndex));
 	end
 end
 

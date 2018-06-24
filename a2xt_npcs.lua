@@ -686,7 +686,8 @@ a2xt_message.presetSequences.townportal = function(args)
 
 	if  (a2xt_message.promptChoice == 1)  then
 		eventu.waitSeconds(1)
-
+		a2xt_leveldata.LoadLevel("hub.lvl",0)
+		a2xt_scene.endScene()
 	end
 end
 
@@ -728,7 +729,8 @@ a2xt_message.presetSequences.hubportal = function(args)
 		eventu.waitSeconds(1)
 		a2xt_scene.endScene()
 
-		local worldNum = optionWorlds[#worldOptions]
+		local worldNum = optionWorlds[a2xt_message.promptChoice]
+		local worldStartLevel = a2xt_leveldata.GetWorldStart(worldNum)
 		local pos = a2xt_leveldata.GetWorldStartMapPos(worldNum)  or  {x=0,y=0}
 
 		local overworldDataPtr = mem(0xB2C5C8, FIELD_DWORD)
@@ -743,7 +745,7 @@ a2xt_message.presetSequences.hubportal = function(args)
 		else
 			-- Insert player enter effect here
 			-- Go to sow level
-			a2xt_leveldata.loadLevel(worldStartLevel,0)
+			a2xt_leveldata.LoadLevel(worldStartLevel,0)
 		end
 		a2xt_message.waitMessageEnd()
 	end

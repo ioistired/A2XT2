@@ -696,13 +696,17 @@ function a2xt_message.showPrompt(args)
 	a2xt_message.promptChosen = false
 	a2xt_message.promptChoiceStr = ""
 
+
+	local optionsShown = args.optionsShown  or  #options
+	local topOption = 1
+	local maxTopOption = #options-optionsShown+1
+
 	local fullStr = options[1]
 	if  #options > 1  then
-		for i=2,#options  do
+		for i=2,optionsShown  do
 			fullStr = fullStr.."<br>"..options[i]
 		end
 	end
-
 
 	local barWidth, barHeight = textblox.printExt (fullStr, {x=-2000,y=0,z=0.1, alpha=bga, font=uiFont, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
 	barWidth = barWidth+110
@@ -714,23 +718,62 @@ function a2xt_message.showPrompt(args)
 	local barX = 400 - sideX*(350 - 0.5*barWidth)
 	local barY = 300 - sideY*(250 - 0.5*barHeight)
 
+	local maxScrollTicks = 15
+	local scrollTickDelay = 7
+	local scrollTicks = 0
+
 	eventu.run (function()
 
 		cman.playerCam[1]:Transition {time=0.75, xOffset=-barWidth*0.25*sideX, easeBoth=cman.EASE.QUAD}
 		eventu.waitSeconds(0.5)
 		while (not a2xt_message.promptChosen) do
 
-			-- Move the cursor
-				if      a2xt_scene.currInputs.up  and  not a2xt_scene.prevInputs.up  then
+			-- Scroll handling
+				if  math.abs(scrollTicks) == maxScrollTicks  then
+					local scrollSign = scrollTicks/math.abs(scrollTicks)
+					scrollTicks = scrollTicks - (scrollSign*scrollTickDelay)
+				end
+
+				if  not a2xt_scene.currInputs.up  and  not a2xt_scene.currInputs.down  then
+					scrollTicks = 0
+				elseif  a2xt_scene.currInputs.up  then
+					scrollTicks = scrollTicks-1
+
+				elseif  a2xt_scene.currInputs.down  then
+					scrollTicks = scrollTicks+1
+				end
+
+
+			-- Cursor movement
+				if      (a2xt_scene.currInputs.up  and  not a2xt_scene.prevInputs.up)  or  scrollTicks == -maxScrollTicks  then
 					Audio.SfxPlayObj(blipSound,0)
 					a2xt_message.promptChoice = math.max(1, a2xt_message.promptChoice-1)
 					a2xt_message.promptChoiceStr = options[a2xt_message.promptChoice]
+					if  a2xt_message.promptChoice == topOption  then
+						topOption = math.max(1, topOption-1)
+					end
 
-				elseif  a2xt_scene.currInputs.down  and  not a2xt_scene.prevInputs.down  then
+				elseif  (a2xt_scene.currInputs.down  and  not a2xt_scene.prevInputs.down)  or  scrollTicks == maxScrollTicks  then
 					Audio.SfxPlayObj(blipSound,0)
 					a2xt_message.promptChoice = math.min(#options, a2xt_message.promptChoice+1)
 					a2xt_message.promptChoiceStr = options[a2xt_message.promptChoice]
+					if  a2xt_message.promptChoice == topOption + optionsShown-1  then
+						topOption = math.min(topOption+1, maxTopOption)
+					end
+
+				elseif  a2xt_scene.currInputs.left  and  not a2xt_scene.prevInputs.left  then
+					Audio.SfxPlayObj(blipSound,0)
+					a2xt_message.promptChoice = 1
+					a2xt_message.promptChoiceStr = options[1]
+					topOption = 1
+
+				elseif  a2xt_scene.currInputs.right  and  not a2xt_scene.prevInputs.right  then
+					Audio.SfxPlayObj(blipSound,0)
+					a2xt_message.promptChoice = #options
+					a2xt_message.promptChoiceStr = options[a2xt_message.promptChoice]
+					topOption = maxTopOption
 				end
+
 
 				-- Confirm
 				if  a2xt_scene.currInputs.jump  and  not a2xt_scene.prevInputs.jump  then
@@ -764,12 +807,19 @@ function a2xt_message.showPrompt(args)
 					local xAdd,yAdd = 8*math.sin(math.rad(360*timeLoop)), 8*math.sin(math.rad(90 + 360*timeLoop))
 					local optionsBar = uiBox{image=thoughtBubbleImg, x=barX+xAdd, y=barY+yAdd, width=barWidth,height=barHeight}
 					optionsBar:Draw{priority=6, colour=0xFFFFFFFF, bordercolour=0xFFFFFFFF};
-					for  i=1,#options  do
+
+					
+					for  j=1,optionsShown  do
+						local i = j+topOption-1
 						local optionStr = options[i]
 						if  a2xt_message.promptChoice == i  then
 							optionStr = "<color rainbow><lt><wave 2> "..optionStr.." <wave 0><color rainbow><gt>"
 						end
-						textblox.printExt (optionStr, {x=barX+xAdd, y=barY + yAdd - 0.5*barHeight + 10 + i*(uiFont.charHeight*uiFont.scaleY + uiFont.leading), z=7, alpha=bga, color=0x000000FF, font=uiFont, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
+						local textAlpha = 1
+						if  (j == 1  and  topOption ~= 1)  or  (j == optionsShown  and  topOption < maxTopOption)  then
+							textAlpha = 0.5
+						end
+						textblox.printExt (optionStr, {x=barX+xAdd, y=barY + yAdd - 0.5*barHeight + 10 + j*(uiFont.charHeight*uiFont.scaleY + uiFont.leading), z=7, alpha=textAlpha, color=0x000000FF, font=uiFont, halign=textblox.ALIGN_MID,valign=textblox.ALIGN_MID})
 					end
 				end
 

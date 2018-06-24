@@ -5,6 +5,7 @@ local leveldata = API.load("a2xt_leveldata")
 local message = API.load("a2xt_message")
 local scene = API.load("a2xt_scene")
 local archives = API.load("a2xt_archives")
+local bgm = API.load("a2xt_bgm")
 
 local pendSpr = Graphics.loadImage("pendulum.png")
 local reflections = Graphics.CaptureBuffer(800,600);
@@ -14,7 +15,7 @@ sanctuary.world = 3;
 
 
 
-local function archiveSection (args, group, folderName)
+local function archiveSectionPages (args, group, folderName)
 	local talker = args.npc
 
 	message.promptChosen = false
@@ -73,7 +74,7 @@ local function archiveSection (args, group, folderName)
 
 		-- If the player has chosen a character name, show the bio
 		if  message.promptChoice <= #currentNames  then
-			local keyIndex = (currentPage-1)*7 + message.promptChoice
+			local keyIndex = (currentPage-1)*8 + message.promptChoice
 			local key = keys[keyIndex]
 
 			archives.UpdateBioReadExtent(group,key)
@@ -108,6 +109,55 @@ local function archiveSection (args, group, folderName)
 		eventu.waitFrames(0)
 	end
 	names[#names+1] = message.getCancelOption()
+
+	message.endMessage();
+	scene.endScene();
+end
+
+local function archiveSection (args, group, folderName)
+	local talker = args.npc
+
+	message.promptChosen = false
+	message.showMessageBox {target=talker, text="<gt>Accessing "..folderName.."...<pause 0.1>", type="system", closeWith="prompt"}
+	message.waitMessageDone();
+
+	-- Set up prompt
+	local keys,names,bios = archives.GetUnlockedBios(group)
+	local optionTable = table.append(names, {message.getCancelOption()})
+
+
+	-- Begin prompt loop
+	local loopBroken = false
+	local currentPage = 1
+
+	while  (not loopBroken)  do
+
+		-- Call prompt
+		message.promptChosen = false
+		message.showPrompt{options=optionTable, optionsShown=8, sideX=-1}
+		message.waitPrompt()
+
+
+		-- If the player cancelled
+		if  message.promptChoice == #optionTable  then
+			loopBroken = true
+
+		-- Otherwise, if the player has chosen a character name, show the bio
+		else
+			local keyIndex = message.promptChoice
+			local key = keys[keyIndex]
+
+			archives.UpdateBioReadExtent(group,key)
+			names[keyIndex] = archives.GetBioProperty (group,key,"name")
+			optionTable[message.promptChoice] = names[keyIndex]
+
+			message.showMessageBox{target=talker, text=bios[keyIndex], type="system", bloxProps={autosizeRatio=10/3}}
+			message.waitMessageEnd()
+		end
+
+		-- Yield
+		eventu.waitFrames(0)
+	end
 
 	message.endMessage();
 	scene.endScene();
@@ -197,6 +247,12 @@ message.presetSequences.archiveSpecies = function(args)
 	return archiveSection (args, "species", "specie files")
 end
 
+message.presetSequences.jukebox = function(args)
+	return message.presetSequences.jukeboxNormal(args)
+end
+
+
+
 
 function onStart()
 	for  i=0,1  do
@@ -205,6 +261,11 @@ function onStart()
 	end
 	SaveData["world2"].unlocked=true
 end
+
+function onLoadSection1(playerIndex)
+	Audio.resetMciSections()
+end
+
 
 
 function onDraw()
