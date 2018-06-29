@@ -12,6 +12,8 @@ READ THIS BEFORE ADDING:
 - If it has to go in a shared function, separate it from other dev's code with a comment
 --]]
 
+local ZSNES = Graphics.loadImage("zsnes.png");
+local spotlight = Graphics.loadImage("spotlight.png");
 
 -- *************
 -- ** Pholtos **
@@ -32,9 +34,11 @@ end
 -- **************
 local function sam()
 	if(player.section == 4) then
-		-- This should be replaced with a drawn graphic
-		for  k,v in ipairs(NPC.get(223, -1))  do
-			v.x = player.x
+		for  k,v in pairs(Layer.find("7NameSam-spotlight"))  do
+			if v.isHidden == false then
+				Graphics.drawImageWP(ZSNES,0,0,6.0);
+				Graphics.drawImageToSceneWP(spotlight,player.x - 135, -120608,-99);
+			end
 		end
 	end
 end
