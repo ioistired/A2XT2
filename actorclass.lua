@@ -263,6 +263,7 @@ local params = {
 		},
 		defaults = {
 			x=-999999,y=-999999,z=0,
+			xScale=1,yScale=1,scale=1,
 			cOffsetX=0, cOffsetY=0
 		},
 		aliases = {priority="z", depth="z"}
@@ -302,9 +303,11 @@ local params = {
 			canTurn=2, canCollide=2
 		},
 		defaults = {
-			speedX=0,speedY=0,
+			direction=DIR_RIGHT,
+
 			accelX=0,accelY=0,
 			frictionX=0,frictionY=0,
+			speedX=0,speedY=0,
 			minSpeedX=-math.huge,minSpeedY=-math.huge,
 			maxSpeedX=-math.huge,maxSpeedY=-math.huge,
 			canTurn=true, canCollide=true
@@ -412,6 +415,10 @@ do
 	-- WRITE HANDLING                                  --
 	-----------------------------------------------------
 	function ActorMT.__newindex (obj,key,val)
+
+		if  key == "speedX"  then
+			error("changing speedX")
+		end
 
 		-- If the property changes the collider, set the "collider is dirty" flag
 		if  (changesCollider[key] ~= nil)  then
@@ -570,7 +577,20 @@ end
 -- GENERAL METHOD FUNCTIONS                        --
 -----------------------------------------------------
 do
+	function Actor:_pickAnimState (propsDef, name)
+		local typeof = type(propsDef.animState)
 
+		if      typeof == "table"  then
+			return rng.randomEntry(propsDef.animState)
+
+		elseif  typeof == "string"  or  typeof == "nil"  then
+			return propsDef.animState
+
+		else
+			error([[The animState property of ActorState "]]..self.state..[[" needs to be a string, a table of strings, or nil.]])
+			return nil
+		end
+	end
 end
 
 
@@ -599,7 +619,7 @@ do
 			end
 
 			-- Apply animation state
-			local animState = Actor:_pickAnimState (propsDef)
+			local animState = Actor:_pickAnimState (propsDef, self.state)
 			if  animState ~= nil  then
 				self.gfx:startState {state=animState, force=true, resetTimer=true, commands=true}
 			end
@@ -665,7 +685,9 @@ do
 
 			-- Apply property overrides
 			for k,v in pairs(props)  do
-				self[k] = v
+				if  type(v) ~= "function"  then
+					self[k] = v
+				end
 			end
 
 			-- Run event
@@ -790,6 +812,7 @@ do
 		end
 		self.gfx.yScale = self.yScale
 		self.gfx.scale = self.scale
+		--Text.dialog({xScale=self.xScale, yScale=self.yScale, scale=self.scale, direction=self.direction})
 
 		-- Position
 		self.gfx.objectLastX = nil
@@ -797,7 +820,9 @@ do
 		self.gfx:move()
 
 		-- Animate even when not being rendered
-		self.gfx:animate()
+		if  not self.gfx.frozen  then
+			self.gfx:animate()
+		end
 	end
 
 	function Actor:draw()

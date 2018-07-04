@@ -1,5 +1,5 @@
 local voice = {}
-local audiom = API.load("audioMaster")
+local audiom = API.load("audiomaster")
 local eventu = API.load("eventu")
 local rng = API.load("rng")
 

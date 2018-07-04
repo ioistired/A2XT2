@@ -1,15 +1,16 @@
 -- STILL SUPER WIP
 local animDefaults = API.load("base/animdefaults")
 
-local costumes = API.load("a2xt_costumes")
-local message  = API.load("a2xt_message")
 local Actor = API.load("actorclass")
-local emote = API.load("a2xt_emote")
-
 local pnpc = API.load("pnpc")
 local animatx = API.load("animatx2")
 local lunajson = API.load("ext/lunajson")
 local rng = API.load("rng")
+
+local costumes = API.load("a2xt_costumes")
+local message  = API.load("a2xt_message")
+local emote = API.load("a2xt_emote")
+
 
 local a2xt_actor = {}
 
@@ -50,6 +51,12 @@ end
 local function getNPCOffsets(npcId)
 	return NPC.config[npcId].gfxoffsetx, NPC.config[npcId].gfxoffsety;
 end
+
+
+--*************************************
+--** Misc class variables            **
+--*************************************
+a2xt_actor.groundY = nil
 
 
 --*************************************
@@ -300,6 +307,12 @@ do  -- metamethods
 
 		-- Generate the object
 		if  tbl.objects.actor == nil  then
+			local newBounds = newRECTd()
+			newBounds.top = player.sectionObj.boundary.top-1000
+			newBounds.left = player.sectionObj.boundary.left-1000
+			newBounds.right = player.sectionObj.boundary.right+1000
+			newBounds.bottom = a2xt_actor.groundY  or  player.sectionObj.boundary.bottom-100
+
 			tbl.objects.actor = Actor{
 			                          x         = args.x  or  current.x,
 			                          y         = args.y  or  current.y,
@@ -308,7 +321,8 @@ do  -- metamethods
 			                          height    = tbl.height, 
 			                          scale     = tbl.scale,
 			                          state     = args.state  or  "stand",
-			                          stateDefs = tbl.stateDefs
+			                          stateDefs = tbl.stateDefs,
+			                          bounds    = newBounds
 			                         }
 		end
 		--Text.dialog("INITIALIZED: X="..tostring(tbl.objects.actor.x)..", Y="..tostring(tbl.objects.actor.y))
@@ -329,7 +343,7 @@ do
 	for  k,v in pairs (extMethods)  do
 		Namespace[k] = function(self, ...)
 			local obj = self.objects.current
-			Text.dialog("CALLING "..k.." for "..tostring(obj))
+			--Text.dialog("CALLING "..k.." for "..tostring(obj))
 			if  obj ~= nil  then
 				return obj[k](obj, ...)
 			end
@@ -356,15 +370,15 @@ do
 
 		if  self.playable.id ~= nil  and  current ~= player  then
 			if  current ~= nil  then
+				player:mem(0x122, FIELD_WORD, 0)
 				player.x = current.x
-				player.y = current.y
+				player.y = current.y-current.height
 				if  current == actor  then
 					player.x = current.gfx.xMid - current.width*0.5
 					player.y = current.gfx.bottom - current.height
 				end
 				player.speedX = current.speedX
 				player.speedY = current.speedY
-				player:mem(0x122, FIELD_WORD, 0)
 			end
 
 			self.objects.current = player
@@ -411,6 +425,8 @@ do
 		if  found  then
 			self.objects.npc = npc
 			self.objects.current = npc
+			player.x = npc.x
+			player.y = npc.y-npc.height
 			self:BecomePlayer()
 		end
 	end
@@ -503,14 +519,19 @@ do
 			end
 
 			-- Apply SpriteOverride sheet and offsets
+			---[[
 			if  self.gfxType == "playable"  then
-				set.sheet = Graphics.sprites[self.playable.id][2].img
+				local playerSheet = Graphics.sprites[self.playable.name][2].img
+				set.sheet = Graphics.sprites[self.playable.name][2].img
+				Text.dialog{obj.x, obj.y, obj.speedX, obj.speedY, obj.accelX, obj.accelY}
+				--Graphics.drawImageToSceneWP(set.sheet, obj.x, obj.y, 500, 500, 100, 100, -45)
 				set.xOffsets, set.yOffsets = getPlayerSettingsOffsets (self.playable.id,2)
 
 			elseif  self.gfxType == "npc"  then
 				set.sheet = Graphics.sprites.npc[self.npcId].img
 				set.xOffsets, set.yOffsets = getNPCOffsets (self.npcId)
 			end
+			--]]
 		end
 	end
 end
@@ -609,7 +630,9 @@ do
 			end
 			setProps.rows = 10
 			setProps.columns = 10
+			setProps.isPlayerSheet = true
 			setProps.sheet = Graphics.sprites[inst.playable.name][2].img
+			--setProps.sheet = Graphics.loadImage(Misc.resolveFile("../graphics/mario/mario-2.png"))
 			inst.width, inst.height = getPlayerSettingsSize(inst.playable.id,2)
 			inst.scale = 1
 		end
@@ -658,7 +681,7 @@ do
 				onTick = function(self, actor)
 
 					-- Set the animation state
-					if  math.abs(actor.speedX >= 4)  then
+					if  math.abs(actor.speedX) >= 4  then
 						if  actor.gfx.sequences.run  then
 							actor.gfx:startState{state="run"}
 						elseif  actor.gfx.sequences.walk  then
@@ -666,7 +689,7 @@ do
 						elseif  actor.gfx.sequences.stand  then
 							actor.gfx:startState{state="stand"}
 						end
-					elseif  math.abs(actor.speedX >= 0.25)  then
+					elseif  math.abs(actor.speedX) >= 0.25  then
 						if  actor.gfx.sequences.walk  then
 							actor.gfx:startState{state="walk"}
 						elseif  actor.gfx.sequences.run  then
@@ -815,7 +838,7 @@ function a2xt_actor.onTick ()
 		local currentObj = namespace.objects.current
 
 		if  actorObj ~= nil  and  currentObj == actorObj  then
-			--actorObj:update()
+			actorObj:update()
 		end
 
 		namespace:_HideObjects ()

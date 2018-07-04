@@ -3,7 +3,9 @@ local imagic = API.load("imagic")
 local textblox = API.load("textblox")
 local animatx = API.load("animatx")
 local rng = API.load("rng")
+
 local hud = API.load("a2xt_hud")
+--local actors = API.load("a2xt_actor")
 
 local a2xt_scene = {}
 
@@ -58,7 +60,7 @@ local skipProps        = {
                           halign=t_halign,
                           valign=t_valign
                          }
-						 
+
 local hud_food = false;
 local hud_rc = false;
 
@@ -280,6 +282,7 @@ function a2xt_scene.setTint(params)
 	end
 	_, tintFadeRoutine = eventu.run(cor_lerpColor, args)
 end
+
 
 function a2xt_scene.displayFoodHud(show)
 	hud_food = show;
