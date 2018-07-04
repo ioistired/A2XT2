@@ -14,6 +14,31 @@ CHARACTER_NAME = {
                     [CHARACTER_LINK]  = "Sheath"
                   }
 
+CHARACTER_CONSTANT = {
+                        mario=CHARACTER_MARIO,
+                        luigi=CHARACTER_LUIGI,
+                        peach=CHARACTER_PEACH,
+                        toad=CHARACTER_TOAD,
+                        link=CHARACTER_LINK,
+
+                        demo=CHARACTER_MARIO,
+                        iris=CHARACTER_LUIGI,
+                        kood=CHARACTER_PEACH,
+                        raocow=CHARACTER_TOAD,
+                        sheath=CHARACTER_LINK
+                      }
+
+EMOTE = {
+         VICTORY = 1,
+         ANGER = 2,
+         SHOCK = 3,
+         SAD = 4,
+         HAPPY = 5,
+         NOTAMUSED = 6,
+         CONFUSED = 7
+        }
+
+
 local textblox = loadSharedAPI("textblox")
 local pm = API.load("playerManager");
 pm.overworldCharacters = {CHARACTER_DEMO,CHARACTER_IRIS,CHARACTER_RAOCOW,CHARACTER_KOOD,CHARACTER_SHEATH};

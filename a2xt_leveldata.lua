@@ -362,6 +362,7 @@ local function parseFiles()
 			worlds[i] = w;
 			for k,v in pairs(d) do
 				lvl[k] = v;
+				lvl[k].world = i;
 			end
 		else
 			worlds[i] = {};
@@ -482,7 +483,7 @@ end
 
 function leveldata.GetData(levelFile)
 	levelFile = levelFile or Level.filename();
-	
+
 	return lvl[string.sub(levelFile, 0, -5)];
 end
 

@@ -21,7 +21,21 @@ local buffer = Graphics.CaptureBuffer(800,600);
 
 Audio.sounds[28].muted = true;
 
-local currentMusic = "music/a2xt-dusksky.ogg";
+local currentWorld = 0
+local currentMusic = "music/ow-a2xt-grass.ogg";
+local worldMusic = {
+	 [0]="ow-a2xt-grass.ogg",
+	 [1]="a2xt-dusksky.ogg",
+	 [2]="ow-a2xt-snow.ogg",
+	 [3]="ow-a2mt-pharoh.ogg",
+	 [4]="ow-a2xt-mountain.ogg",
+	 [5]="ow-asmt-beach.ogg",
+	 [6]="ow-a2xt-dmv.ogg",
+	 [7]="caw-ow-steampunk.ogg",
+	 [8]="asmt-space.ogg",
+	 [9]="ow-a2xt-overbaked.ogg",
+	[10]="caw-add.ogg"
+}
 
 
 
@@ -61,6 +75,17 @@ function onInputUpdate()
 		return;
 	end
 	local obj = getLevelObj();
+	if  (obj)  then
+		local lvlData = leveldata.GetData(obj.filename)
+		if  lvlData  then
+			if  currentWorld ~= lvlData.world  then
+				currentWorld = lvlData.world
+				Audio.MusicOpen("music/"..worldMusic[currentWorld])
+				Audio.MusicPlay()
+			end
+		end
+	end
+	
 	if(player.jumpKeyPressing) then
 		player.jumpKeyPressing = false;
 		if(obj and not lastOkPress and not world.playerIsCurrentWalking) then

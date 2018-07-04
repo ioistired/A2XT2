@@ -1,0 +1,12 @@
+{
+	"general" : {
+		"player" : "luigi",
+		"npc" : 981,
+		"width" : 16,
+		"height" : 32
+	},
+
+	"gfx" : {
+		"type" : "playable"
+	}
+}
