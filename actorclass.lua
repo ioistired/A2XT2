@@ -18,11 +18,33 @@ local eventu = API.load("eventu")
 
 
 ------------------------------------------------------------------------
--- Utility functions copied from classexpander for Beta 3 compatibility
+-- Utility functions
 ------------------------------------------------------------------------
 local mathlerp = math.lerp  or  function(a,b,t)
 	return a*(1-t) + b*t;
 end
+
+local function quadPoints (x1,y1, x2,y2, x3,y3, x4,y4)
+	local pts = {}
+	pts[1]  = x1;      pts[2]  = y1;
+	pts[3]  = x2;      pts[4]  = y2;
+	pts[5]  = x4;      pts[6]  = y4;
+
+	pts[7]  = x4;      pts[8]  = y4;
+	pts[9]  = x3;      pts[10] = y3;
+	pts[11] = x2;      pts[12] = y2;
+
+	return pts
+end
+
+local function rectPointsXYXY (x1,y1,x2,y2)
+	return quadPoints (x1,y1, x2,y1, x2,y2, x1,y2)
+end
+
+local function rectPointsXYWH (x,y,w,h)
+	return rectPointsXYXY (x,y, x+w,y+h)
+end
+
 
 ----------------------------------------------
 -- Collision module
@@ -34,7 +56,7 @@ do
 	-----------------------------------------------------
 	-- READ HANDLING                                   --
 	-----------------------------------------------------
-	local writable = {offsetX=1, offsetY=1}
+	local writable = {xOffset=1,yOffset=1, xAlign=1,yAlign=1}
 
 	function ActorBboxMT.__index(obj,key)
 
@@ -48,9 +70,9 @@ do
 		elseif  (key == "box")                      then
 			return box;
 		elseif  (key == "left"    or  key == "x1")  then
-			return box.x + obj.offsetX;
+			return box.x;
 		elseif  (key == "top"     or  key == "y1")  then
-			return box.y + obj.offsetY;
+			return box.y;
 		elseif  (key == "right"   or  key == "x2")  then
 			return obj.x1 + obj.width;
 		elseif  (key == "bottom"  or  key == "y2")  then
@@ -89,13 +111,15 @@ do
 		local inst = {
 			_owner   = args.owner,
 			_obj     = args.obj,
-			_offsetX = args.offsetX  or  0,
-			_offsetY = args.offsetY  or  0,
+			_xOffset = args.xOffset  or  0,
+			_yOffset = args.yOffset  or  0,
+			_xAlign  = args.xAlign   or  animatx.ALIGN.MID,
+			_yAlign  = args.yAlign   or  animatx.ALIGN.BOTTOM,
 			_dirty   = false
 		};
 
 		-- Create a new collider if one wasn't provided
-		inst._obj = inst._obj  or  colliders.Box (inst._offsetX+args.x, inst._offsetY+args.y, args.width,args.height)
+		inst._obj = inst._obj  or  colliders.Box (inst._xOffset+args.x, inst._yOffset+args.y, args.width,args.height)
 
 		-- Assign the metatable
 		setmetatable(inst, ActorBboxMT)
@@ -241,6 +265,9 @@ local ActorMT = {}   -- instance metatable
 local allActors = {} -- list of every Actor instance
 
 local params = {
+	underscored = {direction=1},
+	readonly = {gfxwidth=1, gfxheight=1, xScaleTotal=1,yScaleTotal=1, speedXSign=1,speedYSign=1, accelXSign=1,accelYSign=1, colliderDirty=1, contactUp=1, contactDown=1, contactLeft=1, contactRight=1},
+	static = {},
 
 	general = {
 		fields = {
@@ -250,21 +277,26 @@ local params = {
 
 			directionMirror=1,
 
+			xOffsetGfx=1,yOffsetGfx=1,
+
 			-- actorstate
 			state=1, stateDefs=1,
 
 			-- collision
-			--collider=1,
 			width=1, height=1,
-			--cOffsetX=1, cOffsetY=1,
 
 			-- events
-			onTick=1,onTickEnd=1
+			onTick=1,onTickEnd=1,
+
+			-- debug
+			debug=1
 		},
 		defaults = {
 			x=-999999,y=-999999,z=0,
 			xScale=1,yScale=1,scale=1,
-			cOffsetX=0, cOffsetY=0
+			xOffsetGfx=0, yOffsetGfx=0,
+
+			debug=false
 		},
 		aliases = {priority="z", depth="z"}
 	},
@@ -273,17 +305,18 @@ local params = {
 		fields = {
 			animSet=1,
 
-			xAlign=1, yAlign=1,
 			xScale=1, yScale=1, scale=1,
 
 			xRotate=1, yRotate=1,
 			angle=1,
 
-			animState=1
+			animState=1,
+
+			sceneCoords=1
 		},
 		defaults = {
-			xAlign=animatx.ALIGN.MID, yAlign=animatx.ALIGN.BOTTOM,
-			xScale=1, yScale=1, scale=2
+			xScale=1, yScale=1, scale=2,
+			sceneCoords=true
 		},
 		aliases = {
 			sheet="image", animState="state"
@@ -293,7 +326,6 @@ local params = {
 	physics = {
 		fields = {  -- if == 2, are default properties when not in a state
 			direction=1,
-			bounds=1,
 
 			accelX=1,accelY=1,
 			frictionX=1,frictionY=1,
@@ -309,31 +341,58 @@ local params = {
 			frictionX=0,frictionY=0,
 			speedX=0,speedY=0,
 			minSpeedX=-math.huge,minSpeedY=-math.huge,
-			maxSpeedX=-math.huge,maxSpeedY=-math.huge,
+			maxSpeedX=math.huge,maxSpeedY=math.huge,
 			canTurn=true, canCollide=true
 		},
 		aliases = {}
 	},
 
-	collider = {
+	collision = {
 		fields = {
+			xAlignBox=1,yAlignBox=1,
+			bounds=1
 		},
 		defaults = {},
 		aliases = {}
 	}
 }
 
+local changesCollider = {width=1, height=1, xScale=1, yScale=1, scale=1}
+
+
+local function filterArgs (groupName, args)
+	local filtered = {}
+
+	-- Process the properties in this group
+	for  k,v in pairs(params[groupName].fields)  do
+
+		-- If the property is an alias, change the key to that of the aliased property
+		local key = k
+		if  params[groupName].aliases[k] ~= nil  then
+			key = params[groupName].aliases[k]
+		end
+
+		-- Apply any default value if the property isn't defined in the arguments
+		local val = args[key]
+		if  val == nil  then
+			val = params[groupName].defaults[key]
+		end
+
+		-- Apply underscores where necessary
+		if  params.readonly[key] ~= nil  or  params.underscored[key] ~= nil  then
+			key = "_"..key
+		end
+		filtered[key] = val
+	end
+
+	return filtered;
+end
+
+
 -----------------------------------------------------
 -- METAMETHODS                                     
 -----------------------------------------------------
 do
-	local readOnly = {gfxwidth=1, gfxheight=1, xScaleTotal=1,yScaleTotal=1, speedXSign=1,speedYSign=1, accelXSign=1,accelYSign=1, colliderDirty=1}
-	local specialCase = {direction=1}
-	local static = {}
-
-	local nonWrapped = {width=1, height=1, xScale=1, yScale=1, scale=1}
-	local changesCollider = {width=1, height=1, xScale=1, yScale=1, scale=1}
-
 
 	-----------------------------------------------------
 	-- READ HANDLING                                   
@@ -347,7 +406,7 @@ do
 		elseif  (params.physics.aliases[key] ~= nil)   then
 			return obj[params.physics.aliases[key]];
 
-		elseif  (params.collider.aliases[key] ~= nil)  then
+		elseif  (params.collision.aliases[key] ~= nil)  then
 			return obj.collision[params.collider.aliases[key]];
 
 		elseif  (params.general.aliases[key] ~= nil)   then
@@ -360,6 +419,18 @@ do
 
 		--elseif  (key == "speedFwd")    then
 		--	return obj.speedX * obj.direction
+
+		elseif  (key == "contactUp")     then
+			return (obj.bounds ~= nil  and  obj.collision.top <= obj.bounds.top)
+
+		elseif  (key == "contactDown")   then
+			return (obj.bounds ~= nil  and  obj.collision.bottom >= obj.bounds.bottom)
+
+		elseif  (key == "contactLeft")   then
+			return (obj.bounds ~= nil  and  obj.collision.left <= obj.bounds.left)
+
+		elseif  (key == "contactRight")  then
+			return (obj.bounds ~= nil  and  obj.collision.right >= obj.bounds.right)
 
 		elseif  (key == "direction")   then
 			return obj._direction
@@ -416,13 +487,11 @@ do
 	-----------------------------------------------------
 	function ActorMT.__newindex (obj,key,val)
 
-		if  key == "speedX"  then
-			error("changing speedX")
-		end
-
 		-- If the property changes the collider, set the "collider is dirty" flag
-		if  (changesCollider[key] ~= nil)  then
+		if  (changesCollider[key] ~= nil  and  obj._colliderCache[key] ~= val)  then
+			Text.dialog(key.." is different, activating collider dirty flag")
 			obj.rawset(obj.collision, _dirty, true)
+			obj._colliderCache[key] = val
 		end
 
 
@@ -433,7 +502,7 @@ do
 		elseif  (params.physics.aliases[key] ~= nil)   then
 			obj[params.physics.aliases[key]] = val;
 
-		elseif  (params.collider.aliases[key] ~= nil)  then
+		elseif  (params.collision.aliases[key] ~= nil)  then
 			obj.collision[params.collider.aliases[key]] = val;
 
 		elseif  (params.general.aliases[key] ~= nil)   then
@@ -441,12 +510,12 @@ do
 
 
 		-- Static properties
-		elseif  (static[key] ~= nil  and  obj ~= Actor)  then
+		elseif  (params.static[key] ~= nil  and  obj ~= Actor)  then
 			error ("The "..key.." property is static.");
 
 
 		-- Read-only properties
-		elseif  (readOnly[key] ~= nil)  then
+		elseif  (params.readonly[key] ~= nil)  then
 			error ("The Actor class' "..key.." property is read-only.");
 
 		elseif  (key == "_type"  or  key == "__type") then
@@ -454,11 +523,6 @@ do
 
 		elseif  (key == "_meta") then
 			error("Cannot override the Actor metatable.", 2);
-
-
-		-- Special cases
-		--elseif  (key == "speedFwd")    then
-		--	rawset (obj, "speedX", val*obj.direction)
 
 		elseif  (key == "direction")   then
 			if  val == DIR_RANDOM  then
@@ -481,65 +545,45 @@ do
 	-----------------------------------------------------
 	setmetatable (Actor, {__call = function (class, args)
 
-		-- Create the actor instance
-		local inst = {};
-
-		-- Process the general Actor properties
-		for  k,v in pairs(params.general.fields)  do
-
-			-- If the property is an alias, change the key to that of the aliased property
-			local key = k
-			if  params.general.aliases[k] ~= nil  then
-				key = params.general.aliases[k]
-			end
-
-			-- Apply any default value if the property isn't defined in the arguments
-			local val = args[key]
-			if  val == nil  then
-				val = params.general.defaults[key]
-			end
-
-			if  readOnly[key] ~= nil  or  specialCase[key] ~= nil  then
-				key = "_"..key
-			end
-			inst[key] = val
-		end
+		-- Create the actor instance and load the general Actor args
+		local inst = filterArgs("general", args)
+		inst.stateDefs = inst.stateDefs  or  {}
 
 
 		-- Get the gfx properties
-		local animArgs = {}
-		for  k,v in pairs(params.gfx.fields)  do
-
-			-- If the property is an alias, change the key to that of the aliased property
-			local key = k
-			if  params.gfx.aliases[k] ~= nil  then
-				key = params.gfx.aliases[k]
-			end
-
-			-- Apply any default value if the property isn't defined in the arguments, then insert
-			animArgs[key] = args[key]
-			if  args[key] == nil  then
-				animArgs[key] = params.gfx.defaults[key]
-			end
-		end
+		local animArgs = filterArgs("gfx", args)
+		animArgs.xAlign = args.xAlignGfx  or  animatx.ALIGN.MID
+		animArgs.yAlign = args.yAlignGfx  or  animatx.ALIGN.BOTTOM
 
 
 		-- Create the AnimInst and apply the gfx properties
 		inst.gfx = args.animSet:Instance (animArgs)
 		inst.gfx.object = inst
 
+
 		-- Get the width and height (based on the gfx if necessary)
 		inst.width = args.width  or  inst.gfx.set.width
 		inst.height = args.height  or  inst.gfx.set.height
 
+		-- Get the collision properties
+		local bboxArgs = table.join (filterArgs("collision", args), 
+		{
+			owner = inst,
+			obj = args.collider,
+			x = inst.x,
+			y = inst.y,
+			xAlign = args.xAlignBox  or  animatx.ALIGN.MID,
+			yAlign = args.yAlignBox  or  animatx.ALIGN.BOTTOM,
+			xOffset = args.xOffsetBox  or  0,
+			yOffset = args.yOffsetBox  or  0,
+			width = inst.width,
+			height = inst.height
+		})
+
 		-- Create the bbox object
-		inst.collision = ActorBbox {
-		                            owner=inst, obj=args.collider, 
-		                            x=inst.x, y=inst.y,
-		                            offsetX=args.cOffsetX  or  0,
-		                            offsetY=args.cOffsetY  or  0,
-		                            width=inst.width,
-		                            height=inst.height}
+		inst.bounds = args.bounds
+		inst.collision = ActorBbox (bboxArgs)
+		inst._colliderCache = {}
 
 
 		-- Process the physics properties
@@ -552,17 +596,11 @@ do
 		end
 
 
-		-- State management stuff
-		if  inst.stateDefs == nil  then
-			inst.stateDefs = {}
-		end
-
-
 		-- Assign the metatable
 		setmetatable(inst, ActorMT)
 
 		-- Take advantage of the metatable to initialize misc stuff
-		inst.direction = inst._direction
+		inst.direction = args.direction
 
 
 		-- Index and return
@@ -701,44 +739,59 @@ do
 
 		-- updated speeds
 		for  _,v in ipairs {"x","y"}  do
-			local upperV         = string.upper(v)
+			local q = {}
+			local upperV     = string.upper(v)
 
-			local spd            = self["speed"..upperV]
-			local absSpd         = math.abs(spd)
-			local fric           = self["friction"..upperV]
-			local accel          = self["accel"..upperV]
-			local absAccel       = math.abs(accel)
-			local minSpd         = self["minSpeed"..upperV]
-			local maxSpd         = self["maxSpeed"..upperV]
+			q.spd            = self["speed"..upperV]
+			q.absSpd         = math.abs(q.spd)
+			q.fric           = self["friction"..upperV]
+			q.accel          = self["accel"..upperV]
+			q.absAccel       = math.abs(q.accel)
+			q.minSpd         = self["minSpeed"..upperV]
+			q.maxSpd         = self["maxSpeed"..upperV]
+
+
+			--Text.dialog(q)
 
 
 			-- Apply friction and acceleration based on current speed and accel
-			if  spd == 0  then
-				if  fric < absAccel  then
-					local finalAccel = accel - fric
-					self["speed"..upperV] = finalAccel
+			if  q.spd == 0  then
+				if  q.fric < q.absAccel  then
+					q.info = "Accelerating from zero"
+					q.finalAccel = q.accel - q.fric
+					q.spd = q.finalAccel
 				end
 
 			else
-				local spdDir = spd/math.abs(spd)
-				if  fric > absAccel  then
-					local finalDecel = fric - absAccel
-					if  finalDecel >= absSpd  then
-						spd = 0
+				q.spdDir = q.spd/math.abs(q.spd)
+				if  q.fric > q.absAccel  then
+					q.finalDecel = q.fric - q.absAccel
+					if  q.finalDecel >= q.absSpd  then
+						q.info = "Stopping from friction"
+						q.spd = 0
 					else
-						spd = spd - (finalDecel * spdDir)
+						q.info = "Slowing from friction"
+						q.spd = q.spd - (q.finalDecel * q.spdDir)
 					end
 
-				elseif  fric < absAccel  then
-					local finalAccel = accel - (fric * spdDir)
-					spd = spd + finalAccel
+				elseif  q.fric < q.absAccel  then
+					q.info = "Accelerating"
+					q.finalAccel = q.accel - (q.fric * q.spdDir)
+					q.spd = q.spd + q.finalAccel
 				end
 			end
 
 			-- Apply min/max speed
-			spd = math.max(math.min(spd, maxSpd), minSpd)
-			self["speed"..upperV] = spd
+			q.spd = math.max(math.min(q.spd, q.maxSpd), q.minSpd)
+
+			-- Apply speed
+			self["speed"..upperV] = q.spd
+
+
+			-- Debug
+			--Text.dialog{info=q.info, speed=q.spd}
 		end
+
 
 
 		-- Apply forward min/max speed
@@ -761,46 +814,43 @@ do
 		self.y = self.y + self.speedY
 
 
-		-- Resize collider if necessary
+		-- Remake collider if necessary
 		if  self.collision._dirty  then
-			self.collision.width = self.width * math.abs(self.xScaleTotal)
-			self.collision.height = self.height * math.abs(self.yScaleTotal)
+			self.collision._obj = colliders.Box(self.collision.offsetX, self.collision.offset, self.width * math.abs(self.xScaleTotal), self.height * math.abs(self.yScaleTotal));
 
 			self.collision._dirty = false
 		end
 
 
-		-- Determine relative offsets of collider edges
-		local cPadL = -self.collision.width*0.5
-		local cPadT = -self.collision.height*0.5
+		-- Get collider padding
+		local box = self.collision.box
+		local padL, padU, padR, padD = 0,0,box.width,box.height
 
-		if  self.alignX == animatx.ALIGN.LEFT  then
-			cPadL = 0
-		elseif  self.alignX == animatx.ALIGN.RIGHT  then
-			cPadL = -self.collision.width
-		end
-		if  self.alignY == animatx.ALIGN.TOP  then
-			cPadT = 0
-		elseif  self.alignY == animatx.ALIGN.BOTTOM  then
-			cPadT = -self.collision.height
+		if      self.collision.xAlign == animatx.ALIGN.MID     then
+			padL, padR = 0.5*box.width,0.5*box.width
+
+		elseif  self.collision.xAlign == animatx.ALIGN.RIGHT   then
+			padL, padR = box.width,0
 		end
 
-		cPadL = cPadL + self.collision.left
-		local cPadR = cPadL + self.collision.width
-		cPadT = cPadT + self.collision.top
-		local cPadB = cPadT + self.collision.height
+		if      self.collision.yAlign == animatx.ALIGN.MID     then
+			padU, padD = 0.5*box.height,0.5*box.height
+
+		elseif  self.collision.yAlign == animatx.ALIGN.BOTTOM  then
+			padU, padD = box.height,0
+		end
 
 
 		-- Clamp position to bounds based on collider's relative position
 		if  self.bounds ~= nil  then
-			self.x = math.max (self.bounds.left + cPadL,  math.min (self.bounds.right  - cPadR,  self.x))
-			self.y = math.max (self.bounds.top  + cPadT,  math.min (self.bounds.bottom - cPadB,  self.y))
+			self.x = math.max (self.bounds.left + padL,  math.min (self.bounds.right  - padR,  self.x))
+			self.y = math.max (self.bounds.top  + padU,  math.min (self.bounds.bottom - padD,  self.y))
 		end
 
 
-		-- Position collider
-		self.collider.x = self.x+cPadL
-		self.collider.y = self.y+cPadT
+		-- Set collider position
+		box.x = self.x - padL + self.collision.xOffset
+		box.y = self.y - padU + self.collision.yOffset
 	end
 
 	function Actor:updateGfx()
@@ -812,12 +862,16 @@ do
 		end
 		self.gfx.yScale = self.yScale
 		self.gfx.scale = self.scale
-		--Text.dialog({xScale=self.xScale, yScale=self.yScale, scale=self.scale, direction=self.direction})
+
+		-- Depth
+		self.gfx.z = self.z
 
 		-- Position
 		self.gfx.objectLastX = nil
 		self.gfx.objectLastY = nil
 		self.gfx:move()
+		self.gfx.x = self.gfx.x + self.xOffsetGfx
+		self.gfx.y = self.gfx.y + self.yOffsetGfx
 
 		-- Animate even when not being rendered
 		if  not self.gfx.frozen  then
@@ -826,6 +880,76 @@ do
 	end
 
 	function Actor:draw()
+		if  self.debug  then
+
+			-- Grounded indicator
+			--[[
+			if  self.bounds ~= nil  then
+				Graphics.glDraw {
+				                 vertexCoords  = rectPointsXYXY(self.bounds.left, self.bounds.top, self.bounds.right, self.bounds.bottom),
+				                 color         = {1,1,1,0.5},
+				                 primitive     = Graphics.GL_TRIANGLES,
+				                 priority      = self.z,
+				                 sceneCoords   = true
+				                }
+			end
+			--]]
+
+			-- Grounded indicator
+			if  contactDown  then
+				Graphics.glDraw {
+				                 vertexCoords  = rectPointsXYXY(self.collision.x1,self.collision.y2-2,self.collision.x2,self.collision.y2+2),
+				                 color         = {1,1,0.25,0.5},
+				                 primitive     = Graphics.GL_TRIANGLES,
+				                 priority      = self.z,
+				                 sceneCoords   = true
+				                }
+			end
+
+			-- Bbox rect
+			Graphics.glDraw {
+			                 vertexCoords  = rectPointsXYXY(self.collision.x1,self.collision.y1,self.collision.x2,self.collision.y2),
+			                 color         = {1,0.25,1,0.5},
+			                 primitive     = Graphics.GL_TRIANGLES,
+			                 priority      = self.z,
+			                 sceneCoords   = true
+			                }
+
+			-- Position
+			Graphics.glDraw {
+			                 vertexCoords  = rectPointsXYWH(self.x-2,self.y-2,4,4),
+			                 color         = {1,0.25,1,0.5},
+			                 primitive     = Graphics.GL_TRIANGLES,
+			                 priority      = self.z,
+			                 sceneCoords   = true
+			                }
+			--]]
+
+			---[[
+			local debugProps = {
+				tostring(self.gfx.frame),
+				tostring(self.gfx.step),
+				tostring(self.directionMirror),
+				tostring(self.direction),
+				--"L="..tostring(DIR_LEFT),
+				--"R="..tostring(DIR_RIGHT)
+				--"grounded = "..tostring(self.bounds ~= nil  and  self.collision.bottom == self.bounds.bottom)
+				--"bounds="..tostring(self.bounds),
+				self.state,
+				--self.gfx.state,
+				--"x,y,w,h="..tostring(self.x)..","..tostring(self.y)..","..tostring(self.width)..","..tostring(self.height),
+				--"bbox="..tostring(self.collision.x)..","..tostring(self.collision.y)..","..tostring(self.collision.x2)..","..tostring(self.collision.y2),
+				--"bbox x,y,w,h="..tostring(self.collision.x)..","..tostring(self.collision.y)..","..tostring(self.collision.width)..","..tostring(self.collision.height),
+				--"bbox offset="..tostring(self.collision.offsetX)..","..tostring(self.collision.offsetY),
+				--"gfx offset="..tostring(self.gfx.xOffset)..","..tostring(self.gfx.yOffset)
+			}
+
+			for k,v in ipairs(debugProps)  do
+				Graphics.draw{type = RTYPE_TEXT, fontType=3, priority = -0.1, x = self.x, y = self.y-15*k, isSceneCoordinates = true, text = v}
+			end
+			--]]
+		end
+		--self.gfx.debug = self.debug
 		self.gfx:render()
 	end
 	Actor.Draw = Actor.draw;

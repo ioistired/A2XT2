@@ -1,9 +1,7 @@
 {
 	"general" : {
 		"player" : "toad",
-		"npc" : 983,
-		"width" : 16,
-		"height" : 32
+		"npc" : 983
 	},
 
 	"gfx" : {

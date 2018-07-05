@@ -26,7 +26,7 @@ local panim = API.load("playerAnim");
 
 local function cor_intro()
 	Audio.resetMciSections()
-	playMusic(1)
+	--playMusic(1)
 
 	local pStates = Player.getTemplates()
 	for  k,v in pairs(pStates)  do
@@ -35,7 +35,7 @@ local function cor_intro()
 		end
 	end
 
-	scene.setTint{color=0x000000AA}
+	scene.setTint{color=0x000000FF}
 	player.section = 1
 	player.x = -179500
 	player.y = -180200
@@ -44,6 +44,9 @@ local function cor_intro()
 	actors.groundY = -180160
 	ACTOR_DEMO:PlayerReplaceNPC()
 	actors.KrewToActors()
+	ACTOR_DEMO.direction = DIR_RIGHT
+
+
 	local cam = cman.playerCam[1]
 	--actors.Demo {direction=DIR_RIGHT}
 	--actors.Demo:Walk {speed=4}
@@ -51,11 +54,20 @@ local function cor_intro()
 	cam.targets={}
 	cam.x = -180400
 	cam.y = -180225
-	cam:Queue{time=8, zoom=1.25, x=-179050}--, easeBoth=cman.EASE.QUAD}
+	cam:Queue{time=2--[[8]], zoom=1.5, x=-179050}--, easeBoth=cman.EASE.QUAD, zoom=1.25}
 	scene.setTint{color=0x00000000, time=3}
-	eventu.waitSeconds(8)
+	eventu.waitSeconds(2)
 
-	ACTOR_KOOD:Jump{strength=9}
+	ACTOR_IRIS:Jump{strength=9}
+	eventu.waitSeconds(1)
+	ACTOR_IRIS:Walk{speed=-2}
+	eventu.waitSeconds(1)
+	ACTOR_IRIS:Walk{speed=2}
+	eventu.waitSeconds(2)
+	ACTOR_IRIS:Walk{speed=-2}
+	eventu.waitSeconds(1)
+	ACTOR_IRIS:StopWalking()
+
 	ACTOR_KOOD:Emote("happy")
 	eventu.waitSeconds(1)
 	ACTOR_KOOD:Talk{text="Man, isn't it great how we defeated Science and saved the universe and nothing bad happened at all ever?"}
@@ -71,12 +83,15 @@ local function cor_intro()
 	ACTOR_IRIS:Talk{text="I swear, I just don't know what she sees in him..."}
 	message.waitMessageEnd()
 
-	ACTOR_RAOCOW:Walk{speed=-4}
+	ACTOR_RAOCOW:Walk{speed=-2}
 	ACTOR_KOOD:Emote("sweat")
-	cam:Queue{time=1, zoom=1, x=-178900}--, easeBoth=cman.EASE.QUAD}
+	cam:Queue{time=1, zoom=1.25, x=-178900}--, easeBoth=cman.EASE.QUAD}
 	eventu.waitSeconds(1)
 
 	ACTOR_RAOCOW:StopWalking()
+	ACTOR_DEMO.direction = DIR_RIGHT
+	ACTOR_IRIS.direction = DIR_RIGHT
+	ACTOR_KOOD.direction = DIR_RIGHT
 	ACTOR_RAOCOW:Talk{text="Hey, everyone!  We should play hide and seek!<page>The winner gets the last chicken wing!"}
 	message.waitMessageEnd()
 	eventu.waitSeconds(1)

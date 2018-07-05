@@ -176,20 +176,36 @@ do
 		end,
 
 		--[[ Talk args:
-			- message        (string)   the line of dialogue to call a message box with
-			- voice          (string)   voice clip to use
-			- messageArgs    (table)    arguments for the message box
-			- anim           (int)      the animation state to use for the talking animation
+			- text           (string)   the line of dialogue to call a message box with
+			- calls a2xt_message.showMessageBox and passes in the arguments for this function
 		--]]
 		Talk = function (self, args)
-			return message.showMessageBox (table.join(args, {target=self}))
+			local isPlayer = type(self) == "Player"
+			local isNpc = type(self) == "NPC"
+			local isActor = not isPlayer  and  not isNpc
+
+			local extra = {target=self, offX=0.5*self.width, offY=-8}
+
+			if  isActor  then
+				extra.offX = -self.width
+				extra.offY = -self.height*2 - 8
+			end
+			
+			-- add stuff for determining the y offset
+			return message.showMessageBox (table.join(args, extra))
 		end,
 
 		Emote = function (self, icon)
 			if  icon == nil  then
 				icon = "blank"
 			end
-			emote[icon](self)
+			emote[icon](self.gfx)
+		end,
+
+		Ground = function (self)
+			if  self.bounds ~= nil  then
+				self.y = self.bounds.bottom
+			end
 		end
 
 		--[[ commented-out functions
@@ -219,33 +235,6 @@ do
 end
 
 
---********************************
---** Player and NPC equivalents **
---********************************
---[[
-local playerRoutines = {
-	[CHARACTER_DEMO] = {},
-	[CHARACTER_IRIS] = {},
-	[CHARACTER_KOOD] = {},
-	[CHARACTER_RAOCOW] = {},
-	[CHARACTER_SHEATH] = {}
-}
-
-	StopFollowing = function (self)
-		if  self._walkRoutine ~= nil  then
-			eventu.abort(self._walkRoutine)
-		end
-	end
-
-	StopWalking = function(self)
-		self:stopFollowing()
-		self.speedX = 0
-	end,
-
-function Player:Walk(args)
-end
---]]
-
 
 --****************************
 --** Namespace pseudoclass  **
@@ -269,6 +258,7 @@ do  -- metamethods
 	end
 
 	function NamespaceMT.__newindex (self,key,val)
+
 		if  self.objects.current ~= nil  and  self.objects.current[key] ~= nil  then
 			self.objects.current[key] = val
 
@@ -286,23 +276,24 @@ do  -- metamethods
 
 		-- If the current object isn't set, get it
 		local current = tbl.objects.current
+		local source = "PLAYER"
 		if  current == nil  then
 			if  player.character == tbl.playable.id  then
-				--Text.dialog("INITIALIZING FROM PLAYER")
 				current = tbl:BecomePlayer ()
-
-			-- If not the player, try an NPC
-			else
-				--Text.dialog("INITIALIZING FROM NPC")
+			
+			-- If an NPC of the player exists, try an NPC
+			elseif  tbl:GetNPC()  then
+				source = "NPC"
 				current = tbl:BecomeNPC ()
 			end
 
 			-- Last resort, make a temp table
 			if  current == nil  then
-				--Text.dialog("INITIALIZING FROM NOTHING")
-				current = {x=-999999, y=-999999}
+				source = "NOTHING"
+				current = {x=-999999, y=-999999, direction=DIR_RIGHT}
 			end
 		end
+		--Text.dialog("INITIALIZING "..tbl.name.." FROM "..source..", DIR="..tostring(current.direction))
 
 
 		-- Generate the object
@@ -313,24 +304,28 @@ do  -- metamethods
 			newBounds.right = player.sectionObj.boundary.right+1000
 			newBounds.bottom = a2xt_actor.groundY  or  player.sectionObj.boundary.bottom-100
 
-			tbl.objects.actor = Actor{
-			                          x         = args.x  or  current.x,
-			                          y         = args.y  or  current.y,
-			                          animSet   = tbl.animSet,
-			                          width     = tbl.width,    
-			                          height    = tbl.height, 
-			                          scale     = tbl.scale,
-			                          state     = args.state  or  "stand",
-			                          stateDefs = tbl.stateDefs,
-			                          bounds    = newBounds
-			                         }
+			local specialDefs = {
+			                     x      = args.x      or  current.x,
+			                     y      = args.y      or  current.y,
+			                     z      = args.z      or  -1,
+			                     state  = args.state  or  "walk",
+			                     direction = args.direction  or  current.direction,
+			                     bounds = newBounds,
+			                     sceneCoords = true,
+			                     debug = true
+			                    }
+			tbl.objects.actor = Actor(table.join (tbl.actorArgs, specialDefs))
 		end
-		--Text.dialog("INITIALIZED: X="..tostring(tbl.objects.actor.x)..", Y="..tostring(tbl.objects.actor.y))
 
 		-- Apply named arguments
-		for  _,v in ipairs {"x","y","direction","speedX","speedY"}  do
+		local usableArgs = {"x","y","z","direction","speedX","speedY"}
+		--local actorVals = {}
+		for  _,v in ipairs (usableArgs)  do
 			tbl.objects.actor[v] = args[v]  or  tbl.objects.actor[v]
+			--actorVals[v] = tbl.objects.actor[v]
 		end
+		--actorVals.name = tbl.name
+		--Text.dialog(actorVals)
 
 		tbl.objects.actor.state = args.state  or  tbl.objects.actor.state
 		tbl.objects.actor.gfx.visible = true
@@ -352,18 +347,19 @@ do
 
 
 	-- Define type-switcing methods for the namespaces
-	function Namespace:ToActor ()
+	function Namespace:ToActor () -- Changes the current object into the Actor, initializing the Actor if necessary
 		local obj = self.objects.current
 
 		if  obj == nil  then
-			self()
+			self:HijackNPC ()
+			self ()
 
 		elseif  obj ~= self.objects.actor  then
-			self {x=obj.x + 0.5*obj.width, y=obj.y+obj.height, direction=obj.direction, speedX=obj.speedX, speedY=obj.speedY}
+			self {x=obj.x+0.5*obj.width, y=obj.y+obj.height, direction=obj.direction, speedX=obj.speedX, speedY=obj.speedY}
 		end
 	end
 
-	function Namespace:BecomePlayer ()
+	function Namespace:BecomePlayer () -- Changes the current object into the player, changing player.character accordingly
 		local current = self.objects.current
 		local actor = self.objects.actor
 		local npc = self.objects.npc
@@ -379,6 +375,7 @@ do
 				end
 				player.speedX = current.speedX
 				player.speedY = current.speedY
+				player.direction = current.direction
 			end
 
 			self.objects.current = player
@@ -387,7 +384,7 @@ do
 		return self.objects.current
 	end
 
-	function Namespace:BecomeNPC ()
+	function Namespace:BecomeNPC () -- Changes the current object into an NPC;  if there is no current object, hijacks an existing one if possible
 		local current = self.objects.current
 		local actor = self.objects.actor
 		local npc = self.objects.npc
@@ -402,8 +399,8 @@ do
 			elseif  current ~= nil  then
 				local spawnX,spawnY = obj.x, obj.y
 				if  obj == self.objects.actor  then
-					spawnX = self.objects.current.gfx.left
-					spawnY = self.objects.current.gfx.bottom - NPC.config[self.npcId].height
+					spawnX = self.objects.current.collision.left
+					spawnY = self.objects.current.collision.bottom - NPC.config[self.npcId].height
 				end
 				local npcRef = NPC.spawn(self.npcId, spawnX, spawnY, true)
 				self.objects.npc = pnpc.wrap(npcRef)
@@ -411,7 +408,7 @@ do
 
 			-- Otherwise, try to get an existing NPC in the section
 			else
-				_,self.objects.npc = self:GetNPC()
+				self:HijackNPC ()
 				self.objects.current = self.objects.npc
 			end
 		else
@@ -420,24 +417,28 @@ do
 		return self.objects.current
 	end
 
-	function Namespace:PlayerReplaceNPC ()
-		local found,npc = self:GetNPC ()
-		if  found  then
-			self.objects.npc = npc
-			self.objects.current = npc
-			player.x = npc.x
-			player.y = npc.y-npc.height
+	function Namespace:PlayerReplaceNPC () -- If a valid NPC exists, have the player become this character and replace the NPC
+		if  self.objects.npc  ~= nil  then
 			self:BecomePlayer()
+		else
+			local found,npc = self:GetNPC ()
+			if  found  then
+				self.objects.npc = npc
+				self.objects.current = npc
+				player.x = npc.x
+				player.y = npc.y
+				self:BecomePlayer()
+			end
 		end
 	end
 
-	function Namespace:Remove ()
+	function Namespace:Remove () -- removes the object from the 
 		if  player.character ~= self.playable.id  then
 			self.objects.current = nil
 		end
 	end
 
-	function Namespace:GetNPC ()
+	function Namespace:GetNPC () -- check for a valid NPC and returns: whether it was found, pnpc reference
 		if  self.npcId ~= nil  then
 			local available = NPC.get(self.npcId, player.section)
 			if  #available > 0  then
@@ -445,6 +446,12 @@ do
 			end
 		end
 		return false, nil
+	end
+
+	function Namespace:HijackNPC () -- calls GetNPC and stores the returned pnpc reference in self.objects.npc
+		if  self.objects.npc == nil  then
+			_,self.objects.npc = self:GetNPC()
+		end
 	end
 
 
@@ -490,11 +497,18 @@ do
 			local obj = self.objects.actor
 
 			-- Apply gravity based on type
-			if  self.playable.id ~= nil  then
-				obj.stateDefs.air.accelY = Defines.player_grav
+			if  obj.contactDown  then
+				obj.accelY = 0
+				obj.maxSpeedY = 0
 
-			elseif  self.npcId ~= nil  then
-				obj.stateDefs.air.accelY = Defines.npc_grav
+			else
+				obj.maxSpeedY = Defines.gravity
+				if  self.playable.id ~= nil  then
+					obj.accelY = Defines.player_grav
+
+				elseif  self.npcId ~= nil  then
+					obj.accelY = Defines.npc_grav
+				end
 			end
 		end
 	end
@@ -504,28 +518,34 @@ do
 
 			-- Apply directional sequences
 			local seqProcs = self.sequences.processed
+			local seqStrs = self.sequences.strings
 			local obj = self.objects.actor
 			local gfx = obj.gfx
 			local set = gfx.set
 
-			for  k3,_ in pairs(set.sequences)  do
-				if  seqProcs[obj.direction][k3] ~= nil  then
-					set.sequences[k3] = seqProcs[obj.direction][k3]
-					obj.directionMirror = false
-				else
-					set.sequences[k3] = seqProcs.default[k3]
-					obj.directionMirror = true
+			if  obj.direction == DIR_LEFT  or  obj.direction == DIR_RIGHT  then
+				for  k3,_ in pairs(set.sequences)  do
+					if  seqProcs[obj.direction][k3] ~= nil  then
+						set.sequences[k3] = seqProcs[obj.direction][k3]
+						obj.directionMirror = false
+					else
+						set.sequences[k3] = seqProcs.default[k3]
+						obj.directionMirror = true
+					end
 				end
 			end
+
+			--Text.dialog(set.sequences)
+
 
 			-- Apply SpriteOverride sheet and offsets
 			---[[
 			if  self.gfxType == "playable"  then
 				local playerSheet = Graphics.sprites[self.playable.name][2].img
+
 				set.sheet = Graphics.sprites[self.playable.name][2].img
-				Text.dialog{obj.x, obj.y, obj.speedX, obj.speedY, obj.accelX, obj.accelY}
-				--Graphics.drawImageToSceneWP(set.sheet, obj.x, obj.y, 500, 500, 100, 100, -45)
 				set.xOffsets, set.yOffsets = getPlayerSettingsOffsets (self.playable.id,2)
+				obj.xOffsetGfx, obj.yOffsetGfx = -obj.width*0.5, -obj.height
 
 			elseif  self.gfxType == "npc"  then
 				set.sheet = Graphics.sprites.npc[self.npcId].img
@@ -579,15 +599,27 @@ do
 
 			npcId = nil,
 
-			width = nil,
-			height = nil,
-
-			scale = 2,
-
-			animSet = nil,
 			gfxType = nil,
 
-			stateDefs = {},
+			actorArgs = {
+				scale = 2,
+				animSet = nil,
+				width = nil,
+				height = nil,
+				scale = 2,
+				xScale = 1,
+				yScale = 1,
+				state = "walk",
+				xAlignGfx = animatx.ALIGN.MID,
+				yAlignGfx = animatx.ALIGN.BOTTOM,
+				xAlignBox = animatx.ALIGN.MID,
+				yAlignBox = animatx.ALIGN.BOTTOM,
+				xOffsetGfx = 0,
+				yOffsetGfx = 0,
+				xOffsetBox = 0,
+				yOffsetBox = 0,
+				stateDefs = {}
+			},
 
 			sequences = {
 				processed = {
@@ -600,6 +632,7 @@ do
 		}
 		local seqStrs = inst.sequences.strings
 		local seqProcs = inst.sequences.processed
+		local aArgs = inst.actorArgs
 		for  _,v2 in ipairs {"npc","left","right","default"}  do
 			seqStrs[v2] = seqStrs[v2]  or  {}
 		end
@@ -625,16 +658,21 @@ do
 					seqStringL = seqStringL .. "," .. tostring(-v2[i2])
 					seqStringR = seqStringR .. "," .. tostring(v2[i2])
 				end
-				seqStrs.left[k2] = totalStringL
-				seqStrs.right[k2] = totalStringR
+				seqStrs.left[k2] = seqStringL
+				seqStrs.right[k2] = seqStringR
 			end
+
 			setProps.rows = 10
 			setProps.columns = 10
 			setProps.isPlayerSheet = true
 			setProps.sheet = Graphics.sprites[inst.playable.name][2].img
 			--setProps.sheet = Graphics.loadImage(Misc.resolveFile("../graphics/mario/mario-2.png"))
-			inst.width, inst.height = getPlayerSettingsSize(inst.playable.id,2)
-			inst.scale = 1
+
+			aArgs.width, aArgs.height = getPlayerSettingsSize(inst.playable.id,2)
+			aArgs.xOffsetGfx, aArgs.yOffsetGfx = -aArgs.width*0.5, -aArgs.height
+			aArgs.xAlignGfx = animatx.ALIGN.LEFT
+			aArgs.yAlignGfx = animatx.ALIGN.TOP
+			aArgs.scale = 1
 		end
 
 		if  inst.gfxType == "npc"  then
@@ -642,11 +680,9 @@ do
 			setProps.rows = config.frames * (config.framestyle+1)
 			setProps.columns = 1
 			setProps.sheet = Graphics.sprites.npc[inst.npcId].img
-			inst.scale = 1
+			aArgs.scale = 1
 		end
-		--Text.dialog(setProps.sheet)
-
-		setProps.scale = inst.scale
+		setProps.scale = aArgs.scale
 
 
 		-- Create a table with _all_ the unique animstate keys.  _All of them_.
@@ -654,6 +690,7 @@ do
 		                           seqStrs.left     or  {},
 		                           seqStrs.right    or  {},
 		                           seqStrs.default  or  {})
+
 
 		-- Process EVERY SEQUENCE and create the ActorState definitions
 		local seqProps = {isPlayerSheet=(ljson.general.player ~= nil), useOldIndexing=false, rows=ljson.gfx.rows}
@@ -665,7 +702,7 @@ do
 				seqProcs[DIR_RIGHT][k2] = animatx.Sequence (table.join(seqProps, {str=v2, frameOffset=ljson.gfx.npcStartRight-1}))
 
 			elseif  seqStrs.left[k2] ~= nil  then
-				seqProcs[DIR_LEFT][k2] = animatx.Sequence (table.join(seqProps, {str=v2, frameOffset=ljson.gfx.npcStartLeft}-1))
+				seqProcs[DIR_LEFT][k2] = animatx.Sequence (table.join(seqProps, {str=v2, frameOffset=ljson.gfx.npcStartLeft-1}))
 
 			elseif  seqStrs.right[k2] ~= nil  then
 				seqProcs[DIR_RIGHT][k2] = animatx.Sequence (table.join(seqProps, {str=v2, frameOffset=ljson.gfx.npcStartRight-1}))
@@ -676,52 +713,53 @@ do
 
 
 		-- Define states
-		inst.stateDefs = {
+		aArgs.stateDefs = {
 			walk = {
 				onTick = function(self, actor)
 
 					-- Set the animation state
 					if  math.abs(actor.speedX) >= 4  then
-						if  actor.gfx.sequences.run  then
-							actor.gfx:startState{state="run"}
-						elseif  actor.gfx.sequences.walk  then
-							actor.gfx:startState{state="walk"}
-						elseif  actor.gfx.sequences.stand  then
-							actor.gfx:startState{state="stand"}
+						if  actor.gfx.set.sequences.run  then
+							actor.gfx:startState{state="run", resetTimer=true, commands=true}
+						elseif  actor.gfx.set.sequences.walk  then
+							actor.gfx:startState{state="walk", resetTimer=true, commands=true}
+						elseif  actor.gfx.set.sequences.idle  then
+							actor.gfx:startState{state="idle", resetTimer=true, commands=true}
 						end
 					elseif  math.abs(actor.speedX) >= 0.25  then
-						if  actor.gfx.sequences.walk  then
-							actor.gfx:startState{state="walk"}
-						elseif  actor.gfx.sequences.run  then
-							actor.gfx:startState{state="run"}
-						elseif  actor.gfx.sequences.stand  then
-							actor.gfx:startState{state="stand"}
+						if  actor.gfx.set.sequences.walk  then
+							actor.gfx:startState{state="walk", resetTimer=true, commands=true}
+						elseif  actor.gfx.set.sequences.run  then
+							actor.gfx:startState{state="run", resetTimer=true, commands=true}
+						elseif  actor.gfx.set.sequences.idle  then
+							actor.gfx:startState{state="idle", resetTimer=true, commands=true}
 						end
 					else
-						if  actor.gfx.sequences.stand  then
-							actor.gfx:startState{state="stand"}
-						elseif  actor.gfx.sequences.walk  then
-							actor.gfx:startState{state="walk"}
-						elseif  actor.gfx.sequences.run  then
-							actor.gfx:startState{state="run"}
+						if  actor.gfx.set.sequences.idle  then
+							actor.gfx:startState{state="idle", resetTimer=true, commands=true}
+						elseif  actor.gfx.set.sequences.walk  then
+							actor.gfx:startState{state="walk", resetTimer=true, commands=true}
+						elseif  actor.gfx.set.sequences.run  then
+							actor.gfx:startState{state="run", resetTimer=true, commands=true}
 						end
 					end
 
 					-- Switch to standing
 					if  actor.speedX == 0  then
-						actor:StartState("stand")
+						actor:StartState("idle")
 					end
 				end
 			},
-			stand = {
+			idle = {
 				onStart = function(self, actor)
+
 					-- Set the animation state
-					if  actor.gfx.sequences.stand  then
-						actor.gfx:startState {state="stand"}
-					elseif  actor.gfx.sequences.walk  then
-						actor.gfx:startState {state="walk"}
-					elseif  actor.gfx.sequences.run  then
-						actor.gfx:startState {state="run"}
+					if  actor.gfx.set.sequences.idle  then
+						actor.gfx:startState {state="idle", resetTimer=true, commands=true}
+					elseif  actor.gfx.set.sequences.walk  then
+						actor.gfx:startState {state="walk", resetTimer=true, commands=true}
+					elseif  actor.gfx.set.sequences.run  then
+						actor.gfx:startState {state="run", resetTimer=true, commands=true}
 					end
 				end,
 				onTick = function(self, actor)
@@ -731,7 +769,7 @@ do
 					end
 
 					-- Switch to airborn
-					if  actor.bounds ~= nil  and  actor.y < actor.bounds.bottom  then
+					if  not actor.contactDown  then
 						actor:StartState("air")
 					end
 				end
@@ -741,26 +779,26 @@ do
 
 				-- Set the animation state
 					if  actor.speedY >= 0  then 
-						if  actor.gfx.sequences.fall  then
-							actor.gfx:startState {state="fall"}
-						elseif  actor.gfx.sequences.jump  then
-							actor.gfx:startState {state="jump"}
-						elseif  actor.gfx.sequences.stand  then
-							actor.gfx:startState {state="stand"}
+						if  actor.gfx.set.sequences.fall  then
+							actor.gfx:startState {state="fall", resetTimer=true, commands=true}
+						elseif  actor.gfx.set.sequences.jump  then
+							actor.gfx:startState {state="jump", resetTimer=true, commands=true}
+						elseif  actor.gfx.set.sequences.idle  then
+							actor.gfx:startState {state="idle", resetTimer=true, commands=true}
 						end
 					else
-						if  actor.gfx.sequences.jump  then
-							actor.gfx:startState {state="jump"}
-						elseif  actor.gfx.sequences.fall  then
-							actor.gfx:startState {state="fall"}
-						elseif  actor.gfx.sequences.stand  then
-							actor.gfx:startState {state="stand"}
+						if  actor.gfx.set.sequences.jump  then
+							actor.gfx:startState {state="jump", resetTimer=true, commands=true}
+						elseif  actor.gfx.set.sequences.fall  then
+							actor.gfx:startState {state="fall", resetTimer=true, commands=true}
+						elseif  actor.gfx.set.sequences.idle  then
+							actor.gfx:startState {state="idle", resetTimer=true, commands=true}
 						end
 					end
 
 					-- Switch to grounded
 					if  actor.speedY == 0  and  actor.y >= actor.bounds.bottom  then
-						actor:StartState("stand")
+						actor:StartState("idle")
 					end
 				end
 			}
@@ -769,7 +807,10 @@ do
 
 		-- Define the animation set from the animset and sequences sections of the ini
 		setProps.sequences = table.clone(allKeys)
-		inst.animSet = animatx.Set (setProps)
+		aArgs.animSet = animatx.Set (setProps)
+
+		-- Store the name because it turns out I actually need it after all
+		inst.name = name
 
 
 		-- Set the metatable and make this thing a dedicated namespace
@@ -778,6 +819,7 @@ do
 		_G["ACTOR_"..string.upper(name)] = a2xt_actor[name]
 		table.insert(a2xt_actor.presetNames, name)
 	end
+
 
 	a2xt_actor.presetNames = {}
 	for k,v in ipairs (table.join (Misc.listLocalFiles("../actors"), Misc.listLocalFiles("actors")))  do
