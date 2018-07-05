@@ -436,16 +436,16 @@ local function cor_manageMessage(bubbleTarget, bubble)
 			if  bubbleTarget.obj ~= nil  then
 				local screenX,screenY = cam:SceneToScreenPoint (getBubbleTarget(bubbleTarget.obj))
 
-				bubbleTarget.offY = 0
+				local offYOverride = bubbleTarget.offY
 				if  bubbleTarget.obj ~= player  then
-					bubbleTarget.offY = -32 * cam.zoom
+					offYOverride = offYOverride - (32 * cam.zoom)
 				end
-				
-				
+
+
 				bubbleTarget.x = screenX + cam.cam.x + bubbleTarget.offX
-				bubbleTarget.y = screenY + cam.cam.y + bubbleTarget.offY
+				bubbleTarget.y = screenY + cam.cam.y + offYOverride
 				
-	
+
 				if(bubbleTarget.keepOnscreen) then
 					local wid,hei = bubbleTarget.obj.width, bubbleTarget.obj.height;
 					local origx,origy = bubbleTarget.x,bubbleTarget.y
@@ -585,8 +585,8 @@ function a2xt_message.showMessageBox (args)
 
 	-- Determine preset and logged name based on target
 	if  args.target ~= nil  then
-		messageCtrl.x = args.target.x
-		messageCtrl.y = args.target.y
+		messageCtrl.x = args.target.x + messageCtrl.offX
+		messageCtrl.y = args.target.y + messageCtrl.offY
 
 		-- If the target is an NPC, determine the preset based on the target's NPC ID
 		if  args.target.__type == "NPC"  then

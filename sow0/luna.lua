@@ -35,29 +35,30 @@ local function cor_intro()
 		end
 	end
 
+	-- Move the player to the proper section
 	scene.setTint{color=0x000000FF}
 	player.section = 1
 	player.x = -179500
 	player.y = -180200
 	eventu.waitFrames(4)
 
+	-- Initialize Actor objects for the krew
 	actors.groundY = -180160
 	ACTOR_DEMO:PlayerReplaceNPC()
 	actors.KrewToActors()
 	ACTOR_DEMO.direction = DIR_RIGHT
 
-
 	local cam = cman.playerCam[1]
-	--actors.Demo {direction=DIR_RIGHT}
-	--actors.Demo:Walk {speed=4}
 
+	-- Start panning and fading in
 	cam.targets={}
 	cam.x = -180400
 	cam.y = -180225
-	cam:Queue{time=2--[[8]], zoom=1.5, x=-179050}--, easeBoth=cman.EASE.QUAD, zoom=1.25}
+	cam:Queue{time=8, zoom=1.5, x=-179050}--, easeBoth=cman.EASE.QUAD, zoom=1.25}
 	scene.setTint{color=0x00000000, time=3}
-	eventu.waitSeconds(2)
+	eventu.waitSeconds(8)
 
+	--[[
 	ACTOR_IRIS:Jump{strength=9}
 	eventu.waitSeconds(1)
 	ACTOR_IRIS:Walk{speed=-2}
@@ -67,6 +68,7 @@ local function cor_intro()
 	ACTOR_IRIS:Walk{speed=-2}
 	eventu.waitSeconds(1)
 	ACTOR_IRIS:StopWalking()
+	--]]
 
 	ACTOR_KOOD:Emote("happy")
 	eventu.waitSeconds(1)

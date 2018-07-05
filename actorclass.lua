@@ -296,6 +296,7 @@ local params = {
 			xScale=1,yScale=1,scale=1,
 			xOffsetGfx=0, yOffsetGfx=0,
 
+			directionMirror=true,
 			debug=false
 		},
 		aliases = {priority="z", depth="z"}
@@ -489,7 +490,7 @@ do
 
 		-- If the property changes the collider, set the "collider is dirty" flag
 		if  (changesCollider[key] ~= nil  and  obj._colliderCache[key] ~= val)  then
-			Text.dialog(key.." is different, activating collider dirty flag")
+			--Text.dialog(key.." is different, activating collider dirty flag")
 			obj.rawset(obj.collision, _dirty, true)
 			obj._colliderCache[key] = val
 		end
@@ -816,7 +817,7 @@ do
 
 		-- Remake collider if necessary
 		if  self.collision._dirty  then
-			self.collision._obj = colliders.Box(self.collision.offsetX, self.collision.offset, self.width * math.abs(self.xScaleTotal), self.height * math.abs(self.yScaleTotal));
+			self.collision._obj = colliders.Box(0,0, self.width * math.abs(self.xScaleTotal), self.height * math.abs(self.yScaleTotal));
 
 			self.collision._dirty = false
 		end
@@ -824,7 +825,8 @@ do
 
 		-- Get collider padding
 		local box = self.collision.box
-		local padL, padU, padR, padD = 0,0,box.width,box.height
+		local padL, padR = 0,box.width
+		local padU, padD = 0,box.height
 
 		if      self.collision.xAlign == animatx.ALIGN.MID     then
 			padL, padR = 0.5*box.width,0.5*box.width
@@ -840,6 +842,7 @@ do
 			padU, padD = box.height,0
 		end
 
+		--Text.dialog {xAlign=self.collision.xAlign, yAlign=self.collision.yAlign, width=box.width, height=box.height, padL=padL, padR=padR, padU=padU, padD=padD}
 
 		-- Clamp position to bounds based on collider's relative position
 		if  self.bounds ~= nil  then
@@ -854,28 +857,29 @@ do
 	end
 
 	function Actor:updateGfx()
+		local gfx = self.gfx
 
 		-- Override AnimInst scale properties based on own + direction
-		self.gfx.xScale = self.xScale
+		gfx.xScale = self.xScale
 		if  self.directionMirror  then
-			self.gfx.xScale = self.gfx.xScale * self.direction
+			gfx.xScale = gfx.xScale * self.direction
 		end
-		self.gfx.yScale = self.yScale
-		self.gfx.scale = self.scale
+		gfx.yScale = self.yScale
+		gfx.scale = self.scale
 
 		-- Depth
-		self.gfx.z = self.z
+		gfx.z = self.z
 
 		-- Position
-		self.gfx.objectLastX = nil
-		self.gfx.objectLastY = nil
-		self.gfx:move()
-		self.gfx.x = self.gfx.x + self.xOffsetGfx
-		self.gfx.y = self.gfx.y + self.yOffsetGfx
+		gfx.objectLastX = nil
+		gfx.objectLastY = nil
+		gfx:move()
+		gfx.x = gfx.x + self.xOffsetGfx
+		gfx.y = gfx.y + self.yOffsetGfx
 
 		-- Animate even when not being rendered
-		if  not self.gfx.frozen  then
-			self.gfx:animate()
+		if  not gfx.frozen  then
+			gfx:animate()
 		end
 	end
 
@@ -927,15 +931,16 @@ do
 
 			---[[
 			local debugProps = {
-				tostring(self.gfx.frame),
-				tostring(self.gfx.step),
-				tostring(self.directionMirror),
-				tostring(self.direction),
+				--tostring(self.gfx.frame),
+				--tostring(self.gfx.step),
+				--tostring(self.gfx.xScaleTotal),
+				--tostring(self.directionMirror),
+				--tostring(self.direction),
 				--"L="..tostring(DIR_LEFT),
 				--"R="..tostring(DIR_RIGHT)
 				--"grounded = "..tostring(self.bounds ~= nil  and  self.collision.bottom == self.bounds.bottom)
 				--"bounds="..tostring(self.bounds),
-				self.state,
+				--self.state,
 				--self.gfx.state,
 				--"x,y,w,h="..tostring(self.x)..","..tostring(self.y)..","..tostring(self.width)..","..tostring(self.height),
 				--"bbox="..tostring(self.collision.x)..","..tostring(self.collision.y)..","..tostring(self.collision.x2)..","..tostring(self.collision.y2),
