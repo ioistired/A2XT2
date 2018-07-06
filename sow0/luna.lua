@@ -70,35 +70,41 @@ local function cor_intro()
 	ACTOR_IRIS:StopWalking()
 	--]]
 
-	ACTOR_KOOD:Emote("happy")
+	-- Begin conversation
+	ACTOR_KOOD : Emote("happy")
 	eventu.waitSeconds(1)
-	ACTOR_KOOD:Talk{text="Man, isn't it great how we defeated Science and saved the universe and nothing bad happened at all ever?"}
+	ACTOR_KOOD : Talk{text="Man, isn't it great how we defeated Science and saved the universe and nothing bad happened at all ever?"}
+	eventu.waitSeconds(0.5)
+	ACTOR_IRIS.direction = DIR_RIGHT
 	message.waitMessageEnd()
-	eventu.waitSeconds(1)
-
-	ACTOR_IRIS:Talk{text="Somebody remind me why we invited Kood again?"}
-	message.waitMessageEnd()
-
-	ACTOR_DEMO:Talk{text="<i>We<i/> didn't, Pily did."}
-	message.waitMessageEnd()
-
-	ACTOR_IRIS:Talk{text="I swear, I just don't know what she sees in him..."}
-	message.waitMessageEnd()
-
-	ACTOR_RAOCOW:Walk{speed=-2}
-	ACTOR_KOOD:Emote("sweat")
-	cam:Queue{time=1, zoom=1.25, x=-178900}--, easeBoth=cman.EASE.QUAD}
 	eventu.waitSeconds(1)
 
-	ACTOR_RAOCOW:StopWalking()
+	ACTOR_IRIS.direction = DIR_LEFT
+	ACTOR_IRIS : Talk{text="Somebody remind me why we invited Kood again?"}
+	message.waitMessageEnd()
+
+	ACTOR_DEMO : Talk{text="<i>We<i/> didn't, Pily did."}
+	message.waitMessageEnd()
+
+	ACTOR_IRIS : Talk{text="I swear, I just don't know what she sees in him..."}
+	message.waitMessageEnd()
+
+	ACTOR_KOOD : Emote("sweat")
+	ACTOR_RAOCOW : Walk{speed=-2}
+	cam : Queue{time=1, zoom=1.25, x=-178900}--, easeBoth=cman.EASE.QUAD}
+	eventu.waitSeconds(1)
+
+	ACTOR_RAOCOW : StopWalking()
 	ACTOR_DEMO.direction = DIR_RIGHT
 	ACTOR_IRIS.direction = DIR_RIGHT
 	ACTOR_KOOD.direction = DIR_RIGHT
-	ACTOR_RAOCOW:Talk{text="Hey, everyone!  We should play hide and seek!<page>The winner gets the last chicken wing!"}
+	ACTOR_RAOCOW : Talk{text="Hey, everyone!  We should play hide and seek!<page>The winner gets the last chicken wing!"}
 	message.waitMessageEnd()
 	eventu.waitSeconds(1)
 
-	ACTOR_IRIS:Talk{text="...<page>Fine, it's better than sitting around and listening to the turtle.  You go first, Sis."}
+	ACTOR_IRIS : Talk{text="...<page>Fine, it's better than sitting around and listening to the turtle.  You go first, Sis."}
+	message.waitMessagePage(nil, 2)
+	ACTOR_IRIS.direction = DIR_LEFT
 	message.waitMessageEnd()
 end
 

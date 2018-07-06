@@ -849,6 +849,26 @@ function a2xt_message.waitMessageDone(message)
 
 	return eventu.waitSignal("_messageDone")
 end
+function a2xt_message.waitMessagePage(message, page)
+	if  message == nil  then
+		message = mostRecentMessage
+	end
+	local messageStillExists = true
+
+	eventu.run (function ()
+		while (messageStillExists)  do
+			messageStillExists = (message ~= nil)
+			if  messageStillExists  then
+				messageStillExists = not (message.currentPage >= page)
+			end
+
+			eventu.waitFrames(0)
+		end
+		eventu.signal("_messageDone")
+	end)
+
+	return eventu.waitSignal("_messageDone")
+end
 function a2xt_message.waitMessageEnd(message)
 	if  message == nil  then
 		message = mostRecentMessage

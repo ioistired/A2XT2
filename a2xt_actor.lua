@@ -42,8 +42,6 @@ local function getPlayerSettingsOffsets(characterId,state)
 		end
 	end
 
-	--Text.dialog{id=characterId, state=state, xOffs=xOffsets, yOffs=yOffsets}
-
 	return xOffsets,yOffsets
 end
 
@@ -188,11 +186,11 @@ do
 			local isNpc = self.ai1 ~= nil
 			local isActor = not isPlayer  and  not isNpc
 
-			local extra = {target=self, offX=0.5*self.width, offY=-8}
+			local extra = {target=self, offX=0.5*self.width, offY=-16}
 
 			if  isActor  then
 				extra.offX = -self.width
-				extra.offY = -self.height - 32
+				extra.offY = -self.height-16
 			end
 			extra.offX = extra.offX + (args.offX  or  0)
 			extra.offY = extra.offY + (args.offY  or  0)
@@ -328,8 +326,8 @@ do  -- metamethods
 			                     state  = args.state  or  "walk",
 			                     direction = args.direction  or  current.direction,
 			                     bounds = newBounds,
-			                     sceneCoords = true,
-			                     debug = true
+			                     sceneCoords = true
+			                     --debug = true
 			                    }
 
 			tbl.objects.actor = Actor(table.join (tbl.actorArgs, specialDefs))
@@ -581,11 +579,13 @@ do
 
 			-- Apply SpriteOverride sheet and offsets
 			---[[
-			if  self.gfxType == "playable"  then
-				local playerSheet = Graphics.sprites[self.playable.name][2].img
+			if  self.gfxType == "playable"  and  self.playable.costume ~= costumes.getCurrent(self.playable.id)  then
+				self.playable.costume = costumes.getCurrent(self.playable.id)
 
+				pman.refreshHitbox(self.playable.id)
 				set.sheet = Graphics.sprites[self.playable.name][2].img
-				set.xOffsets, set.yOffsets = getPlayerSettingsOffsets (self.playable.id,2)
+				set.xOffsets, set.yOffsets = getPlayerSettingsOffsets (self.playable.id, 2)
+				obj.width, obj.height = getPlayerSettingsSize (self.playable.id, 2)
 				obj.xOffsetGfx, obj.yOffsetGfx = -obj.width*0.5, -obj.height
 
 			elseif  self.gfxType == "npc"  then
@@ -683,7 +683,6 @@ do
 		-- Cache asset IDs and gfx type
 		inst.playable.name = ljson.general.player
 		inst.playable.id = CHARACTER_CONSTANT[ljson.general.player]
-		--inst.playable.costume = 
 		inst.npcId = ljson.general.npc
 		inst.gfxType = ljson.gfx.type
 

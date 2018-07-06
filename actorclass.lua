@@ -77,6 +77,10 @@ do
 			return obj.x1 + obj.width;
 		elseif  (key == "bottom"  or  key == "y2")  then
 			return obj.y1 + obj.height;
+		elseif  (key == "xMid")  then
+			return (obj.x1 + obj.x2) * 0.5;
+		elseif  (key == "yMid")  then
+			return (obj.y1 + obj.y2) * 0.5;
 
 
 		-- Wrap the collider
@@ -420,6 +424,9 @@ do
 
 		--elseif  (key == "speedFwd")    then
 		--	return obj.speedX * obj.direction
+
+		elseif  (key == "top"  or  key == "left"  or  key == "right"  or  key == "bottom"  or  key == "xMid"  or  key == "yMid")      then
+			return obj.collision[key]
 
 		elseif  (key == "contactUp")     then
 			return (obj.bounds ~= nil  and  obj.collision.top <= obj.bounds.top)
@@ -931,6 +938,8 @@ do
 
 			---[[
 			local debugProps = {
+				tostring(self.gfx.xOffset),
+				tostring(self.gfx.yOffset),
 				--tostring(self.gfx.frame),
 				--tostring(self.gfx.step),
 				--tostring(self.gfx.xScaleTotal),
