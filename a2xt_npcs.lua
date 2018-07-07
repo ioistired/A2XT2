@@ -1053,6 +1053,21 @@ function chest:onTickNPC()
 end
 
 
+-- ***********************
+-- ** COATLYN & ROOMIES **
+-- ***********************
+local coatlyn = {}
+local coatSettings = table.join (defaults, {
+	id = 985,
+	gfxheight = 96, 
+	gfxwidth = 56, 
+	width = 24,
+	height = 48,
+	gfxoffsetx = 0,
+	gfxoffsety = 2,
+});
+
+--coatlyn.settings = 
 
 -- ***********************
 -- ** PAL STUFF         **
