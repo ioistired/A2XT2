@@ -120,12 +120,7 @@ for i = 987,995 do
 	end
 	table.insert(pengs, s);
 end
-			
-for _,v in ipairs(pengs) do
-	npcManager.setNpcSettings(v);
-	npcManager.registerEvent(v.id, pengs, "onTickNPC");
-	npcManager.registerEvent(v.id, pengs, "onStartNPC");
-end		
+
 
 
 npcManager.setNpcSettings({id = 151, talkrange = 0});	
@@ -1056,18 +1051,100 @@ end
 -- ***********************
 -- ** COATLYN & ROOMIES **
 -- ***********************
-local coatlyn = {}
-local coatSettings = table.join (defaults, {
-	id = 985,
+local coatlyn = {
+	settings = {}
+}
+
+local coatCommon = {
 	gfxheight = 96, 
 	gfxwidth = 56, 
 	width = 24,
 	height = 48,
 	gfxoffsetx = 0,
-	gfxoffsety = 2,
-});
+	gfxoffsety = 2
+}
 
---coatlyn.settings = 
+local coatSettings = {
+	[968] = {frames=9,  roomieIdle={5,5},  roomieTalk={6,9},  roomieName="Sir Pennypants", roomieNick="Penny"},
+	[969] = {frames=9,  roomieIdle={5,5},  roomieTalk={6,7},  roomieName="Yvonne"},
+	[970] = {frames=11, roomieIdle={8,11}, roomieTalk={8,11}, roomieName="Rachie"},
+	[971] = {frames=7,  roomieIdle={6,6},  roomieTalk={7,7},  roomieName="Othello"},
+	[972] = {frames=2,  roomieIdle={2,2},  roomieTalk=(2,2},  roomieName="Famous Communist Grouchy Mark", roomieNick="Grouchy"},
+}
+
+
+for k,v in ipairs(coatSettings) do
+	v.id = k
+
+	coatlyn.settings[k] = table.join(defaults, coatCommon, v, {id=k});
+	npcManager.setNpcSettings(coatlyn.settings[k])
+	npcManager.registerEvent(k, coatlyn, "onTickNPC");
+	npcManager.registerEvent(k, coatlyn, "onStartNPC");
+end
+
+
+function coatlyn:onStartNPC()
+	self.friendly = true;
+	self.dontMove = true;
+
+	self.data.worldNum = leveldata.GetWorldNumber(levelFile)
+	self.data.event = "coatlyn"
+	self.data.roomieOut = false
+	self.data.roomieTalking = false
+
+	-- After the roommate has been met, they are always out in that world
+	if  SaveData.coatlyn  then
+		self.data.roomieOut = SaveData.coatlyn.roomieMet[self.id]
+	end
+end
+
+function coatlyn:onTickNPC()
+	local settings = coatlyn.settings[self.id]
+
+	-- If already met
+	if (SaveData.coatlyn) then
+
+		self.data.name = "Coatlyn";
+		if  (self.data.roomieOut)
+			self.data.name = "Coatlyn and "..settings.roomieName;
+		end
+
+	-- If not acquainted
+	else
+		self.data.name = "???";
+	end
+
+	if (self.data.frameTimer and self.data.frameTimer > 0) then
+		self.data.frameTimer = self.data.frameTimer - 1;
+	else
+		local offset = 0;
+		if(self.direction == 1) then
+			offset = 4;
+		end
+		if(self.data.playing) then
+			if(self.animationFrame < 3+offset) then
+				self.animationFrame = self.animationFrame + 1;
+				self.data.frameTimer = blackmarket.settings.framespeed;
+			else
+				self.animationFrame = 3+offset;
+				self.data.frameTimer = 0;
+			end
+		else
+			if(self.animationFrame > offset) then
+				self.animationFrame = self.animationFrame - 1;
+				self.data.frameTimer = blackmarket.settings.framespeed;
+			else
+				self.animationFrame = offset;
+				self.data.frameTimer = 0;
+			end
+		end
+	end
+	self.animationTimer = 2;
+
+end
+
+
+
 
 -- ***********************
 -- ** PAL STUFF         **

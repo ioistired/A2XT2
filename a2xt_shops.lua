@@ -14,6 +14,7 @@ local message = API.load("a2xt_message")
 local raocoins = API.load("a2xt_raocoincounter");
 local costumes = API.load("a2xt_costumes")
 local rewards = API.load("a2xt_rewards")
+local leveldata = API.load("a2xt_leveldata")
 
 local a2xt_shops = {}
 
@@ -157,7 +158,7 @@ a2xt_shops.dialogue = {
                                                {"I'm ready to return her.", "Can I hear the sales pitch again?", "I need more time with this majestic creature."},
                                                {"You interested in buying?", "...What's your angle?", "NO YOU CAN'T HAVE HER"}
                                               },
-									--TODO: Get these assigned to the right npc ids
+                                    --TODO: Get these assigned to the right npc ids
                                     items = {[95] = "Common Verdegris",[98] = "Azure Skyhowler",[99] = "Whiffing Honeyjackal",[100] = "Norwegian Pyrelynx",[150] = "Flaminguanaco",[149]="Grizzlpaca",[148]="Sandy Meatcamel",[228]="Siberian Frostchucker"},
                                     welcome = {
                                                "Why, howdy there!  You wouldn't happen to be interested in renting out one of our fine furry friends, now, would ya?",
@@ -171,12 +172,12 @@ a2xt_shops.dialogue = {
                                               },
                                     about = "You look like you got a good head on your shoulders.  I reckon you know as well as I do that catllama-back ridin' is the only true way to travel.<page>We humble ranchers are here to provide you with a cuddly companion to help you get where you need to go.  Our catnips are the most dependable mounts you'll find for hundreds o' miles!<page>Of course, we hafta eat, so we can't go lending out rides for free.  We'll need a down payment of raocoins whenever you want to take one of our li'l fillies out with ya.<page>But we're not in this business fer the money.  If'n you bring 'em back home when you're done, we'll refund some of that fee as a show of good faith!<page>We'll accept wild catllamas y'all bring in as well, never hurts to add another member to the family!",
                                     browse = "Alrighty, just let me know which breed y'all want!",
-									alreadyriding = 
-											{
-												[1] = "Looks to me like you have some kind of sack-type device. Gonna struggle to ride one o' these majestic creatures with your legs all tied up like that!",
-												[2] = "Now that is one mighty fine contraption, but these catllamas are mighty afraid of machinery.<page>Why don't ya try parkin' that up and we'll see about gettin' ya a catllama instead.",
-												[3] = "Seems ta me like you already have one o' our furry friends here. I don't know about you but ridin' two at once seems a bit of a stretch.<page>Come see me an' we can arrange tradin' her in if you'd like."
-											},
+                                    alreadyriding = 
+                                            {
+                                             [1] = "Looks to me like you have some kind of sack-type device. Gonna struggle to ride one o' these majestic creatures with your legs all tied up like that!",
+                                             [2] = "Now that is one mighty fine contraption, but these catllamas are mighty afraid of machinery.<page>Why don't ya try parkin' that up and we'll see about gettin' ya a catllama instead.",
+                                             [3] = "Seems ta me like you already have one o' our furry friends here. I don't know about you but ridin' two at once seems a bit of a stretch.<page>Come see me an' we can arrange tradin' her in if you'd like."
+                                            },
                                     confirm = {
                                                "The [item], huh?  She'll run y'all about... I'd say [price].  Sound good?",
                                                "Sure y'all ready to part?  I can let ya keep her for a bit longer if you'd prefer.",
@@ -204,19 +205,19 @@ a2xt_shops.dialogue = {
                        powerup   = {
                                     options = {
                                                {"What is this place?", "Later."}
-											  },
+                                              },
                                     items = {[9] = "Red Radish", [14] = "Hot Cactus", [34] = "Spinach Leaf", [90] = "Green Radish", [169] = "Mystical Onion", [170] = "Extreme Gourd", [188] = "Lord of the Forest", [264] = "Icy Pine", [287] = "Lucky Dip Deal"},
                                     welcome = "Buy somethin' will ya?",
                                     about = {"This is a grocery store. We sell food. Try some, why don't ya?",
-											"This is a grocery store. We sell food. Try some, why don't ya?<page>Some of our stock is a special, all-you-can-eat offer. Buy it once, and you can get a free refill any time you like. It's a steal!"},
+                                             "This is a grocery store. We sell food. Try some, why don't ya?<page>Some of our stock is a special, all-you-can-eat offer. Buy it once, and you can get a free refill any time you like. It's a steal!"},
                                     goodbye = "Make sure you come back later, ya hear?",
-									confirm =	
-											{
+                                    confirm =
+                                              {
                                                "That's a [item].  It'll cost ya [price].  Deal?",
                                                "That [item] is part of our all-you-can-eat offer.  It'll be [price].  Okay?",
-                                            },
-									buy =  "Enjoy your food!",
-									nodeal = "Fine then. Anything else?",
+                                              },
+                                    buy =  "Enjoy your food!",
+                                    nodeal = "Fine then. Anything else?",
                                     notenough = "Hey, what are ya trying to pull? You're gonna need more cash than that.",
                                    },
 
@@ -588,6 +589,63 @@ message.presetSequences.costume = function(args)
 	scene.endScene()
 	message.endMessage();
 end
+
+message.presetSequences.coatlyn = function(args)
+	local npc = args.npc
+	local isCommenting = false
+	local firstTime = not SaveData.coatlyn
+	local roomieMet = SaveData
+	local playerCostumed = costumes.isDefault(Player.character)
+
+	local intro = ""
+
+	-- If this is the first time meeting Coatlyn
+	if  (firstTime)  then
+		intro = "It is I, fresh, fab fashionista Coatlyn!  My couture consultation is rivaled by none!"
+
+		SaveData.coatlyn = {
+			roomieMet = {},
+			roomiesMet = 0
+		};
+
+		if  playerCostumed
+			intro = intro.."<page> I can sense potential in you, darling, but you really must change that outfit first!  Come back to me once you've found a new look."
+		else
+			intro = intro.."<page> I can sense you're a trendsetter in the making, darling!  Allow me just a moment..."
+			isCommenting = true
+		end
+
+	-- If already acquainted
+	else
+		intro = ""
+
+		if  not SaveData.coatlyn.roomieMet[npc.id]  then
+			intro = intro.."  There's someone I'd like you to meet!"
+		end
+
+		if  playerCostumed
+			intro = intro.."  It's always a pleasure to hear from you Come back to me once you've found a new look."
+		else
+			intro = intro.."<page> I can sense you're a trendsetter in the making, darling!  Allow me just a moment..."
+			isCommenting = true
+		end
+	end
+
+	-- Introduce herself
+	local bubble = message.showMessageBox {target=npc, x=npc.x,y=npc.y, text=intro, closeWith="prompt", voice="coatlyn", voiceclip=vcs}
+	message.waitMessageEnd()
+
+
+	if  isCommenting  then
+		if  not npc.data.roomieOut  then
+			
+		else
+			
+		end
+	end
+
+end
+
 
 message.presetSequences.steve = function(args)
 	local npc = args.npc

@@ -487,6 +487,13 @@ function leveldata.GetData(levelFile)
 	return lvl[string.sub(levelFile, 0, -5)];
 end
 
+function leveldata.GetWorldNumber(levelFile)
+	local data = leveldata.GetData(levelFile)
+
+	return data.world
+end
+
+
 function leveldata.GetCompletion(levelFile)
 	levelFile = levelFile or Level.filename();
 	
