@@ -1,0 +1,30 @@
+{
+	"general" : {
+		"npc" : 198,
+		"width" : 16,
+		"height" : 32
+	},
+
+	"gfx" : {
+		"sheet" : "graphics/actors/anmx_calleoca.png"
+	},
+
+	"sequences" : 
+	{
+		"default" : {
+			"idle" : "1",
+			"walk" : "7,8",
+			"run" : "13,14,15,16",
+			"jump" : "19",
+			"fall" : "20",
+			"turn" : "25",
+			"spin" : "31,32,33,34",
+			"startled" : "37,38",
+			"happy" : "43,44,45,46,47,48",
+			"angry" : "49",
+			"quizzical" : "50",
+			"sad" : "51",
+			"nya" : "52"
+		}
+	}
+}

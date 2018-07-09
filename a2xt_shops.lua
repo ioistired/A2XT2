@@ -608,7 +608,7 @@ message.presetSequences.coatlyn = function(args)
 			roomiesMet = 0
 		};
 
-		if  playerCostumed
+		if  not playerCostumed  then
 			intro = intro.."<page> I can sense potential in you, darling, but you really must change that outfit first!  Come back to me once you've found a new look."
 		else
 			intro = intro.."<page> I can sense you're a trendsetter in the making, darling!  Allow me just a moment..."
@@ -621,13 +621,8 @@ message.presetSequences.coatlyn = function(args)
 
 		if  not SaveData.coatlyn.roomieMet[npc.id]  then
 			intro = intro.."  There's someone I'd like you to meet!"
-		end
-
-		if  playerCostumed
-			intro = intro.."  It's always a pleasure to hear from you Come back to me once you've found a new look."
 		else
-			intro = intro.."<page> I can sense you're a trendsetter in the making, darling!  Allow me just a moment..."
-			isCommenting = true
+			
 		end
 	end
 

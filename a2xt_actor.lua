@@ -56,9 +56,20 @@ end
 
 
 --*************************************
---** Misc class variables            **
+--** Misc class variables and stuff  **
 --*************************************
 a2xt_actor.groundY = nil
+
+for  k,v in ipairs{CHARACTER_DEMO, CHARACTER_IRIS, CHARACTER_KOOD, CHARACTER_RAOCOW, CHARACTER_SHEATH}  do
+	animDefaults[v][2] = table.join(animDefaults[v][2],
+		{
+			victory={49},
+			upset={48},
+			shocked={47},
+			sad={46}
+		}
+	)
+end
 
 
 --*************************************
@@ -204,6 +215,16 @@ do
 				icon = "blank"
 			end
 			emote[icon](self)
+		end,
+
+		Pose = function (self, pose)
+			local isPlayer = type(self) == "Player"
+			local isNpc = self.ai1 ~= nil
+			local isActor = not isPlayer  and  not isNpc
+
+			if  isActor  then
+				self.gfx:startState{state=pose, force=true, resetTimer=true, commands=true}
+			end
 		end,
 
 		Ground = function (self)

@@ -438,7 +438,7 @@ local function cor_manageMessage(bubbleTarget, bubble)
 
 				local offYOverride = bubbleTarget.offY
 				if  bubbleTarget.obj ~= player  then
-					offYOverride = offYOverride - (32 * cam.zoom)
+					offYOverride = offYOverride - (42 * cam.zoom)
 				end
 
 

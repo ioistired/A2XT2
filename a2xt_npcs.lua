@@ -1069,7 +1069,7 @@ local coatSettings = {
 	[969] = {frames=9,  roomieIdle={5,5},  roomieTalk={6,7},  roomieName="Yvonne"},
 	[970] = {frames=11, roomieIdle={8,11}, roomieTalk={8,11}, roomieName="Rachie"},
 	[971] = {frames=7,  roomieIdle={6,6},  roomieTalk={7,7},  roomieName="Othello"},
-	[972] = {frames=2,  roomieIdle={2,2},  roomieTalk=(2,2},  roomieName="Famous Communist Grouchy Mark", roomieNick="Grouchy"},
+	[972] = {frames=2,  roomieIdle={2,2},  roomieTalk={2,2},  roomieName="Famous Communist Grouchy Mark", roomieNick="Grouchy"},
 }
 
 
@@ -1105,7 +1105,7 @@ function coatlyn:onTickNPC()
 	if (SaveData.coatlyn) then
 
 		self.data.name = "Coatlyn";
-		if  (self.data.roomieOut)
+		if  (self.data.roomieOut)  then
 			self.data.name = "Coatlyn and "..settings.roomieName;
 		end
 
@@ -1114,7 +1114,8 @@ function coatlyn:onTickNPC()
 		self.data.name = "???";
 	end
 
-	if (self.data.frameTimer and self.data.frameTimer > 0) then
+	--[[
+	if (self.data.frameTimer  and  self.data.frameTimer > 0) then
 		self.data.frameTimer = self.data.frameTimer - 1;
 	else
 		local offset = 0;
@@ -1140,7 +1141,7 @@ function coatlyn:onTickNPC()
 		end
 	end
 	self.animationTimer = 2;
-
+	]]
 end
 
 
