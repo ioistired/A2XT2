@@ -293,6 +293,7 @@ local params = {
 			onTick=1,onTickEnd=1,
 
 			-- debug
+			name=1,
 			debug=1
 		},
 		defaults = {
@@ -667,12 +668,12 @@ do
 			-- Apply animation state
 			local animState = Actor:_pickAnimState (propsDef, self.state)
 			if  animState ~= nil  then
-				self.gfx:startState {state=animState, force=true, resetTimer=true, commands=true}
+				self.gfx:startState {state=animState, force=true, resetTimer=true, commands=true, name=self.name, source="STARTING ACTOR STATE "..newState}
 			end
 
 			-- Copy the persistent properties to a cache, filtering out functions and applying init_ props immediately
 			for  k,v in pairs (propsDef)  do
-				if  type(v) ~= "function"  and  k ~= "animState"  then
+				if  type(v) ~= "function"  and  k ~= "animState"  and  k~= "data"  then
 					local _,_,isInit,propertyName = string.find(k, "(init%_*)(.*)")
 					if  isInit ~= nil  then
 						self[propertyName] = v
@@ -938,8 +939,8 @@ do
 
 			---[[
 			local debugProps = {
-				tostring(self.gfx.xOffset),
-				tostring(self.gfx.yOffset),
+				--tostring(self.gfx.xOffset),
+				--tostring(self.gfx.yOffset),
 				--tostring(self.gfx.frame),
 				--tostring(self.gfx.step),
 				--tostring(self.gfx.xScaleTotal),
@@ -949,7 +950,7 @@ do
 				--"R="..tostring(DIR_RIGHT)
 				--"grounded = "..tostring(self.bounds ~= nil  and  self.collision.bottom == self.bounds.bottom)
 				--"bounds="..tostring(self.bounds),
-				--self.state,
+				self.state,
 				--self.gfx.state,
 				--"x,y,w,h="..tostring(self.x)..","..tostring(self.y)..","..tostring(self.width)..","..tostring(self.height),
 				--"bbox="..tostring(self.collision.x)..","..tostring(self.collision.y)..","..tostring(self.collision.x2)..","..tostring(self.collision.y2),

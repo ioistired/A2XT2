@@ -93,7 +93,7 @@ function costumes.getUnlocked (character)
 	return unlocked
 end
 
-function costumes.getCurrent(character)	
+function costumes.getCurrent(character)
 	local current = Player.getCostume(character);
 	if(current) then
 		current = current:upper();
@@ -106,6 +106,10 @@ function costumes.getCurrent(character)
 		end
 	end
 	return nil;
+end
+
+function costumes.isDefault (character)
+	return  (costumes.getCurrent(character) == costumes.defaults[character])
 end
 
 function costumes.unlock (id)
