@@ -102,6 +102,7 @@ local function randomiseTileset()
 end
 
 local function openingCutscene()
+	--[[
 	for i=1, 65 do
 		player.rightKeyPressing = true
 		player.leftKeyPressing = false
@@ -123,6 +124,7 @@ local function openingCutscene()
 	intercom.queueMessage{icon=icon_demo, frames=2, text="Roger."}
 	intercom.queueMessage{icon=icon_ub, frames=2, text="Roger."}
 	intercom.queueMessage{icon=icon_iris, frames=2, text="Alfred."}
+	--]]
 end
 
 function onStart()
