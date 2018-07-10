@@ -1,0 +1,18 @@
+{
+	"general" : {
+		"npc" : 967
+	},
+
+	"gfx" : {
+		"type" : "npc",
+		"npcStartLeft" : 1,
+		"npcStartRight" : 2
+	},
+
+	"sequences" : 
+	{
+		"npc" : {
+			"idle" : "1"
+		}
+	}
+}

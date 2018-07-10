@@ -749,11 +749,77 @@ a2xt_message.presetSequences.hubportal = function(args)
 	a2xt_scene.endScene()
 end
 
+-- ***********************************
+-- ** SIBLING NPCs                  **
+-- ***********************************
+local siblings = {settings={}}
+local siblingsShared = {
+	gfxwidth = 32,
+	gfxheight = 64,
+	width = 24, 
+	height = 52,
+	framestyle = 1,
+	frames = 1
+}
 
+local siblingsSettings = {
+	[962]={
+		gfxwidth = 54,
+		height = 48,
+	},
+	[963]={
+		gfxwidth = 94,
+		gfxheight = 40,
+		width = 32, 
+		height = 32,
+	},
+	[964]={
+		gfxwidth = 64,
+		gfxheight = 40,
+		width = 32, 
+		height = 32,
+	},
+	[965]={
+		gfxwidth = 50,
+		gfxheight = 72,
+		height = 64,
+	},
+	[966]={
+		gfxwidth = 44,
+		gfxheight = 30,
+		width = 32, 
+		height = 24,
+		nogravity=true
+	},
+	[967]={}
+}
+
+local siblingData = {
+	[962]={name="Garish"},
+	[963]={name="Mishi"},
+	[964]={name="Pandamona"},
+	[965]={name="Nevada"},
+	[966]={name="Science"},
+	[967]={name="Pily"}
+}
+
+
+for _,v in ipairs{962,963,964,965,966,967} do
+	local s = table.join(siblingsSettings[v], siblingsShared, defaults);
+	s.id = v;
+
+	siblings.settings[v] = npcManager.setNpcSettings(s);
+	npcManager.registerEvent(v, siblings, "onTickNPC");
+end
+
+function siblings:onTickNPC()
+	self.friendly = true;
+	self.data.name = self.data.name  or  siblingData[self.id].name;
+end
 
 
 -- ***********************************
--- ** GENERIC FRIENDLY NPCs         **
+-- ** CHRONOTON NPCs                **
 -- ***********************************
 
 local chronotons = {}
@@ -1152,6 +1218,7 @@ end
 -- ***********************
 local vectr = API.load("vectr");
 local colliders = API.load("colliders");
+local palCors = {}
 
 local pal = {}
 local palSettings = table.join(
@@ -1240,11 +1307,16 @@ function pal.onStart()
 	end
 end
 
+---[[
 function pal.onNPCKill(event, npc, reason)
-	if(npc.id == palSettings.id) then
-		event.cancelled = true;
+	for  k,v in pairs(palCors)  do
+		eventu.abort(v)
 	end
+	--if(npc.id == palSettings.id) then
+		--event.cancelled = true;
+	--end
 end
+--]]
 
 
 -- Utility functs (feel free to outsource some of these to another API)
@@ -1309,7 +1381,9 @@ local function objDistance (objA,objB)
 end
 
 local function setPalState(npcRef, type, funct)
-	if  npcRef == nil  then  return;  end;
+	if  npcRef == nil  then
+		return
+	end
 	local data = npcRef.data.pal
 
 	if  data[type].state ~= funct  then
@@ -1318,6 +1392,7 @@ local function setPalState(npcRef, type, funct)
 		end
 		data[type].state = funct
 		_,data[type].cor = eventu.run(funct,npcRef)
+		palCors[type] = data[type].cor
 	end
 end
 local function setPalMoveState(npcRef, funct)

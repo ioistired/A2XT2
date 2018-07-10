@@ -554,7 +554,7 @@ end
 	objects: target
 	bools:   keepOnscreen,hasTail,screenSpace,instant,inputClose,inputProgress
 	enums:   type
-	numbers: x,y,width,height,offX,offY
+	numbers: x,y,width,height,offX,offY,finishDelay
 	tables:  bloxProps
 --]]
 function a2xt_message.showMessageBox (args)
@@ -619,7 +619,7 @@ function a2xt_message.showMessageBox (args)
 	props.pauseGame      = false
 	props.z              = 2
 
-	for  _,v in ipairs{"width","height","instant","inputClose","inputProgress"}  do
+	for  _,v in ipairs{"width","height","speed","instant","inputClose","inputProgress","finishDelay"}  do
 		props[v] = args[v]  or  props[v]
 	end
 	

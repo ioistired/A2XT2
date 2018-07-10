@@ -105,6 +105,10 @@ do
 			local isNpc = self.ai1 ~= nil
 			local isActor = not isPlayer  and  not isNpc
 
+			-- If only a number is given, assume it's the speed
+			if  type(args) == "number"  then
+				args = {speed = args}
+			end
 
 			-- Cancel any active walk routine and animation freezing
 			self:StopWalking()
@@ -158,6 +162,14 @@ do
 							end
 						end
 
+						-- Set direction
+						if  self.speedX > 0  then
+							self.direction = DIR_RIGHT
+						end
+						if  self.speedX < 0  then
+							self.direction = DIR_LEFT
+						end
+
 						-- Yield
 						eventu.waitFrames(0)
 					end
@@ -178,12 +190,15 @@ do
 		--]]
 		Jump = function(self, args)
 			self.speedY = -args.strength
+			local isPlayer = type(self) == "Player"
+			local isNpc = self.ai1 ~= nil
+			local isActor = not isPlayer  and  not isNpc
 
-			if  type(self) ~= "Player"  and  type(self) ~= "NPC"  then
+			if  isActor  then
 				self.accelY = args.gravity  or  self.accelY
 
 				if  args.state  then
-					self:StartState{state=args.state}
+					self:StartState{state=args.state, name=self.name}
 				end
 			end
 		end,
@@ -205,6 +220,7 @@ do
 			end
 			extra.offX = extra.offX + (args.offX  or  0)
 			extra.offY = extra.offY + (args.offY  or  0)
+			--extra.keepOnscreen = true
 
 			-- add stuff for determining the y offset
 			return message.showMessageBox (table.join(args, extra))
@@ -223,7 +239,11 @@ do
 			local isActor = not isPlayer  and  not isNpc
 
 			if  isActor  then
-				self.gfx:startState{state=pose, force=true, resetTimer=true, commands=true}
+				--Text.dialog("POSING: "..pose)
+				self.cachedPose = pose
+				self.gfx:clearQueue ()
+				self.gfx:startState {state=pose, force=true, resetTimer=true, commands=true, source="POSE", name=self.name}
+				--self.gfx:freeze()
 			end
 		end,
 
@@ -518,7 +538,10 @@ do
 
 		-- Delete the NPC
 		if  self.objects.npc ~= nil  and  self.objects.current ~= self.objects.npc  then
+			--Text.dialog("NPC BEING REMOVED: "..self.name)
 			self.objects.npc:mem(0xDC, FIELD_WORD, 0)
+			self.objects.npc:mem(0x12A, FIELD_WORD, 0)
+			self.objects.npc:mem(0x40, FIELD_BOOL, true)
 			self.objects.npc:kill(HARM_TYPE_OFFSCREEN)
 			self.objects.npc = nil
 		end
@@ -559,7 +582,7 @@ do
 				obj.accelY = 0
 				obj.maxSpeedY = 0
 
-			else
+			elseif  self.hasGravity  then
 				obj.maxSpeedY = Defines.gravity
 				if  self.playable.id ~= nil  then
 					obj.accelY = Defines.player_grav
@@ -567,6 +590,8 @@ do
 				elseif  self.npcId ~= nil  then
 					obj.accelY = Defines.npc_grav
 				end
+			else
+				maxSpeedY = math.huge
 			end
 		end
 	end
@@ -583,19 +608,25 @@ do
 
 			if  obj.direction == DIR_LEFT  or  obj.direction == DIR_RIGHT  then
 				for  k3,_ in pairs(set.sequences)  do
+
+					--Text.dialog(self.name, k3, " ", seqProcs[DIR_LEFT][k3], " ", seqProcs[DIR_RIGHT][k3], " ", seqProcs.default[k3], "_")
+
 					if  seqProcs[obj.direction][k3] ~= nil  then
-						--Text.dialog("setting "..k3.." to "..tostring(obj.direction))
 						set.sequences[k3] = seqProcs[obj.direction][k3]
 						obj.directionMirror = false
+						gfx:applyStepFrame ()
+
 					else
-						--Text.dialog("setting "..k3.." to "..tostring(obj.direction))
 						set.sequences[k3] = seqProcs.default[k3]
 						obj.directionMirror = true
+						gfx:applyStepFrame ()
 					end
 				end
 			end
 
+
 			--Text.dialog(set.sequences)
+
 
 
 			-- Apply SpriteOverride sheet and offsets
@@ -611,7 +642,7 @@ do
 
 			elseif  self.gfxType == "npc"  then
 				set.sheet = Graphics.sprites.npc[self.npcId].img
-				set.xOffsets, set.yOffsets = getNPCOffsets (self.npcId)
+				set.xOffsetGfx, set.yOffsetGfx = getNPCOffsets (self.npcId)
 			end
 			--]]
 		end
@@ -660,18 +691,20 @@ do
 				costume = nil
 			},
 
+			hasGravity = (ljson.general.nogravity == nil),
+
 			npcId = nil,
 
 			gfxType = nil,
 
 			actorArgs = {
-				scale = 2,
+				name=name,
 				animSet = nil,
 				width = nil,
 				height = nil,
-				scale = 2,
-				xScale = 1,
-				yScale = 1,
+				scale = ljson.general.scale  or  2,
+				xScale = ljson.general.xScale  or  1,
+				yScale = ljson.general.yScale  or  1,
 				state = "walk",
 				xAlignGfx = animatx.ALIGN.MID,
 				yAlignGfx = animatx.ALIGN.BOTTOM,
@@ -779,6 +812,9 @@ do
 			walk = {
 				onTick = function(self, actor)
 
+					-- Clear the cached pose
+					actor.cachedPose = nil
+
 					-- Set the direction
 					if  actor.speedX ~= 0  then
 						actor.direction = actor.speedXSign
@@ -786,30 +822,23 @@ do
 
 					-- Set the animation state
 					if  math.abs(actor.speedX) >= 4  then
-						if  actor.gfx.set.sequences.run  then
-							actor.gfx:startState{state="run", resetTimer=true, commands=true}
-						elseif  actor.gfx.set.sequences.walk  then
-							actor.gfx:startState{state="walk", resetTimer=true, commands=true}
-						elseif  actor.gfx.set.sequences.idle  then
-							actor.gfx:startState{state="idle", resetTimer=true, commands=true}
-						end
+						actor.gfx:attemptStates ({"run", "walk", "idle"}, {resetTimer=true, commands=true, name=actor.name, source="onTick of "..actor.state})
+
 					elseif  math.abs(actor.speedX) >= 0.25  then
-						if  actor.gfx.set.sequences.walk  then
-							actor.gfx:startState{state="walk", resetTimer=true, commands=true}
-						elseif  actor.gfx.set.sequences.run  then
-							actor.gfx:startState{state="run", resetTimer=true, commands=true}
-						elseif  actor.gfx.set.sequences.idle  then
-							actor.gfx:startState{state="idle", resetTimer=true, commands=true}
-						end
+						actor.gfx:attemptStates ({"walk", "run", "idle"}, {resetTimer=true, commands=true, name=actor.name, source="onTick of "..actor.state})
+
 					else
-						if  actor.gfx.set.sequences.idle  then
-							actor.gfx:startState{state="idle", resetTimer=true, commands=true}
-						elseif  actor.gfx.set.sequences.walk  then
-							actor.gfx:startState{state="walk", resetTimer=true, commands=true}
-						elseif  actor.gfx.set.sequences.run  then
-							actor.gfx:startState{state="run", resetTimer=true, commands=true}
-						end
+						actor.gfx:attemptStates ({"idle", "walk", "run"}, {resetTimer=true, commands=true, name=actor.name, source="onTick of "..actor.state})
 					end
+
+					---[[
+					actor.gfx.speed = 1
+					if  actor.gfx.state == "walk"  or  actor.gfx.state == "run"  then
+						actor.gfx.speed = math.abs(actor.speedX/2)
+					end
+					--]]
+
+
 
 					-- Switch to standing
 					if  actor.speedX == 0  then
@@ -820,14 +849,9 @@ do
 			idle = {
 				onStart = function(self, actor)
 
-					-- Set the animation state
-					if  actor.gfx.set.sequences.idle  then
-						actor.gfx:startState {state="idle", resetTimer=true, commands=true}
-					elseif  actor.gfx.set.sequences.walk  then
-						actor.gfx:startState {state="walk", resetTimer=true, commands=true}
-					elseif  actor.gfx.set.sequences.run  then
-						actor.gfx:startState {state="run", resetTimer=true, commands=true}
-					end
+					-- Set the animation state and speed
+					actor.gfx.speed = 1
+					actor.gfx:attemptStates ({actor.cachedPose, "idle", "walk", "run"}, {resetTimer=true, commands=true, name=actor.name, source="onStart of "..actor.state})
 				end,
 				onTick = function(self, actor)
 					-- Switch to walking
@@ -842,25 +866,17 @@ do
 				end
 			},
 			air = {
+				data = {spdYCache = 0},
 				onTick = function(self, actor)
+					local lastSpd = self.data.spdYCache
+					self.data.spdYCache = actor.speedY
 
 				-- Set the animation state
-					if  actor.speedY >= 0  then 
-						if  actor.gfx.set.sequences.fall  then
-							actor.gfx:startState {state="fall", resetTimer=true, commands=true}
-						elseif  actor.gfx.set.sequences.jump  then
-							actor.gfx:startState {state="jump", resetTimer=true, commands=true}
-						elseif  actor.gfx.set.sequences.idle  then
-							actor.gfx:startState {state="idle", resetTimer=true, commands=true}
-						end
-					else
-						if  actor.gfx.set.sequences.jump  then
-							actor.gfx:startState {state="jump", resetTimer=true, commands=true}
-						elseif  actor.gfx.set.sequences.fall  then
-							actor.gfx:startState {state="fall", resetTimer=true, commands=true}
-						elseif  actor.gfx.set.sequences.idle  then
-							actor.gfx:startState {state="idle", resetTimer=true, commands=true}
-						end
+					if  actor.speedY >= 0  and  lastSpd < 0  then 
+						actor.gfx:attemptStates ({"fall", "jump", "idle"}, {resetTimer=true, commands=true, name=actor.name, source="onTick of "..actor.state})
+
+					elseif  actor.speedY < 0  and  lastSpd >= 0  then
+						actor.gfx:attemptStates ({"jump", "fall", "idle"}, {resetTimer=true, commands=true, name=actor.name, source="onTick of "..actor.state})
 					end
 
 					-- Switch to grounded

@@ -23,10 +23,11 @@ local panim = API.load("playerAnim");
 
 
 
+local everyoneHidesRoutine
 
 local function cor_intro()
 	Audio.resetMciSections()
-	--playMusic(1)
+	playMusic(1)
 
 	local pStates = Player.getTemplates()
 	for  k,v in pairs(pStates)  do
@@ -43,32 +44,27 @@ local function cor_intro()
 	eventu.waitFrames(4)
 
 	-- Initialize Actor objects for the krew
-	actors.groundY = -180160
+	actors.groundY = -180159
 	ACTOR_DEMO:PlayerReplaceNPC()
-	actors.KrewToActors()
 	ACTOR_DEMO.direction = DIR_RIGHT
 
-	local cam = cman.playerCam[1]
+	actors.ToActors {ACTOR_DEMO, ACTOR_IRIS, ACTOR_KOOD, ACTOR_RAOCOW, ACTOR_PILY, ACTOR_SCIENCE, ACTOR_NEVADA, ACTOR_CALLEOCA, ACTOR_PAL}
+	eventu.waitFrames(2)
+
+	ACTOR_SCIENCE : Pose ("sad")
+	ACTOR_PAL : Pose ("dig")
+	ACTOR_CALLEOCA : Pose ("happy")
+
 
 	-- Start panning and fading in
+	local cam = cman.playerCam[1]
 	cam.targets={}
 	cam.x = -180400
 	cam.y = -180225
-	cam:Queue{time=8, zoom=1.75, x=-179050}--, easeBoth=cman.EASE.QUAD, zoom=1.25}
+	cam:Queue{time=8, zoom=2, x=-178960}--, easeBoth=cman.EASE.QUAD, zoom=1.25}
 	scene.setTint{color=0x00000000, time=3}
 	eventu.waitSeconds(8)
 
-	--[[
-	ACTOR_IRIS:Jump{strength=9}
-	eventu.waitSeconds(1)
-	ACTOR_IRIS:Walk{speed=-2}
-	eventu.waitSeconds(1)
-	ACTOR_IRIS:Walk{speed=2}
-	eventu.waitSeconds(2)
-	ACTOR_IRIS:Walk{speed=-2}
-	eventu.waitSeconds(1)
-	ACTOR_IRIS:StopWalking()
-	--]]
 
 	-- Begin conversation
 	ACTOR_KOOD : Emote("happy")
@@ -86,29 +82,41 @@ local function cor_intro()
 	ACTOR_IRIS : Talk{text="Somebody remind me why we invited Kood again?"}
 	message.waitMessageEnd()
 
+	ACTOR_KOOD.direction = DIR_LEFT
 	ACTOR_KOOD : Pose("idle")
 	ACTOR_DEMO : Talk{text="<i>We<i/> didn't, Pily did."}
 	message.waitMessageEnd()
 
+	cam : Queue{time=0.5, x=-178900}
+	eventu.waitSeconds(1.5)
+
 	ACTOR_IRIS : Pose ("upset")
-	ACTOR_IRIS : Talk{text="I swear, I just don't know what she sees in him..."}
+	ACTOR_IRIS : Talk{text="I swear, I just don't get what she sees in him..."}
 	message.waitMessageEnd()
 
 	ACTOR_KOOD : Pose ("sad")
 	ACTOR_KOOD : Emote("sweat")
-	ACTOR_RAOCOW : Walk{speed=-2}
-	cam : Queue{time=2, zoom=1.5, x=-179000}--, easeBoth=cman.EASE.QUAD}
-	eventu.waitSeconds(2)
+	ACTOR_PILY : Emote("angry")
+	ACTOR_RAOCOW : Walk(-3)
+	eventu.waitSeconds(1.6)
 
 	ACTOR_RAOCOW : StopWalking()
+	eventu.waitSeconds(0.5)
+	ACTOR_RAOCOW.direction = DIR_RIGHT
+	eventu.waitSeconds(0.5)
+
+	ACTOR_RAOCOW.direction = DIR_LEFT
 	ACTOR_DEMO.direction = DIR_RIGHT
 	ACTOR_IRIS.direction = DIR_RIGHT
 	ACTOR_IRIS : Pose ("idle")
-	ACTOR_KOOD.direction = DIR_RIGHT
 	ACTOR_KOOD : Pose ("idle")
 	ACTOR_RAOCOW : Pose ("hold")
 	ACTOR_RAOCOW : Talk{text="Hey, everyone!  We should play hide and seek!<page>The winner gets the last chicken wing!"}
+	message.waitMessagePage(nil, 2)
+
+	ACTOR_RAOCOW : Pose ("idle")
 	message.waitMessageEnd()
+
 	eventu.waitSeconds(1)
 
 	ACTOR_IRIS : Talk{text="...<page>Fine, it's better than sitting around and listening to the turtle.<page>You go first, Sis."}
@@ -125,10 +133,103 @@ local function cor_intro()
 	ACTOR_IRIS : Pose ("idle")
 	message.waitMessageEnd()
 
+	eventu.run(function ()
+		while  (true)  do
+			player.speedY = -2
+			eventu.waitFrames(0)
+		end
+	end)
 	ACTOR_KOOD : Pose("sad")
 	ACTOR_DEMO : Talk{text="Uh, okay then."}
 	message.waitMessageEnd()
 
+	Audio.SeizeStream(-1)
+	Audio.MusicStopFadeOut(2000)
+
+	ACTOR_DEMO : Pose("sad")
+	eventu.waitSeconds(0.5)
+
+	ACTOR_RAOCOW : Walk (4)
+	eventu.waitSeconds(0.25)
+
+
+	-- Everyone runs to go hide
+	_,everyoneHidesRoutine = eventu.run(function ()
+		ACTOR_PILY : Walk (4)
+		eventu.waitSeconds(0.25)
+
+		ACTOR_IRIS : Walk (4)
+		eventu.waitSeconds(0.25)
+
+		ACTOR_CALLEOCA.x = ACTOR_DEMO.x - 96
+		ACTOR_SCIENCE.x = ACTOR_DEMO.x - 96
+		ACTOR_NEVADA.x = ACTOR_DEMO.x - 96
+		ACTOR_PAL.x = ACTOR_DEMO.x - 96
+
+		ACTOR_SCIENCE : Walk (4)
+		eventu.waitSeconds(0.5)
+
+		ACTOR_NEVADA : Walk (4)
+
+		eventu.waitSeconds(0.25)
+
+		ACTOR_PAL : Walk (4)
+		eventu.waitSeconds(0.5)
+
+		ACTOR_CALLEOCA : Walk (4)
+		eventu.waitSeconds(0.5)
+
+		ACTOR_KOOD : Pose("idle")
+		eventu.waitSeconds(0.25)
+		ACTOR_KOOD : Pose("shocked")
+		eventu.waitSeconds(0.5)
+		ACTOR_KOOD.direction = DIR_RIGHT
+		eventu.waitSeconds(0.5)
+		ACTOR_KOOD.direction = DIR_LEFT
+		eventu.waitSeconds(0.5)
+		ACTOR_KOOD : Walk(5)
+
+	end)
+
+	-- Demo starts counting down
+	--cam:Queue{delay=2,time=2, x=ACTOR_DEMO.x}
+	for  i=10,1,-1  do
+		local numString
+
+		numString = tostring(i).."..."
+
+		if  i <= 5  then
+			numString = tostring(i).."."
+			cam.zoom = cam.zoom+0.25
+			cam.x=ACTOR_DEMO.x
+			cam.y=ACTOR_DEMO.y-36
+		end
+		if  i <= 3  then
+			Audio.playSFX("dramahit"..tostring(i)..".ogg")
+			numString = "<shake box>"..tostring(i).."!"
+			cam.zoom = cam.zoom+2*(4-i)
+		end
+		if  i == 1  then
+			numString = "<shake screen><shake box>"..tostring(i).."!"
+		end
+
+		ACTOR_DEMO : Talk{closeWith="auto", finishDelay=20, text=numString}--, instant=true}
+		eventu.waitSeconds(1)
+	end
+	eventu.waitSeconds(1)
+
+	Defines.earthquake = 50
+	cam.zoom = cam.zoom+8
+	ACTOR_DEMO : Pose ("pipe")
+	Audio.playSFX("dramaslam.ogg")
+	message.showMessageBox {screenSpace=true, x=600,y=500, type="bubble", text="<shake screen><tremble 0.25><color orange>Ready or not, here I come!"}--, instant=true}
+	message.waitMessageEnd()
+
+	-- Start tutorial level 1
+	eventu.waitSeconds(1)
+	SaveData.currentTutorial = "Pyro-Tutorial Area Region Place Zone.lvl"
+	leveldata.LoadLevel(SaveData.currentTutorial)
+	scene.endScene()
 end
 
 local function skip_intro()

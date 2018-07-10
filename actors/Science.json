@@ -1,7 +1,10 @@
 {
 	"general" : {
+		"npc" : 966,
 		"width" : 16,
-		"height" : 32
+		"height" : 32,
+		"nogravity" : "true",
+		"xScale" : -1
 	},
 
 	"gfx" : {

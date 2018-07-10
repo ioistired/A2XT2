@@ -7,8 +7,8 @@
 
 	"gfx" : {
 		"type" : "npc",
-		"npcLeftStart" : 1,
-		"npcRightStart" : 23
+		"npcStartLeft" : 1,
+		"npcStartRight" : 23
 	},
 
 	"sequences" : 
@@ -21,6 +21,7 @@
 			"fall" : "5",
 			"fall-bark" : "6",
 			"walk" : "1,3,5",
+			"run" : "1,3,5",
 			"walk-bark" : "2,4,6",
 			"sleep" : "7,8",
 			"sniff" : "9,10",

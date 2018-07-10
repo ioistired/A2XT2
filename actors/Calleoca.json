@@ -2,11 +2,14 @@
 	"general" : {
 		"npc" : 198,
 		"width" : 16,
-		"height" : 32
+		"height" : 32,
+		"xScale" : -1
 	},
 
 	"gfx" : {
-		"sheet" : "graphics/actors/anmx_calleoca.png"
+		"sheet" : "graphics/actors/anmx_calleoca.png",
+		"columns" : 9,
+		"rows" : 6
 	},
 
 	"sequences" : 
