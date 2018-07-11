@@ -247,6 +247,22 @@ message.presetSequences.archiveSpecies = function(args)
 	return archiveSection (args, "species", "specie files")
 end
 
+message.presetSequences.archiveLocales = function(args)
+	return archiveSection (args, "locations", "universal atlas")
+end
+
+message.presetSequences.archiveEpochs = function(args)
+	return archiveSection (args, "epochs", "epoch data")
+end
+
+message.presetSequences.archiveEvents = function(args)
+	return archiveSection (args, "events", "event records")
+end
+
+message.presetSequences.archiveTerms = function(args)
+	return archiveSection (args, "terms", "glossary")
+end
+
 message.presetSequences.jukebox = function(args)
 	return message.presetSequences.jukeboxNormal(args)
 end

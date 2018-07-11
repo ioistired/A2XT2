@@ -182,7 +182,7 @@ local bios = {
 					info     = "The head of a secret criminal organization involved in furba poaching and illegal goonetic experimentation... but otherwise just another goopa guy.  Subject was driven out his headquarters and will probably never be seen again ever."
 				},
 				[3]={
-					info     = "Since the previous entry was written, subject reappeared under the influence of a much more significant villain and helped said villain manifest a physical form.  Is probably still floating around in the shadowspace somewhere."
+					info     = "You'd think we'd know better than to tempt fate by now!  Subject reappeared under the influence of a much more significant villain and helped said villain manifest a physical form.  Current location unknown, may still be floating around in the shadowspace somewhere."
 				}
 			},
 		},
@@ -242,6 +242,9 @@ local bios = {
 					species  = "ABCD (Cloned)",
 					likes    = "Authority, respect, knowledge, intellect, technology, savestates",
 					dislikes = "Insubordination, interruptions, inanity",
+					info     = ""
+				},
+				[4]={
 					info     = ""
 				}
 			}
@@ -385,14 +388,14 @@ local bios = {
 	},
 
 	species={
-		ORDER={"abcd","aqcd","chronoton","human","koopa","furba","goopa","bananasnake"},
-		PROPS={family=1,sentient=1,diet=1,squishable=1,info=1},
+		ORDER={"abcd","aqcd","chronoton","human","koopa","charlie","catllama","furba","goopa","paragoopa","bananasnake","shamansnake","catfish","wizard","paralars","fawriel","rose","rabbit","submarine","dogbone"},
+		PROPS={family=1,intellect=1,diet=1,squishable=1,info=1},
 		abcd={
 			name="Armless Bipedal Cycloptic Demon (ABCD)",
 			bios={
 				[0]={
 					family     = "Space Demon",
-					sentient   = "Yes",
+					intellect  = "Sentient",
 					diet       = "Varies, typically vegetarian by preference",
 					squishable = "Varies",
 					info       = "Beyond the titular characteristics, individuals may differ drastically in appearance and biology but commonly exhibit the following traits: susceptibility to mind control, food-based empowerment and near-limitless regeneration from death."
@@ -413,7 +416,7 @@ local bios = {
 			bios={
 				[8]={
 					family     = "Space Demon",
-					sentient   = "Yes",
+					intellect  = "Sentient",
 					diet       = "unknown",
 					squishable = "Yes and no",
 					info       = "Only one known individual throughout time and said individual was an actively malicious threat to reality."
@@ -425,7 +428,7 @@ local bios = {
 			bios={
 				[0]={
 					family     = "Automotae",
-					sentient   = "Extremely",
+					intellect  = "Absolute",
 					diet       = "Aether",
 					squishable = "No",
 					info       = "Undeniable perfection."
@@ -437,7 +440,7 @@ local bios = {
 			bios={
 				[0]={
 					family     = "Hominidae",
-					sentient   = "Seemingly",
+					intellect  = "Seemingly sentient",
 					diet       = "Varies",
 					squishable = "Yes",
 					info       = "Weird, fleshy beings resembling Chronotons with smooshed faces and no gears.  Commonly lack solidarity among themselves and are prone to superstition and self-destructive tendencies despite their advanced mortality, but can demonstrate surprising resolve on occasion.  Nevertheless, they are mostly harmless."
@@ -449,10 +452,34 @@ local bios = {
 			bios={
 				[0]={
 					family     = "Testudinae",
-					sentient   = "Yes",
+					intellect  = "Sentient",
 					diet       = "Bugs?",
 					squishable = "Not easily",
 					info       = "."
+				}
+			}
+		},
+		charlie={
+			name="Charlie",
+			bios={
+				[0]={
+					family     = "Jockinidae",
+					intellect  = "Sentient",
+					diet       = "Vegetables, protein bars and energy drinks",
+					squishable = "Nope",
+					info       = "Musclehead humanoids obssessed with sports.  "
+				}
+			}
+		},
+		catllama={
+			name="Catllama",
+			bios={
+				[0]={
+					family     = "Equiline",
+					intellect  = "High",
+					diet       = "Omnivorous",
+					squishable = "No",
+					info       = "A mammal widely domesticated and bred for livestock, transport, and labor.  Though flighty when injured, catllamas can be formidable foes as they are capable of grabbing objects with their long tongues and swallowing them whole."
 				}
 			}
 		},
@@ -464,7 +491,7 @@ local bios = {
 					sentient   = "Probably not",
 					diet       = "Vegetarian",
 					squishable = "Highly",
-					info       = "Hairy creatures commonly kept as pets.  Curious, but have a short attention span and terrible object permanence.  Wild furbas secrete a weak toxin from the fur on their face, feet and sides as a defense mechanism, but tragically never evolved to protect their scalps."
+					info       = "Hairy creatures commonly kept as pets.  Curious, but have a short attention span and terrible object permanence.  Wild furbas secrete a weak toxin from the fur on their face, feet, and sides as a defense mechanism, but tragically never evolved to protect their scalps."
 				}
 			}
 		},
@@ -473,10 +500,22 @@ local bios = {
 			bios={
 				[0]={
 					family     = "Gelatinoid",
-					sentient   = "Probably not",
+					sentient   = "Varies",
 					diet       = "Omnivorous",
 					squishable = "Extremely",
-					info       = ""
+					info       = "Sluglike animals that can develop intellect comparable to humans.  In addition to their corrosive gunk most goopas wear their own eggshells (which coincidentally resemble koopa shells) or other objects such as buckets and hats for additional protection, but some mutate due to unusual diets and develop alternative defense mechanisms.  Their residue slime loses its caustic quality and as such is a common ingredient in household items including dyes, condiments, adhesives, and cleaning solutions."
+				}
+			}
+		},
+		paragoopa={
+			name="Paragoopa",
+			bios={
+				[0]={
+					family     = "Gelatinoid",
+					sentient   = "Yes",
+					diet       = "Omnivorous",
+					squishable = "Extremely",
+					info       = "The typical adult stage of the goopa.  These goopas gain the ability to sprout wings, granting them increased jump height or even, in some cases, flight.  The wings are fragile, but can reform over time."
 				}
 			}
 		},
@@ -484,10 +523,86 @@ local bios = {
 			name="Bananasnake",
 			bios={
 				[0]={
-					family     = "Gelatinoid",
+					family     = "Gelatinoid (Serpentine)",
 					sentient   = "Yes",
 					diet       = "Omnivorous",
 					squishable = "Extremely",
+					info       = [[A variant adult stage of the goopa that develops from a potassium-rich diet.  Their bodies solidify into scaly flesh and gain the ability to produce potassium naturally, allowing them to produce and regurgitate projectiles resembling common bananas as a defense mechanism.  The presence of one or more bananasnakes can be discerned by the distinctive "WAK" sounds they make when bored, confused, or excited.]]
+				}
+			}
+		},
+		shamansnake={
+			name="Shaman Snake",
+			bios={
+				[0]={
+					family     = "Gelatinoid (Armored)",
+					sentient   = "Yes",
+					diet       = "Omnivorous",
+					squishable = "Extremely",
+					info       = [[A variant adult stage of the goopa that develops from a calcium-rich diet.  Despite their names, these creatures do not become actual flesh snakes like bananasnakes but instead eject the calcium deposits from their bodies to form a defensive exoskeleton.  Some may throw pieces of this armor as an attack.  Because of both their shells and their resilience and ability to reform, shaman snakes are often mistaken for undead.]]
+				}
+			}
+		},
+		catfish={
+			name="Catfish",
+			bios={
+				[0]={
+					info       = ""
+				}
+			}
+		},
+		wizard={
+			name="Wizard",
+			bios={
+				[0]={
+					info       = ""
+				}
+			}
+		},
+		paralars={
+			name="Paralars",
+			bios={
+				[0]={
+					info       = ""
+				}
+			}
+		},
+		fawriel={
+			name="Fawriel",
+			bios={
+				[0]={
+					info       = ""
+				}
+			}
+		},
+		rose={
+			name="Drillrose",
+			bios={
+				[0]={
+					info       = ""
+				}
+			}
+		},
+		rabbit={
+			name="Rabbit",
+			bios={
+				[0]={
+					info       = ""
+				}
+			}
+		},
+		submarine={
+			name="Submarine",
+			bios={
+				[0]={
+					info       = ""
+				}
+			}
+		},
+		dogbone={
+			name="Dogbone",
+			bios={
+				[0]={
 					info       = ""
 				}
 			}
@@ -495,9 +610,62 @@ local bios = {
 	},
 
 	locations={
+		ORDER={"ports","mushroomkingdom","spaceship","castleofno","erebus"},
+		PROPS={info=1},
+
+		ports={
+			name="P.O.R.T.(S.)",
+			bios={
+				[0]={
+					info = "This spaceport city exists outside of time and serves as the primary hub of chronoton operations, being the location of the R.E.T.C.O.N.  Bringing up the full name of this place (which is totally the Partition Of Radical TimeStuffs) is strongly discouraged.<page>okay but it's actually the Position of Operations for Repairs To Spacetime"
+				},
+				[1]={
+					info = "You're both wrong, it's the Provisional Office of the Regulatory TechnicianS.<page>I thought we agreed on Place of Resting Time :c<page>Palace Obfuscating Restorative Technology<page>Parliament Obviously Relegating Tautologies<page>Prime Opportunities Relating To Salmon<page>[This thread has been locked.  Contact a system administrator for edit permissions.]"
+				}
+			}
+		},
+		mushroomkingdom={
+			name="Mushroom Kingdom",
+			bios={
+				[0]={
+					info = "A nation formerly home to a fungus-based monarchy, now the front line of a perpetual war between Yoshi tribe and and Charlie army."
+				}
+			}
+		},
+		spaceship={
+			name="The Twins' Master's Spaceship",
+			bios={
+				[0]={
+					info = "The primary base of operations of Demo, Iris, and their Master.  Formally recognized as a neutral micro-nation and protected by space law."
+				}
+			}
+		},
+		castleofno={
+			name="Castle of Absolutely No Significance Whatsoever",
+			bios={
+				[0]={
+					info = "The Castle of No Significance for short.  A large castle on planet Easy Peasy.  Despite its title, the castle is notable for being a frequent target of invasions and robberies.  The Key Boss taking up residence and subsequently getting usurped is a fixed event between different timelines and universes."
+				}
+			}
+		},
+		erebus={
+			name=[[The Erebus/Shadowspace]],
+			bios={
+				[3]={
+					info = "An ancient prison for powerful beings said to keep its inhabitants captive with supernatural darkness.  In reality this labyrinth serves as a gateway to a side dimension we're tentatively calling shadowspace, which seems to exist somewhere between the universe and the Post-Production Void."
+				}
+			}
+		},
+	},
+
+	epochs={
+		
 	},
 
 	events={
+	},
+
+	terms={
 	}
 }
 
