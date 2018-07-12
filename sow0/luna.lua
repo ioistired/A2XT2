@@ -22,11 +22,23 @@ local audioMaster = API.load("audioMaster");
 local panim = API.load("playerAnim");
 
 
+local introText = Graphics.loadImage("introtext.png");
+local title = Graphics.loadImage("title.png");
+local ep2 = Graphics.loadImage("episode2.png");
+local starfield = Graphics.loadImage("starfield.png");
+local previously = Graphics.loadImage("previously.png");
+local meanwhile = Graphics.loadImage("meanwhile.png");
+
+local flashback1 = {frames = 15, img = Graphics.loadImage("introflashback1.png"), delay = 4, [1] = 256, rows = 5, cols = 3, sfx = {[1] = "message.ogg", [8] = "boxbreak.ogg", [15] = "message.ogg"}};
+local flashback2 = {frames = 28, img = Graphics.loadImage("introflashback2.png"), delay = 4, [19] = 256, rows = 7, cols = 4, offset = -100, sfx = {[2] = "dash.ogg", [19] = "message.ogg", [20] = "jump.ogg"}};
+local flashback3 = {frames = 5, img = Graphics.loadImage("introflashback3.png"), delay = 256, rows = 3, cols = 2, sfx = {}};
+for i = 1,5 do
+	flashback3.sfx[i] = "message.ogg";
+end
 
 local everyoneHidesRoutine
 
 local function cor_intro()
-	Audio.resetMciSections()
 	playMusic(1)
 
 	local pStates = Player.getTemplates()
@@ -236,6 +248,198 @@ local function skip_intro()
 	
 end
 
+local function doFlashback(obj, t)
+	local frame = 1;
+	
+	if(obj.sfx and t == 1 and obj.sfx[1]) then
+		SFX.play(obj.sfx[1]);
+	end
+	
+	local timer = 0;
+	while(timer < t) do
+		if(obj[frame]) then
+			timer = timer + obj[frame];
+		else
+			timer = timer + obj.delay;
+		end
+		if(timer <= t) then
+			frame = frame + 1;
+			if(obj.sfx and t == timer and obj.sfx[frame]) then
+				SFX.play(obj.sfx[frame]);
+			end
+		end
+	end
+	
+	frame = math.min(frame, obj.frames);
+	
+	local col = (frame-1)%obj.cols;
+	local row = math.floor((frame-1)/obj.cols);
+	
+	local tx1, tx2 = col/obj.cols, (col+1)/obj.cols;
+	local ty1, ty2 = row/obj.rows, (row+1)/obj.rows;
+	
+	obj.offset = obj.offset or 0;
+	
+	Graphics.glDraw{vertexCoords = {0,obj.offset,800,obj.offset,800,obj.offset+600,0,obj.offset+600}, primitive = Graphics.GL_TRIANGLE_FAN, texture = obj.img,
+					textureCoords = {tx1,ty1,tx2,ty1,tx2,ty2,tx1,ty2}}
+	Graphics.drawBox{color=Color.black, x = 0, y = 0, width = 800, height = 100}
+	Graphics.drawBox{color=Color.black, x = 0, y = 600-100, width = 800, height = 100}
+end
+
+local function cor_titles()
+	Graphics.activateHud(false);
+	Audio.resetMciSections()
+	
+	eventu.waitSeconds(1);
+	
+	local introtextalpha = 0;
+	local t = 0;
+	
+	while(t < 256) do
+		t = t+1;
+		
+		if(t < 32) then
+			introtextalpha = introtextalpha + 1/32;
+		elseif(t > 256-32) then
+			introtextalpha = introtextalpha - 1/32;
+		end
+		
+		Graphics.drawScreen{texture=introText, color = {1,1,1,introtextalpha}, priority = 0};
+		
+		eventu.waitFrames(0);
+	end
+	
+	eventu.waitSeconds(2);
+	
+	t = 0;
+	local titlescale = 1;
+	local scrollwidth = 1;
+	local scrollheight = 0.9;
+	local scrollspeed = 1;
+	local y = 0;
+	
+	while(t < 1152) do
+	
+		Graphics.drawScreen{texture=starfield, color = {1,1,1,0.5}, priority = 0};
+		
+		t = t+1;
+		
+		local w = 1920*titlescale;
+		local h = 720*titlescale;
+		local a = 1;
+		if(t > 320) then
+			a = (1-(t-320)/128);
+			
+			local a2 = 1;
+			if(t > 1024) then
+				a2 = 1 - (t-1024)/128;
+			end
+			
+			local w2 = 1600*scrollwidth;
+			local h2 = 600*scrollheight;
+			y = y - scrollspeed;
+			scrollspeed = scrollspeed*0.997;
+			
+			scrollwidth = scrollwidth * 0.998;
+			scrollheight = scrollheight * 0.997;
+			
+			Graphics.drawBox{x = 400-w2*0.5, y = 600+y, texture=ep2, color = {1,1,1,a2}, width = w2, height = h2, priority=10};
+			
+			
+		end
+		Graphics.drawBox{x = 400-w*0.5, y = 250-h*0.5, texture=title, color = {1,1,1,a}, width = w, height = h, priority=10};
+		
+		titlescale = titlescale * 0.995;
+		
+		eventu.waitFrames(0);
+	end
+	
+	t = 0;
+	while(t < 64) do
+		t = t+1;
+		
+		Graphics.drawScreen{texture=starfield, color = {1,1,1,0.5*(64-t)/64}, priority = 0};
+		eventu.waitFrames(0);
+	end
+	
+	SFX.play("previously.ogg");
+	t = 0;
+	while(t < 256) do
+		t = t+1;
+		
+		local a = 1;
+		if(t > 256-32) then
+			a = 1- (t+32-256)/32;
+		end
+		
+		Graphics.drawScreen{texture=previously, color = {1,1,1,a}, priority = 0};
+		eventu.waitFrames(0);
+	end
+	
+	eventu.waitSeconds(0.5);
+	
+	Audio.MusicOpen("siblings.ogg")
+	Audio.MusicPlay()
+	
+	t = 0;
+	while(t < 564) do
+		t = t+1;
+		doFlashback(flashback1, t);
+		eventu.waitFrames(0);
+	end
+	
+	t = 0;
+	while(t < 108+256) do
+		t = t+1;
+		doFlashback(flashback2, t);
+		eventu.waitFrames(0);
+	end
+	
+	t = 0;
+	while(t < 1280 + 64) do
+		t = t+1;
+		doFlashback(flashback3, t);
+		
+		if(t == 1280) then
+			Audio.MusicStopFadeOut(1500)
+		end
+		
+		if(t > 1280) then
+			Graphics.drawScreen{color = {0,0,0,(t-1280)/64}}
+		end
+		
+		eventu.waitFrames(0);
+	end
+	
+	eventu.waitSeconds(0.5);
+	
+	t = 0;
+	while(t < 384) do
+		t = t+1;
+		local a = 1;
+		
+		if(t < 64) then
+			a = t/64;
+		elseif(t > 384-64) then
+			a = 1-(t-384+64)/64;
+		end
+		
+		Graphics.drawScreen{texture = meanwhile, color = {1,1,1,a}}
+		
+		eventu.waitFrames(0);
+	end
+	
+	eventu.waitSeconds(0.5);
+	
+	scene.endScene()
+	scene.startScene{scene=cor_intro, skip=skip_intro}
+end
+
+local function skip_titles()
+	scene.inCutscene = false;
+	scene.startScene{scene=cor_intro, skip=skip_intro}
+end
+
 local function cor_picnic()
 	
 end
@@ -275,6 +479,6 @@ function onStart()
 
 	-- else start the intro cutscene
 	else
-		scene.startScene{scene=cor_intro, skip=skip_intro}
+		scene.startScene{scene=cor_titles, skip=skip_titles, noletterbox=true}
 	end
 end

@@ -203,7 +203,7 @@ local function cor_skipping()
 
 	skipProps.text = ""
 	eventu.abort(currentScene)
-	_,currentScene = event.run(skipRoutine)
+	_,currentScene = eventu.run(skipRoutine)
 	skipRoutine = nil
 end
 
