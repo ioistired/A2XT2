@@ -61,6 +61,12 @@ function settings.onInitAPI()
 end
 
 function settings.onStart()
+	if(not SaveData.init) then
+		mem(0x00B2C5AC, FIELD_FLOAT, 0);
+		--First run of the game init stuff here
+		SaveData.introDone = false;
+		SaveData.init = true;
+	end
 	GLOBAL_LIVES = mem(0x00B2C5AC, FIELD_FLOAT);
 	if(not isOverworld) then
 		mem(0x00B2C5AC, FIELD_FLOAT, 50);

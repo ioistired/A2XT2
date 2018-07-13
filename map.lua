@@ -40,6 +40,8 @@ local worldMusic = {
 
 
 function onStart()
+	SaveData.introDone = true; --May need to move this if we go somewhere else before the world map - adds the "exit to map" option to the pause menu
+
 	Misc.saveGame();
 
 	Audio.MusicStop();

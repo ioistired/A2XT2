@@ -125,7 +125,7 @@ local function forceResetMenu()
 	else
 		if(minigame.inGame) then
 			table.insert(options, {name = "end minigame", action = option_exitminigame});
-		elseif(not isHubLevel()) then
+		elseif(not isHubLevel() and SaveData.introDone) then
 			table.insert(options, {name = "exit to map", action = option_exitlevel});
 		end
 	end
@@ -143,8 +143,13 @@ end
 
 forceResetMenu();
 
+local pausebgoffset = 40;
+if(#options < 3) then
+	pausebgoffset = 80;
+end
+
 local pauseBorder = Graphics.loadImage(Misc.resolveFile("graphics/HUD/levelBorder.png"));
-local pausebg = imagic.Create{primitive=imagic.TYPE_BOX, x=400,y=300, align=imagic.ALIGN_CENTRE, width = 400, height = (40*#options)+40, bordertexture=pauseBorder, borderwidth = 32};
+local pausebg = imagic.Create{primitive=imagic.TYPE_BOX, x=400,y=300, align=imagic.ALIGN_CENTRE, width = 400, height = (40*#options)+pausebgoffset, bordertexture=pauseBorder, borderwidth = 32};
 
 local confirmbg = imagic.Create{primitive=imagic.TYPE_BOX, x=400,y=300, align=imagic.ALIGN_CENTRE, width = 300, height = 120, bordertexture=pauseBorder, borderwidth = 32};
 
