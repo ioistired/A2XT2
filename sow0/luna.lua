@@ -28,6 +28,7 @@ local ep2 = Graphics.loadImage("episode2.png");
 local starfield = Graphics.loadImage("starfield.png");
 local previously = Graphics.loadImage("previously.png");
 local meanwhile = Graphics.loadImage("meanwhile.png");
+local unrelated = Graphics.loadImage("unrelated.png");
 
 local flashback1 = {frames = 15, img = Graphics.loadImage("introflashback1.png"), delay = 4, [1] = 256, rows = 5, cols = 3, sfx = {[1] = "message.ogg", [8] = "boxbreak.ogg", [15] = "message.ogg"}};
 local flashback2 = {frames = 28, img = Graphics.loadImage("introflashback2.png"), delay = 4, [19] = 256, rows = 7, cols = 4, offset = -100, sfx = {[2] = "dash.ogg", [19] = "message.ogg", [20] = "jump.ogg"}};
@@ -413,23 +414,28 @@ local function cor_titles()
 	
 	eventu.waitSeconds(0.5);
 	
-	t = 0;
-	while(t < 384) do
-		t = t+1;
-		local a = 1;
-		
-		if(t < 64) then
-			a = t/64;
-		elseif(t > 384-64) then
-			a = 1-(t-384+64)/64;
-		end
-		
-		Graphics.drawScreen{texture = meanwhile, color = {1,1,1,a}}
-		
-		eventu.waitFrames(0);
-	end
+	local img = meanwhile;
 	
-	eventu.waitSeconds(0.5);
+	for i = 1,2 do
+		t = 0;
+		while(t < 384) do
+			t = t+1;
+			local a = 1;
+			
+			if(t < 64) then
+				a = t/64;
+			elseif(t > 384-64) then
+				a = 1-(t-384+64)/64;
+			end
+			
+			Graphics.drawScreen{texture = img, color = {1,1,1,a}}
+			
+			eventu.waitFrames(0);
+		end
+	
+		eventu.waitSeconds(0.5);
+		img = unrelated;
+	end
 	
 	scene.endScene()
 	scene.startScene{scene=cor_intro, skip=skip_intro}
