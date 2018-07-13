@@ -234,7 +234,7 @@ local function cor_intro()
 	cam.zoom = cam.zoom+8
 	ACTOR_DEMO : Pose ("pipe")
 	Audio.playSFX("dramaslam.ogg")
-	message.showMessageBox {screenSpace=true, x=600,y=500, type="bubble", text="<shake screen><tremble 0.25><color orange>Ready or not, here I come!"}--, instant=true}
+	message.showMessageBox {screenSpace=true, x=600,y=500, type="bubble", text="<tremble 0.25><color orange>Ready or not, here I come!"}--, instant=true}
 	message.waitMessageEnd()
 
 	-- Start tutorial level 1

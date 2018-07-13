@@ -369,6 +369,7 @@ function a2xt_scene.onInputUpdate()
 		if  (skipHoldRoutine ~= nil  and  wasHoldingTan  and  not holdingTan)  then
 			eventu.abort(skipHoldRoutine)
 			skipProps.text = ""
+			skipHoldRoutine = nil
 		end
 	end
 end
