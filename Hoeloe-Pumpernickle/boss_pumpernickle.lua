@@ -15,6 +15,8 @@ local textblox = API.load("textblox");
 local checkpoints = API.load("checkpoints");
 local hermite = API.load("hermite");
 local ease = API.load("ext/easing");
+local actors = API.load("a2xt_actor");
+local cman = API.load("cameraman")
 
 local playerManager = API.load("playerManager")
 
@@ -28,7 +30,7 @@ boss.SuperTitle = "Maximillion"
 boss.Name = "Pumpernickle"
 boss.SubTitle = "Off Several Rockers"
 
-boss.MaxHP = 90;
+boss.MaxHP = 70;
 
 boss.TitleDisplayTime = 360;
 
@@ -899,7 +901,7 @@ end
 
 function bossAPI.onCameraUpdate()
 	if(Zero ~= nil) then
-		Camera.get()[1].x = Zero.x;
+		--Camera.get()[1].x = Zero.x;
 	end
 end
 
@@ -2168,6 +2170,7 @@ end
 
 function events.finish()
 	flash = 1;
+	
 	pumpernick.eye.state = EYE_OPEN;
 	Audio.MusicStop();
 	nomusic = true;
@@ -2196,12 +2199,15 @@ function events.finish()
 	pumpernick.left.x,pumpernick.left.y,pumpernick.right.x,pumpernick.right.y = getLegPos(pumpernick.x, GROUNDBODY, vectr.up2);
 	pumpernick.left.up,pumpernick.right.up = vectr.up2,vectr.up2;
 	
-	player.speedX = 1;
+	player.speedX = 0;
 	player.speedY = 0;
 	player.direction = 1;
-	player.keys.right = true;
-	player.x = Zero.x+256;
+	--player.keys.right = true;
+	player.x = Zero.x+180;
 	player.y = Zero.y+600-32-player.height;
+	
+	ACTOR_DEMO:PlayerReplaceNPC()
+	actors.ToActors {ACTOR_DEMO, ACTOR_IRIS, ACTOR_KOOD, ACTOR_RAOCOW, ACTOR_SHEATH}
 	
 	boss.Active = false;
 	
@@ -2277,10 +2283,10 @@ function cutscene.finish()
 	Defines.earthquake=4;
 	
 	eventu.waitFrames(96);
-	message.showMessageBox {target=kood, text="We... we did it!  We saved the universe! ...Again!"}
+	message.showMessageBox {target=ACTOR_KOOD, text="We... we did it!  We saved the universe! ...Again!"}
 	message.waitMessageEnd();
 	eventu.waitFrames(32);
-	message.showMessageBox {target=iris, text="Weren't you just boasting about our track record?  Why are you surprised?"}
+	message.showMessageBox {target=ACTOR_IRIS, text="Weren't you just boasting about our track record?  Why are you surprised?"}
 	message.waitMessageEnd();
 	eventu.waitFrames(32);
 	message.showMessageBox {target=ub, text="Congratulations!", keepOnscreen = true}
@@ -2290,12 +2296,20 @@ function cutscene.finish()
 end
 
 function cutscene.intro_checkpoint()
+
+	local cam = cman.playerCam[1]
+	cam.targets={}
+	cam.x = Zero.x+400;
+	cam.y = Zero.y+300;
+	
 	setPhase();
 	pumpernick.flip();
 	
 	local b = Section(bossAPI.section).boundary;
 	b.left = Zero.x-64;
 	Section(bossAPI.section).boundary = b;
+	
+	ACTOR_DEMO:PlayerReplaceNPC()
 	
 	player.x = Zero.x-64;
 	eventu.waitFrames(32);
@@ -2326,24 +2340,40 @@ function cutscene.intro()
 	
 	local b = Section(bossAPI.section).boundary;
 	b.left = Zero.x-64;
+	b.bottom = Zero.y + 664;
 	Section(bossAPI.section).boundary = b;
 	
 	player.x = Zero.x-64;
+	
+	local cam = cman.playerCam[1]
+	cam.targets={}
+	cam.x = Zero.x+400;
+	cam.y = Zero.y+332;
+	
+	actors.groundY = -200032
+	ACTOR_DEMO:PlayerReplaceNPC()
+	actors.ToActors {ACTOR_DEMO, ACTOR_IRIS, ACTOR_KOOD, ACTOR_RAOCOW, ACTOR_SHEATH}
+	
 	eventu.waitFrames(32);
 	
+	ACTOR_DEMO : Walk(3)
+	ACTOR_IRIS : Walk(3)
+	ACTOR_KOOD : Walk(3)
+	ACTOR_RAOCOW : Walk(3)
+	ACTOR_SHEATH : Walk(3)
+	--[[
 	waitAndDo(80, function() 
 		player.speedX = 3;
 		player.direction = 1; 
-	end);
+	end);]]
 	
-	local demo = {x = player.x+64, y = player.y, width = player.width, height = player.height};
-	local iris = {x = player.x+32, y = player.y, width = player.width, height = player.height}
-	local raocow = {x = player.x+0, y = player.y, width = player.width, height = player.height}
-	local kood = {x = player.x-32, y = player.y, width = player.width, height = player.height}
-	local sheath = {x = player.x-64, y = player.y, width = player.width, height = player.height}
+	eventu.waitFrames(80);
 	
-	b.left = Zero.x;
-	Section(bossAPI.section).boundary = b;
+	ACTOR_DEMO : StopWalking();
+	ACTOR_IRIS : StopWalking();
+	ACTOR_KOOD : StopWalking();
+	ACTOR_RAOCOW : StopWalking();
+	ACTOR_SHEATH : StopWalking();
 	
 	eventu.waitFrames(64);
 	
@@ -2362,21 +2392,24 @@ function cutscene.intro()
 	
 	message.showMessageBox {target=pump, text="And here they are. The bipeds, here to ruin my fun.<page>Really, children, why must you resist? I'm sure if you gave entropy a try you'd love it!"}
 	message.waitMessageEnd();
-	message.showMessageBox {target=demo, text="Sorry, not interested."}
+	message.showMessageBox {target=ACTOR_DEMO, text="Sorry, not interested."}
 	message.waitMessageEnd();
-	message.showMessageBox {target=iris, text="With a sales pitch like that, the product's probably pretty underwhelming."}
+	message.showMessageBox {target=ACTOR_IRIS, text="With a sales pitch like that, the product's probably pretty underwhelming."}
 	message.waitMessageEnd();
-	message.showMessageBox {target=kood, text="We've stopped at least, what, five other omnicidal maniacs already? So I dunno what makes you think you're so special!"}
+	message.showMessageBox {target=ACTOR_KOOD, text="We've stopped at least, what, five other omnicidal maniacs already? So I dunno what makes you think you're so special!"}
 	message.waitMessageEnd();
-	message.showMessageBox {target=sheath, text="I forgot what we're talking about but, uh... what they said!"}
+	message.showMessageBox {target=ACTOR_SHEATH, text="I forgot what we're talking about but, uh... what they said!"}
 	message.waitMessageEnd();
-	message.showMessageBox {target=raocow, text="Yeah, you big dumb space potato!"}
+	message.showMessageBox {target=ACTOR_RAOCOW, text="Yeah, you big dumb space potato!"}
 	message.waitMessageEnd();
 	pumpernick.eye.state = EYE_CLOSED;
 	eventu.waitFrames(96);
 	pumpernick.eye.state = EYE_OPEN;
 	eventu.waitFrames(16);
 	message.showMessageBox {target=pump, text="Very well, then! Let's put some action to those words!<page>Show me your resolve, children! Prove to me you're truly the 'future of cyclops kind' that Augustus says you are!"}
+	
+	cam:Queue{time = 3, y = Zero.y+300}
+	
 	message.waitMessageEnd();
 	
 	Audio.MusicStopFadeOut(1000);
@@ -2384,9 +2417,19 @@ function cutscene.intro()
 	
 	flash = 1;
 	
-	player.x = Zero.x+96;
+	ACTOR_DEMO:BecomePlayer();
+	ACTOR_IRIS:Remove();
+	ACTOR_KOOD:Remove();
+	ACTOR_SHEATH:Remove();
+	ACTOR_RAOCOW:Remove();
+	
+	--player.x = Zero.x+96;
 	
 	cp:collect();
+	
+	b.left = Zero.x;
+	b.bottom = Zero.y + 600;
+	Section(bossAPI.section).boundary = b;
 	
 	StartBoss();
 	eventu.waitFrames(64);
@@ -2410,7 +2453,7 @@ function events.InitBoss(checkpoint)
 	if(checkpoint) then
 		scene.startScene{scene=cutscene.intro_checkpoint, noletterbox=true}
 	else
-		scene.startScene{scene=cutscene.intro, noletterbox=true}
+		scene.startScene{scene=cutscene.intro}--, noletterbox=true}
 	end
 end
 

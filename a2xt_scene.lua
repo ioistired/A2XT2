@@ -43,8 +43,8 @@ local letterboxRoutine = nil
 local lockJump = false;
 
 -- Drawing
-local letterboxTop     = imagic.Box{x=0,y=0,  width=800,height=80,  color=0x00000000, scene=false}
-local letterboxBottom  = imagic.Box{x=0,y=520,width=800,height=80,  color=0x00000000, scene=false}
+local letterboxTop     = imagic.Box{x=0,y=0,  width=800,height=50,  color=0x00000000, scene=false}
+local letterboxBottom  = imagic.Box{x=0,y=600,width=800,height=50,  color=0x00000000, scene=false, align = imagic.ALIGN_BOTTOMLEFT}
 local tintBox          = imagic.Box{x=0,y=0,  width=800,height=600, color=0x00000000, scene=false}
 
 local letterboxColor   = 0x000000DD
