@@ -33,6 +33,8 @@ a2xt_scene.quake       = 0
 a2xt_scene.currInputs  = {}
 a2xt_scene.prevInputs  = {}
 
+a2xt_scene.subroutines = {}
+
 local tintFadeRoutine  = nil
 
 local currentScene     = nil
@@ -229,6 +231,11 @@ function a2xt_scene.startScene(args)
 	-- Run this as a coroutine so the cutscene will only start after the previous one
 	eventu.run(function()
 
+			-- Built-in delay to wait for the camera to be initialized in order to avoid errors (we really need to fix cameraman's player cam initialization)
+			while (a2xt_scene.camera == nil) do
+				eventu.waitFrames(0,true)
+			end
+
 			-- If there is a cutscene already happening, either
 			if  a2xt_scene.inCutscene  then
 
@@ -267,11 +274,26 @@ function a2xt_scene.startScene(args)
 	)
 end
 
+function a2xt_scene.runSub(funct)
+	local _,subr = eventu.run(funct)
+	table.insert(a2xt_scene.subroutines, subr)
+end
+
+function a2xt_scene.abortSubs()
+	for  _,v in ipairs(a2xt_scene.subroutines)  do
+		eventu.abort(v)
+	end
+	a2xt_scene.subroutines = {}
+end
+
+
 -- setupBossScreen args:
 --    xOffset:      x offset from the player's position (default 0)
 --    yOffset:      y offset from the player's position (default 0)
 --    time:         time it takes to transition (default 1)
 function a2xt_scene.setupBossScreen(args)
+	args = args  or  {}
+
 	a2xt_scene.camera:Reset(args)
 	eventu.abort(letterboxRoutine)
 

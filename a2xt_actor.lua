@@ -448,8 +448,8 @@ do
 				player.x = current.x
 				player.y = current.y
 				if  current == actor  then
-					player.x = current.gfx.xMid - current.width*0.5
-					player.y = current.gfx.bottom - current.height
+					player.x = current.collision.left
+					player.y = current.collision.top
 				end
 				player.speedX = current.speedX
 				player.speedY = current.speedY
@@ -535,25 +535,39 @@ do
 
 	-- Define override events for the namespaces
 	function Namespace:_HideObjects ()  --hides/deletes objects when they're not in use
+		local current = self.objects.current
+		local actor = self.objects.actor
+		local npc = self.objects.npc
+
 
 		-- Delete the NPC
-		if  self.objects.npc ~= nil  and  self.objects.current ~= self.objects.npc  then
+		if  npc ~= nil  and  current ~= npc  then
 			--Text.dialog("NPC BEING REMOVED: "..self.name)
-			self.objects.npc:mem(0xDC, FIELD_WORD, 0)
-			self.objects.npc:mem(0x12A, FIELD_WORD, 0)
-			self.objects.npc:mem(0x40, FIELD_BOOL, true)
-			self.objects.npc:kill(HARM_TYPE_OFFSCREEN)
+			npc:mem(0xDC, FIELD_WORD, 0)
+			npc:mem(0x12A, FIELD_WORD, 0)
+			npc:mem(0x40, FIELD_BOOL, true)
+			npc:kill(HARM_TYPE_OFFSCREEN)
 			self.objects.npc = nil
 		end
 
 		-- Hide the Actor object
-		if  self.objects.current ~= self.objects.actor  and  self.objects.actor ~= nil  then
-			self.objects.actor.gfx.visible = false
+		if  current ~= actor  and  actor ~= nil  then
+			actor.gfx.visible = false
 		end
 
 		-- Hide the player if they're that character
-		if  self.objects.current ~= player  and  player.character == self.playable.id  then
+		if  current ~= player  and  player.character == self.playable.id  then
 			player:mem(0x122, FIELD_WORD, 8)
+
+			if  current ~= nil  then
+				player.x = current.x
+				player.y = current.y
+
+				if  current == actor  then
+					player.x = current.left
+					player.y = current.top
+				end
+			end
 		end
 	end
 
