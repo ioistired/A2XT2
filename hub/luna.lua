@@ -14,6 +14,8 @@ local sanctuary = API.load("a2xt_leeksanctuary");
 sanctuary.world = 3;
 
 
+Block.config[1262].frames = 4;
+
 
 local function archiveSectionPages (args, group, folderName)
 	local talker = args.npc
@@ -283,8 +285,62 @@ function onLoadSection1(playerIndex)
 end
 
 
+local gearAnimTimer = 6;
+local GM_FRAME = readmem(0x00B2BEA0, FIELD_DWORD)
+
+local function get_block_frame(id)
+	return readmem(GM_FRAME + 2*(id-1), FIELD_WORD)
+end
+local function set_block_frame(id, v)
+	return writemem(GM_FRAME + 2*(id-1), FIELD_WORD, v)
+end
 
 function onDraw()
+
+	--Gear animation
+	if gearAnimTimer > 0 then
+		gearAnimTimer = gearAnimTimer -1;
+	else
+		gearAnimTimer = 6;
+		set_block_frame(1262, (get_block_frame(1262)+1)%4)
+	end
+	
+	--Gear fading for perspective
+	local gearfadeverts = {}
+	local gearfadecols = {}
+	for _,v in ipairs(Block.get(1262, player.section)) do
+		v.speedX = 4/7;
+		local x = v.x;
+		local w = v.width*0.45;
+		local a1 = 0.75;
+		local a2 = 0;
+		local la = a1;
+		local ra = a2;
+		for i = 1,2 do
+		
+			table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y)
+			table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y)
+			table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y+v.height)
+			table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y+v.height)
+			table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y)
+			table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y+v.height)
+			
+			table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
+			table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
+			table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
+			table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
+			table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
+			table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
+			
+			
+			local c = la;
+			la = ra;
+			ra = c;
+			x = v.x+v.width - w;
+		end
+	end
+	
+	Graphics.glDraw{vertexCoords = gearfadeverts, vertexColors = gearfadecols, sceneCoords = true, priority = -90}
 
 	-- Pendulum section
 	if  player.section == 0  then
