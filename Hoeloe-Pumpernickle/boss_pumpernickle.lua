@@ -477,7 +477,7 @@ local function progressMusic()
 		musicList = shuffleMusic();
 	end
 	Audio.MusicVolume(128);
-	Audio.MusicOpen(Misc.resolveFile("entropyelemental_"..n..".ogg"));
+	Audio.MusicOpen(Misc.resolveFile("music/a2xt-boss8.ogg"))--Misc.resolveFile("entropyelemental_"..n..".ogg"));
 	Audio.MusicPlay();
 	currentMusicBG = musicBackgrounds[n];
 	audiotimer = audioTimes[n];
@@ -825,7 +825,7 @@ local function drawReflection()
 	local x = player.x+xOffset;
 	local y = player.y+yOffset;
 			
-	Graphics.glDraw	{	
+	Graphics.glDraw	{
 						vertexCoords = 	{x, y, x + 100, y, x + 100, y + 100, x, y + 100},
 						textureCoords = {tx1, ty1, tx2, ty1, tx2, ty2, tx1, ty2},
 						primitive = Graphics.GL_TRIANGLE_FAN,
@@ -2297,31 +2297,35 @@ end
 
 function cutscene.intro_checkpoint()
 
-	local cam = cman.playerCam[1]
-	cam.targets={}
+	---[[
+	local cam = scene.camera
+	cam.targets = player
 	cam.x = Zero.x+400;
 	cam.y = Zero.y+300;
-	
+	--]]
+
 	setPhase();
 	pumpernick.flip();
 	
 	local b = Section(bossAPI.section).boundary;
-	b.left = Zero.x-64;
+	--b.left = Zero.x-64;
 	Section(bossAPI.section).boundary = b;
-	
+
+	actors.groundY = -200032
 	ACTOR_DEMO:PlayerReplaceNPC()
-	
-	player.x = Zero.x-64;
+	ACTOR_DEMO:ToActor()
+
+	ACTOR_DEMO.x = Zero.x-64;
 	eventu.waitFrames(32);
 	
 	waitAndDo(36, function() 
-		player.speedX = 3;
-		player.direction = 1; 
+		ACTOR_DEMO.speedX = 3;
+		ACTOR_DEMO.direction = 1; 
 	end);
 	
-	b.left = Zero.x;
+	--b.left = Zero.x;
 	Section(bossAPI.section).boundary = b;
-	
+	ACTOR_DEMO:BecomePlayer()
 	
 	StartBoss();
 	
@@ -2339,44 +2343,61 @@ function cutscene.intro()
 	local pump = {x = pumpernick.x-96, y = pumpernick.y-32, width = 64, height = 64};
 	
 	local b = Section(bossAPI.section).boundary;
-	b.left = Zero.x-64;
-	b.bottom = Zero.y + 664;
+	--b.left = Zero.x-64;
+	--b.bottom = Zero.y + 664;
 	Section(bossAPI.section).boundary = b;
 	
 	player.x = Zero.x-64;
 	
 	local cam = scene.camera
-	cam.targets={}
-	cam.x = Zero.x+400;
-	cam.y = Zero.y+332;
-	
+	cam.sectionBoundY = false
+	cam.targets = {}
+	cam.x = Zero.x + 400
+	cam.y = Zero.y + 400
+	cam.zoom = 1.125
+
 	actors.groundY = -200032
 	ACTOR_DEMO:PlayerReplaceNPC()
 	actors.ToActors {ACTOR_DEMO, ACTOR_IRIS, ACTOR_KOOD, ACTOR_RAOCOW, ACTOR_SHEATH}
 	
 	eventu.waitFrames(32);
-	
-	ACTOR_DEMO : Walk(3)
-	ACTOR_IRIS : Walk(3)
-	ACTOR_KOOD : Walk(3)
-	ACTOR_RAOCOW : Walk(3)
-	ACTOR_SHEATH : Walk(3)
+
+	scene.runSub(function()
+		ACTOR_DEMO : Walk(3)
+		eventu.waitFrames(8);
+		ACTOR_IRIS : Walk(3)
+		eventu.waitFrames(8);
+		ACTOR_RAOCOW : Walk(3)
+		eventu.waitFrames(8);
+		ACTOR_KOOD : Walk(3)
+		eventu.waitFrames(8);
+		ACTOR_SHEATH : Walk(3)
+		eventu.waitFrames(8);
+
+		eventu.waitFrames(80);
+
+		ACTOR_DEMO : StopWalking();
+		eventu.waitFrames(4);
+		ACTOR_IRIS : StopWalking();
+		eventu.waitFrames(4);
+		ACTOR_RAOCOW : StopWalking();
+		eventu.waitFrames(4);
+		ACTOR_KOOD : StopWalking();
+		eventu.waitFrames(4);
+		ACTOR_SHEATH : StopWalking();
+		eventu.waitFrames(4);
+
+		eventu.signal("krewBeWalkin")
+	end)
 	--[[
 	waitAndDo(80, function() 
 		player.speedX = 3;
 		player.direction = 1; 
 	end);]]
-	
-	eventu.waitFrames(80);
-	
-	ACTOR_DEMO : StopWalking();
-	ACTOR_IRIS : StopWalking();
-	ACTOR_KOOD : StopWalking();
-	ACTOR_RAOCOW : StopWalking();
-	ACTOR_SHEATH : StopWalking();
-	
+
+	eventu.waitSignal("krewBeWalkin");
 	eventu.waitFrames(64);
-	
+
 	pumpernick.turn();
 	
 	local t = 0;
@@ -2407,19 +2428,18 @@ function cutscene.intro()
 	pumpernick.eye.state = EYE_OPEN;
 	eventu.waitFrames(16);
 	message.showMessageBox {target=pump, text="Very well, then! Let's put some action to those words!"}
+	message.waitMessageEnd();
 
-	scene.setupBossScreen()
 	eventu.waitFrames(16);
 	message.showMessageBox {target=pump, text="Show me your resolve, children! Prove to me you're truly the 'future of cyclops kind' that Augustus says you are!"}
-	
+	scene.setupBossScreen()
+	Audio.MusicStopFadeOut(1000);
 
 	cam:Queue{time = 3, y = Zero.y+300}
-	
+
 	message.waitMessageEnd();
-	
-	Audio.MusicStopFadeOut(1000);
 	eventu.waitFrames(64);
-	
+
 	flash = 1;
 	
 	ACTOR_DEMO:BecomePlayer();
