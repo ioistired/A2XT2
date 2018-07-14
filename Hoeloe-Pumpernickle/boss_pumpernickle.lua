@@ -2345,7 +2345,7 @@ function cutscene.intro()
 	
 	player.x = Zero.x-64;
 	
-	local cam = cman.playerCam[1]
+	local cam = scene.camera
 	cam.targets={}
 	cam.x = Zero.x+400;
 	cam.y = Zero.y+332;
@@ -2406,8 +2406,13 @@ function cutscene.intro()
 	eventu.waitFrames(96);
 	pumpernick.eye.state = EYE_OPEN;
 	eventu.waitFrames(16);
-	message.showMessageBox {target=pump, text="Very well, then! Let's put some action to those words!<page>Show me your resolve, children! Prove to me you're truly the 'future of cyclops kind' that Augustus says you are!"}
+	message.showMessageBox {target=pump, text="Very well, then! Let's put some action to those words!"}
+
+	scene.setupBossScreen()
+	eventu.waitFrames(16);
+	message.showMessageBox {target=pump, text="Show me your resolve, children! Prove to me you're truly the 'future of cyclops kind' that Augustus says you are!"}
 	
+
 	cam:Queue{time = 3, y = Zero.y+300}
 	
 	message.waitMessageEnd();

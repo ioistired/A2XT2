@@ -1,7 +1,7 @@
 local eventu = API.load("eventu")
 local imagic = API.load("imagic")
 local textblox = API.load("textblox")
-local animatx = API.load("animatx")
+local cameraman = API.load("cameraman")
 local rng = API.load("rng")
 
 local hud = API.load("a2xt_hud")
@@ -12,6 +12,7 @@ local a2xt_scene = {}
 
 
 function a2xt_scene.onInitAPI()
+	registerEvent (a2xt_scene, "onStart", "onStart", true)
 	registerEvent (a2xt_scene, "onTick", "onTick", true)
 	registerEvent (a2xt_scene, "onInputUpdate", "onInputUpdate", false)
 	registerEvent (a2xt_scene, "onDraw", "onDraw", false)
@@ -24,6 +25,8 @@ end
 local readonly         = {inCutscene=1, isSkipping=1}
 
 a2xt_scene.inCutscene  = false
+
+a2xt_scene.camera      = nil
 
 a2xt_scene.quake       = 0
 
@@ -191,7 +194,9 @@ local function cor_letterbox()
 	-- Fade out
 	eventu.run(cor_lerpColor, {obj=letterboxCurrent, time=0.5, col2=0x00000000})
 	Graphics.activateHud(true)
+
 end
+
 local function cor_skipping()
 	skipProps.alpha = 1
 	skipProps.text = "Skipping scene... 3."
@@ -261,6 +266,19 @@ function a2xt_scene.startScene(args)
 		end
 	)
 end
+
+-- setupBossScreen args:
+--    xOffset:      x offset from the player's position (default 0)
+--    yOffset:      y offset from the player's position (default 0)
+--    time:         time it takes to transition (default 1)
+function a2xt_scene.setupBossScreen(args)
+	a2xt_scene.camera:Reset(args)
+	eventu.abort(letterboxRoutine)
+
+	eventu.run(cor_lerpColor, {obj=letterboxCurrent, time=0.5, col2=0x00000000})
+	Graphics.activateHud(true)
+end
+
 function a2xt_scene.endScene()
 	eventu.abort(currentScene)
 	enableGrab();
@@ -294,7 +312,14 @@ end
 --***************************
 --** Events                **
 --***************************
+function a2xt_scene.onStart()
+	a2xt_scene.camera = cameraman.playerCam[1]
+end
+
+
 function a2xt_scene.onTick()
+	a2xt_scene.camera = cameraman.playerCam[1]
+
 	local wasInCutscene = a2xt_scene.inCutscene;
 	a2xt_scene.inCutscene = false
 	if  (currentScene ~= nil)  then
