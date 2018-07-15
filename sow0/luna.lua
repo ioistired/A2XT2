@@ -389,7 +389,7 @@ local function cor_titles()
 	
 	eventu.waitSeconds(0.5);
 	
-	scene.setTint{color=0xf0da9f55, time=0}
+	--scene.setTint{color=0xf0da9f55, time=0}
 	Audio.MusicOpen("siblings.ogg")
 	Audio.MusicPlay()
 	
