@@ -39,6 +39,8 @@ end
 
 local everyoneHidesRoutine
 
+pause.Blocked = true;
+
 local function cor_intro()
 	playMusic(1)
 
@@ -324,7 +326,7 @@ local function cor_titles()
 	local scrollspeed = 1;
 	local y = 0;
 
-	while(t < 1152) do
+	while(t < 1280) do
 
 		Graphics.drawScreen{texture=starfield, color = {1,1,1,0.5}, priority = 0};
 
@@ -333,8 +335,8 @@ local function cor_titles()
 		local w = 1920*titlescale;
 		local h = 720*titlescale;
 		local a = 1;
-		if(t > 320) then
-			a = (1-(t-320)/128);
+		if(t > 384) then
+			a = (1-(t-384)/128);
 
 			local a2 = 1;
 			if(t > 1024) then
@@ -370,7 +372,8 @@ local function cor_titles()
 		Graphics.drawScreen{texture=starfield, color = {1,1,1,0.5*(64-t)/64}, priority = 0};
 		eventu.waitFrames(0);
 	end
-
+	
+	eventu.waitSeconds(0.5)
 
 	-- Recap
 	SFX.play("previously.ogg");
