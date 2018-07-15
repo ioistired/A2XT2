@@ -1,5 +1,6 @@
 local imagic = API.load("imagic")
 local eventu = API.load("eventu")
+local particles = API.load("particles")
 
 local leveldata = API.load("a2xt_leveldata")
 local message = API.load("a2xt_message")
@@ -15,6 +16,14 @@ sanctuary.world = 3;
 
 
 Block.config[1262].frames = 4;
+
+local leekjuice = Graphics.loadImage("leek juice.png");
+local leekjuicecap = Graphics.loadImage("leek juice cap.png");
+
+local SUPER_LEEKS = 0; --TEMP: Replace with global value
+
+local bubbletarget = Graphics.CaptureBuffer(48, 208);
+local leekbubbles = particles.Emitter(24, 208-12, Misc.resolveFile("p_leekjuice.ini"));
 
 
 local function archiveSectionPages (args, group, folderName)
@@ -304,7 +313,7 @@ function onDraw()
 		gearAnimTimer = 6;
 		set_block_frame(1262, (get_block_frame(1262)+1)%4)
 	end
-	
+
 	--Gear fading for perspective
 	local gearfadeverts = {}
 	local gearfadecols = {}
@@ -341,7 +350,29 @@ function onDraw()
 	end
 	
 	Graphics.glDraw{vertexCoords = gearfadeverts, vertexColors = gearfadecols, sceneCoords = true, priority = -90}
+	
+	bubbletarget:clear(-90);
+	leekbubbles:Draw(-90, true, bubbletarget, false);
 
+	for _,v in ipairs(BGO.get(1, player.section)) do
+		local h = 24 + SUPER_LEEKS*36;
+		local x = v.x;
+		local y = v.y+v.height-h;
+		local w = v.width;
+		
+		local ty1 = 1- (h/v.height)
+		
+		local verts = {x,y,x+w,y,x+w,y+h,x,y+h};
+		local txs = {0,ty1,1,ty1,1,1,0,1};
+		Graphics.glDraw{vertexCoords = verts, textureCoords = txs,
+						primitive = Graphics.GL_TRIANGLE_FAN, texture = leekjuice, priority = -90, sceneCoords = true}
+		
+		Graphics.glDraw{vertexCoords = verts, textureCoords = txs,
+						primitive = Graphics.GL_TRIANGLE_FAN, texture = bubbletarget, priority = -90, sceneCoords = true}
+						
+		Graphics.drawImageToSceneWP(leekjuicecap, v.x, y-6, -90)
+	end
+	
 	-- Pendulum section
 	if  player.section == 0  then
 
