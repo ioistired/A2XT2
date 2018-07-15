@@ -311,58 +311,68 @@ local function cor_titles()
 	end
 	
 	eventu.waitSeconds(2);
-	
+
+
+	-- Start title part
+	Audio.MusicOpen(Misc.resolveFile ("music/a2xt-spacefights.ogg"))
+	Audio.MusicPlay()
+
 	t = 0;
 	local titlescale = 1;
 	local scrollwidth = 1;
 	local scrollheight = 0.9;
 	local scrollspeed = 1;
 	local y = 0;
-	
+
 	while(t < 1152) do
-	
+
 		Graphics.drawScreen{texture=starfield, color = {1,1,1,0.5}, priority = 0};
-		
+
 		t = t+1;
-		
+
 		local w = 1920*titlescale;
 		local h = 720*titlescale;
 		local a = 1;
 		if(t > 320) then
 			a = (1-(t-320)/128);
-			
+
 			local a2 = 1;
 			if(t > 1024) then
 				a2 = 1 - (t-1024)/128;
 			end
-			
+
 			local w2 = 1600*scrollwidth;
 			local h2 = 600*scrollheight;
 			y = y - scrollspeed;
 			scrollspeed = scrollspeed*0.997;
-			
+
 			scrollwidth = scrollwidth * 0.998;
 			scrollheight = scrollheight * 0.997;
-			
+
 			Graphics.drawBox{x = 400-w2*0.5, y = 600+y, texture=ep2, color = {1,1,1,a2}, width = w2, height = h2, priority=10};
-			
-			
+
+
 		end
 		Graphics.drawBox{x = 400-w*0.5, y = 250-h*0.5, texture=title, color = {1,1,1,a}, width = w, height = h, priority=10};
-		
+
 		titlescale = titlescale * 0.995;
-		
+
 		eventu.waitFrames(0);
 	end
-	
+
+
+	-- Fade out to recap
+	Audio.MusicStopFadeOut(1000)
 	t = 0;
 	while(t < 64) do
 		t = t+1;
-		
+
 		Graphics.drawScreen{texture=starfield, color = {1,1,1,0.5*(64-t)/64}, priority = 0};
 		eventu.waitFrames(0);
 	end
-	
+
+
+	-- Recap
 	SFX.play("previously.ogg");
 	t = 0;
 	while(t < 256) do
