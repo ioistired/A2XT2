@@ -349,10 +349,10 @@ function onDraw()
 		end
 	end
 	
-	Graphics.glDraw{vertexCoords = gearfadeverts, vertexColors = gearfadecols, sceneCoords = true, priority = -90}
+	Graphics.glDraw{vertexCoords = gearfadeverts, vertexColors = gearfadecols, sceneCoords = true, priority = -89}
 	
-	bubbletarget:clear(-90);
-	leekbubbles:Draw(-90, true, bubbletarget, false);
+	bubbletarget:clear(-89);
+	leekbubbles:Draw(-89, true, bubbletarget, false);
 
 	for _,v in ipairs(BGO.get(1, player.section)) do
 		local h = 24 + SUPER_LEEKS*36;
@@ -365,14 +365,15 @@ function onDraw()
 		local verts = {x,y,x+w,y,x+w,y+h,x,y+h};
 		local txs = {0,ty1,1,ty1,1,1,0,1};
 		Graphics.glDraw{vertexCoords = verts, textureCoords = txs,
-						primitive = Graphics.GL_TRIANGLE_FAN, texture = leekjuice, priority = -90, sceneCoords = true}
+						primitive = Graphics.GL_TRIANGLE_FAN, texture = leekjuice, priority = -89, sceneCoords = true}
 		
 		Graphics.glDraw{vertexCoords = verts, textureCoords = txs,
-						primitive = Graphics.GL_TRIANGLE_FAN, texture = bubbletarget, priority = -90, sceneCoords = true}
+						primitive = Graphics.GL_TRIANGLE_FAN, texture = bubbletarget, priority = -89, sceneCoords = true}
 						
-		Graphics.drawImageToSceneWP(leekjuicecap, v.x, y-6, -90)
+		Graphics.drawImageToSceneWP(leekjuicecap, v.x, y-6, -89)
 	end
 	
+	camera.x = math.floor(camera.x)
 	-- Pendulum section
 	if  player.section == 0  then
 
