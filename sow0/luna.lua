@@ -389,6 +389,7 @@ local function cor_titles()
 	
 	eventu.waitSeconds(0.5);
 	
+	scene.setTint{color=0xf0da9f55, time=0}
 	Audio.MusicOpen("siblings.ogg")
 	Audio.MusicPlay()
 	
@@ -421,9 +422,10 @@ local function cor_titles()
 		
 		eventu.waitFrames(0);
 	end
-	
+	scene.setTint{color=0x00000000, time=0.5}
 	eventu.waitSeconds(0.5);
 	
+	-- Meanwhile
 	local img = meanwhile;
 	
 	for i = 1,2 do
