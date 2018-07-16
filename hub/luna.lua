@@ -20,7 +20,7 @@ Block.config[1262].frames = 4;
 local leekjuice = Graphics.loadImage("leek juice.png");
 local leekjuicecap = Graphics.loadImage("leek juice cap.png");
 
-local SUPER_LEEKS = 0; --TEMP: Replace with global value
+local SUPER_LEEKS = 3; --TEMP: Replace with global value
 
 local bubbletarget = Graphics.CaptureBuffer(48, 208);
 local leekbubbles = particles.Emitter(24, 208-12, Misc.resolveFile("p_leekjuice.ini"));

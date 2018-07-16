@@ -39,9 +39,10 @@ bgm.songsOrder = {
 "a2mt-whatisthis.ogg",
 "a2mt-whispers.ogg",
 ]]--
-"a2xt-alliumampeloprasum.ogg",
-"a2xt-aurevoir.ogg",
-"a2xt-aurevoir2.ogg",
+{"a2xt-spacefights.ogg", "Space Fights", 0},
+{"a2xt-alliumampeloprasum.ogg", "Allium Ampeloprasum", 1},
+{"a2xt-aurevoir.ogg", "Au Revoir, Mes Anges", 9},
+{"a2xt-aurevoir2.ogg", "*Au Revoir Intensifies*", 9},
 "a2xt-blood.ogg",
 "a2xt-bonkers.ogg",
 "a2xt-boss1.ogg",
@@ -132,7 +133,8 @@ if  (SaveData.bgmHeard == nil)  then
 end
 
 
-
+--TODO: Replace this with a proper constant
+local CURRENT_WORLD = 0;
 
 
 message.presetSequences.jukeboxNormal = function(args)
@@ -143,7 +145,18 @@ message.presetSequences.jukeboxNormal = function(args)
 	message.waitMessageDone();
 
 	-- Set up prompt
-	local songs = table.clone(bgm.songsOrder)
+	local songs = {}--table.clone(bgm.songsOrder)
+	local optionTable = {}
+	
+	for _,v in ipairs(bgm.songsOrder) do
+		if(type(v) ~= "table") then
+			table.insert(optionTable, v)
+			table.insert(songs, v)
+		elseif(v[3] == nil or v[3] <= CURRENT_WORLD) then
+			table.insert(optionTable, v[2])
+			table.insert(songs, v)
+		end
+	end
 	--[[
 	for  i=#songs,1,-1  do
 		if  SaveData.bgmHeard[songs[i] ] == nil  then
@@ -151,8 +164,10 @@ message.presetSequences.jukeboxNormal = function(args)
 		end
 	end
 	--]]
-
-	local optionTable = table.append(songs, {"Silence", "Reset", message.getCancelOption()})
+	
+	table.insert(optionTable, "Silence")
+	table.insert(optionTable, "Reset")
+	table.insert(optionTable, message.getCancelOption())
 
 
 	-- Begin prompt loop
@@ -195,6 +210,9 @@ message.presetSequences.jukeboxNormal = function(args)
 		else
 			local keyIndex = message.promptChoice
 			local key = songs[keyIndex]
+			if(type(key) == "table") then
+				key = key[1]
+			end
 			Audio.SeizeStream(-1)
 			Audio.MusicStop()
 			Audio.playSFX("../sound/extra/jukebox-stop.ogg")

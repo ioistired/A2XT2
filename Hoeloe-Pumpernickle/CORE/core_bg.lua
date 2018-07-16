@@ -45,6 +45,7 @@ bg.pulsetimer = 0;
 bg.pulsebrightness = 1;
 bg.nebulaspeed = 1;
 
+bg.drawconsole = true;
 bg.consolestate = 1;
 
 local neb = 0;
@@ -65,24 +66,27 @@ local function vertcols(c,m)
 	return {c.r*m,c.g*m,c.b*m,0,c.r*m,c.g*m,c.b*m,0,c.r*m,c.g*m,c.b*m,0,c.r*m,c.g*m,c.b*m,0};
 end
 
-function bg.Draw(p)
+function bg.Draw(p, offset)
 	neb = neb+bg.nebulaspeed*2;
-	Graphics.drawBox{width=800, height=200, x=0, y=200, priority=p, shader=shader_neb, uniforms = {iTime = lunatime.toSeconds(neb/3), iResolution={800,600,0}}};
-	Graphics.drawScreen{texture=cbg, priority=p};
+	offset = offset or 0
+	local off1 = offset;
+	offset = offset*0.5;
+	Graphics.drawBox{width=800, height=200, x=0, y=200+offset, priority=p, shader=shader_neb, uniforms = {iTime = lunatime.toSeconds(neb/3), iResolution={800,600,0}}};
+	Graphics.drawBox{width=800, height = 600, x = 0, y = offset, texture=cbg, priority=p};
 	local s = math.sin(lunatime.time()*1.5);
 	local c = math.lerp(bg.colour, Color.white, 1-math.lerp(0.25,0.1,(s*s)));
 	c.a = 1;
-	Graphics.drawScreen{texture=lights, priority=p, color=c};
+	Graphics.drawBox{width=800, height = 600, x = 0, y = offset, texture=lights, priority=p, color=c};
 	c = bg.colour*math.lerp(0.25,1,s*s);
-	Graphics.drawScreen{texture=glow, vertexColors=vertcols(c), priority=p};
-	Graphics.drawScreen{texture=tron, priority=p, shader = shader_pulse, color = bg.colour, uniforms = {time = bg.pulsetimer, brightness = bg.pulsebrightness}};
+	Graphics.drawBox{width=800, height = 600, x = 0, y = offset, texture=glow, vertexColors=vertcols(c), priority=p};
+	Graphics.drawBox{width=800, height = 600, x = 0, y = offset, texture=tron, priority=p, shader = shader_pulse, color = bg.colour, uniforms = {time = bg.pulsetimer, brightness = bg.pulsebrightness}};
 	
-	Graphics.drawScreen{texture=centre, priority=p};
-	Graphics.drawScreen{texture=glass, priority=p};
+	Graphics.drawBox{width=800, height = 600, x = 0, y = offset, texture=centre, priority=p};
+	Graphics.drawBox{width=800, height = 600, x = 0, y = offset, texture=glass, priority=p};
 	c = bg.colour*1;
 	c.a=0.3;
-	Graphics.drawScreen{texture=glass, priority=p, color = c};
-	Graphics.drawScreen{texture=glassglow, priority=p, vertexColors=vertcols(bg.colour)};
+	Graphics.drawBox{width=800, height = 600, x = 0, y = offset, texture=glass, priority=p, color = c};
+	Graphics.drawBox{width=800, height = 600, x = 0, y = offset, texture=glassglow, priority=p, vertexColors=vertcols(bg.colour)};
 	
 	for k,v in ipairs(flipclocks) do
 		if(bg.fliprandomise) then
@@ -101,23 +105,30 @@ function bg.Draw(p)
 			v.silent = bg.flipsilent;
 			v.number = math.floor(math.max(bg.flipnumber, 0)/math.pow(10,l))%10;
 		end
+		local y = v.y;
+		v.y = y + offset;
 		v:Draw(p);
+		v.y = y;
 	end
 	
 	p = p+5;
 	
-	if(bg.consolestate >= 1) then
-		Graphics.drawImageWP(console[1], 400-32, 600-32-64, p);
-	elseif(bg.consolestate <= -1) then
-		Graphics.drawImageWP(console[-1], 400-32, 600-32-64, p);
-	elseif(bg.consolestate == 0) then
-		Graphics.drawImageWP(console[0], 400-32, 600-32-64, p);
-	else
-		Graphics.drawImageWP(console[0], 400-32, 600-32-64, p);
-		if(bg.consolestate < 0) then
-			Graphics.drawImageWP(console[-1], 400-32, 600-32-64, -bg.consolestate, p);
+	offset = off1;
+	
+	if(bg.drawconsole) then
+		if(bg.consolestate >= 1) then
+			Graphics.drawImageWP(console[1], 400-32, 600-32-64+offset, p);
+		elseif(bg.consolestate <= -1) then
+			Graphics.drawImageWP(console[-1], 400-32, 600-32-64+offset, p);
+		elseif(bg.consolestate == 0) then
+			Graphics.drawImageWP(console[0], 400-32, 600-32-64+offset, p);
 		else
-			Graphics.drawImageWP(console[1], 400-32, 600-32-64, bg.consolestate, p);
+			Graphics.drawImageWP(console[0], 400-32, 600-32-64+offset, p);
+			if(bg.consolestate < 0) then
+				Graphics.drawImageWP(console[-1], 400-32, 600-32-64+offset, -bg.consolestate, p);
+			else
+				Graphics.drawImageWP(console[1], 400-32, 600-32-64+offset, bg.consolestate, p);
+			end
 		end
 	end
 end
