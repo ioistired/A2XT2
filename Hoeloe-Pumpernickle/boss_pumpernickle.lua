@@ -757,7 +757,7 @@ function bossAPI.onTick()
 			pumpernick.hitbox:Draw();
 		end
 		
-		if(pumpernick.hitboxActive) then
+		if(pumpernick.hitboxActive and boss.isReady()) then
 			doBounce(function() 
 						if(pumpernick.eye.state == EYE_OPEN and pumpernick.eye.timer == 0) then
 							damage(1);
