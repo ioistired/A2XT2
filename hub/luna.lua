@@ -1,6 +1,8 @@
 local imagic = API.load("imagic")
 local eventu = API.load("eventu")
 local particles = API.load("particles")
+local rng = API.load("rng")
+local textblox = API.load("textblox")
 
 local leveldata = API.load("a2xt_leveldata")
 local message = API.load("a2xt_message")
@@ -25,6 +27,168 @@ local SUPER_LEEKS = 3; --TEMP: Replace with global value
 local bubbletarget = Graphics.CaptureBuffer(48, 208);
 local leekbubbles = particles.Emitter(24, 208-12, Misc.resolveFile("p_leekjuice.ini"));
 
+
+local slotStrip = Graphics.loadImage("iconstrip.png")
+local slotw9 = Graphics.loadImage("../graphics/hud/worlds/world9.png")
+
+local slotMachine = {}
+local slotzebra = {false,false,false}
+local slotTitle;
+
+local currentSlotRoutine;
+
+local function shuffleSlots()
+	for i = 1,3 do
+		local id = rng.randomInt(1,7);
+		
+		--World 6 has no icon because corrupted spacetime, so skip it
+		if(id >= 6) then
+			id = id+1;
+		end
+		slotMachine[i] = id;
+	end
+	slotTitle = nil;
+end
+
+
+local function cycleSingleSlot(i, amt)
+		local id = slotMachine[i] + (amt or 1);
+		if(id >= 6 and id <= 7) then
+			id = id+1;
+		end
+		if(id > 8) then
+			id = id-8;
+		end
+		slotMachine[i] = id;
+end
+
+local function cycleSlots(startidx, amt)
+	for i = startidx,3 do
+		cycleSingleSlot(i,amt);
+	end
+end
+
+local function resetSlots()
+	if(currentSlotRoutine ~= nil) then
+		eventu.abort(currentSlotRoutine);
+		currentSlotRoutine = nil;
+	end
+	shuffleSlots();
+	slotTitle = nil;
+	slotzebra = {false,false,false}
+end
+
+local function cor_doSlots(target)
+	if(target == 6) then
+		local id = 1;
+		local t = 48;
+		local err = 8;
+		
+		
+		for i = 1,48 do
+			cycleSlots(1, 0.5)
+			eventu.waitFrames(1);
+		end
+		
+		local spd = 0.05;
+		for i = 1,47 do
+			cycleSingleSlot(1, spd)
+			if(i % 4 == 0) then
+				spd = spd*-1;
+			end
+			cycleSlots(2, 0.5)
+			eventu.waitFrames(1);
+		end
+		
+		slotTitle = "<lt>ERROR<gt>"
+		
+		local i = 48;
+		while(true) do			
+			i = i+1;
+			cycleSingleSlot(1, spd)
+			if(i % 4 == 0) then
+				spd = spd*-1;
+			end
+			cycleSingleSlot(2, 0.05)
+			eventu.waitFrames(1);
+			if(i < 96) then
+				cycleSingleSlot(3, 0.5*(1-(i-48)/48))
+			elseif(i == 128) then
+				slotTitle = "WTF";
+			elseif(i == 160) then
+				slotTitle = "U dUN GooOo0oFfeEd";
+			elseif(i == 192) then
+				slotTitle = "Epochalypse";
+			elseif(i >= 224) then
+				slotTitle = leveldata.GetWorldName(target)
+			end
+		end
+		
+	elseif(target == 9) then
+		local id = 1;
+		local t = 48;
+		while(id <= 3) do
+			cycleSlots(id, 0.5)
+			eventu.waitFrames(1);
+			cycleSlots(id, 0.5)
+			eventu.waitFrames(1);
+			
+			t = t-4;
+			if(t <= 0) then
+				slotzebra[id] = true;
+				id = id + 1;
+				t = 48;
+				eventu.waitFrames(2);	
+			else
+				cycleSlots(id, 0.5)
+				eventu.waitFrames(1);
+				cycleSlots(id, 0.5)
+				eventu.waitFrames(1);
+			end
+		end
+		eventu.waitFrames(48);
+		slotTitle = leveldata.GetWorldName(target);
+	else
+		local id = 1;
+		local t = 48;
+		while(id <= 3) do
+			cycleSlots(id, 0.5)
+			eventu.waitFrames(1);
+			cycleSlots(id, 0.5)
+			eventu.waitFrames(1);
+			
+			t = t-4;
+			if(t <= 0 and slotMachine[id] == target) then
+				id = id + 1;
+				t = 48
+				eventu.waitFrames(2);	
+			else
+				cycleSlots(id, 0.5)
+				eventu.waitFrames(1);
+				cycleSlots(id, 0.5)
+				eventu.waitFrames(1);
+			end
+
+		end
+		eventu.waitFrames(48);
+		slotTitle = leveldata.GetWorldName(target);
+	end
+	
+	currentSlotRoutine = nil;
+end
+
+shuffleSlots();
+
+local function doSlots(world)
+	if(currentSlotRoutine ~= nil) then
+		eventu.abort(currentSlotRoutine);
+	end
+
+	_,currentSlotRoutine = eventu.run(cor_doSlots, world);
+end
+
+--TODO: Remove this. This is just for testing the slot machine
+eventu.run(function() eventu.waitSeconds(6); doSlots(6); eventu.waitSeconds(6); resetSlots() end)
 
 local function archiveSectionPages (args, group, folderName)
 	local talker = args.npc
@@ -373,7 +537,39 @@ function onDraw()
 		Graphics.drawImageToSceneWP(leekjuicecap, v.x, y-6, -89)
 	end
 	
-	camera.x = math.floor(camera.x)
+	--Slot machine		
+	for _,v in ipairs(BGO.get(4, player.section)) do
+		for i,w in ipairs(slotMachine) do
+			local x = v.x+34+(i-1)*62;
+			local y = v.y+102;
+			if(slotzebra[i]) then
+				Graphics.drawImageToSceneWP(slotw9, x, y, -40)
+			else
+				local ty1 = w-1;
+				if(w > 6) then
+					ty1 = ty1-1;
+				end
+				
+				local ty2 = ty1+1;
+				ty1 = ty1/7;
+				ty2 = ty2/7;
+				
+				if(ty1 < 0) then
+					Graphics.glDraw{vertexCoords = {x,y,x+32,y,x+32,y+32,x,y+32}, textureCoords = {0,ty1+1,1,ty1+1,1,ty2+1,0,ty2+1}, priority = -40, sceneCoords = true, texture = slotStrip, primitive = Graphics.GL_TRIANGLE_FAN}
+				end
+				
+				Graphics.glDraw{vertexCoords = {x,y,x+32,y,x+32,y+32,x,y+32}, textureCoords = {0,ty1,1,ty1,1,ty2,0,ty2}, priority = -40, sceneCoords = true, texture = slotStrip, primitive = Graphics.GL_TRIANGLE_FAN}
+			
+			end
+		end
+		
+		if(slotTitle ~= nil) then
+			textblox.printExt(slotTitle, {x = v.x+20+92, y = v.y+24+18, width=176, font = textblox.FONT_SPRITEDEFAULT4X2, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_MID, z=-40, color=0x000000FF, bind=textblox.BIND_LEVEL})
+		end
+	end
+	
+	
+	
 	-- Pendulum section
 	if  player.section == 0  then
 
