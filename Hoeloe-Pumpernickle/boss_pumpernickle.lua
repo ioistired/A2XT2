@@ -2313,10 +2313,14 @@ function cutscene.finish()
 	Defines.earthquake=4;
 	
 	eventu.waitFrames(96);
-	message.showMessageBox {target=ACTOR_KOOD, text="We... we did it!  We saved the universe! ...Again!"}
+	ACTOR_KOOD : Talk{text="We... we did it!  We saved the universe! ...Again!"}
 	message.waitMessageEnd();
-	eventu.waitFrames(32);
-	message.showMessageBox {target=ACTOR_IRIS, text="Weren't you just boasting about our track record?  Why are you surprised?"}
+	eventu.waitFrames(20);
+	ACTOR_IRIS.direction = DIR_LEFT
+	eventu.waitFrames(4);
+	ACTOR_IRIS : Pose ("upset")
+	eventu.waitFrames(8);
+	ACTOR_IRIS : Talk{text="Weren't you just boasting about our track record?  Why are you surprised?"}
 	message.waitMessageEnd();
 	eventu.waitFrames(32);
 	message.showMessageBox {target=ub, text="Congratulations!", keepOnscreen = true}
@@ -2445,15 +2449,15 @@ function cutscene.intro()
 	
 	message.showMessageBox {target=pump, text="And here they are. The bipeds, here to ruin my fun.<page>Really, children, why must you resist? I'm sure if you gave entropy a try you'd love it!"}
 	message.waitMessageEnd();
-	message.showMessageBox {target=ACTOR_DEMO, text="Sorry, not interested."}
+	ACTOR_DEMO : Talk{text="Sorry, not interested."}
 	message.waitMessageEnd();
-	message.showMessageBox {target=ACTOR_IRIS, text="With a sales pitch like that, the product's probably pretty underwhelming."}
+	ACTOR_IRIS : Talk{text="With a sales pitch like that, the product's probably pretty underwhelming."}
 	message.waitMessageEnd();
-	message.showMessageBox {target=ACTOR_KOOD, text="We've stopped at least, what, five other omnicidal maniacs already? So I dunno what makes you think you're so special!"}
+	ACTOR_KOOD : Talk{text="We've stopped at least, what, five other omnicidal maniacs already? So I dunno what makes you think you're so special!"}
 	message.waitMessageEnd();
-	message.showMessageBox {target=ACTOR_SHEATH, text="I forgot what we're talking about but, uh... what they said!"}
+	ACTOR_SHEATH : Talk{text="I forgot what we're talking about but, uh... what they said!"}
 	message.waitMessageEnd();
-	message.showMessageBox {target=ACTOR_RAOCOW, text="Yeah, you big dumb space potato!"}
+	ACTOR_RAOCOW : Talk{text="Yeah, you big dumb space potato!"}
 	message.waitMessageEnd();
 	pumpernick.eye.state = EYE_CLOSED;
 	eventu.waitFrames(96);
