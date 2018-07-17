@@ -34,6 +34,8 @@ local barbg = imagic.Create{x=barx, y=bary, primitive = imagic.TYPE_BOXBORDER, w
 
 local lerpHP = boss.MaxHP;
 
+local introspeed = 1;
+
 local barPos1, barPos2 = 0,0;
 
 local barAppearTime = 200;
@@ -45,10 +47,13 @@ function boss.onInitAPI()
 	registerEvent(boss, "onTick", "onTick", false);
 end
 
-function boss.Start()
+function boss.Start(fromCheckpoint)
 	boss.Active = true;
 	boss.HP = boss.MaxHP;
 	lerpHP = boss.MaxHP;
+	if(fromCheckpoint) then
+		introspeed = 1.5;
+	end
 end
 
 function boss.isReady()
@@ -83,8 +88,8 @@ function boss.onTick()
 		end
 		
 		if(introTimer > -1) then
-			introTimer = introTimer + 1;
-			barPos1 = (introTimer - boss.TitleDisplayTime)/barAppearTime;
+			introTimer = introTimer + introspeed;
+			barPos1 = math.min((introTimer - boss.TitleDisplayTime)/barAppearTime, math.max(lerpHP, boss.HP)/boss.MaxHP);
 			barPos2 = barPos1;
 		else
 			barPos1 = math.max(lerpHP, boss.HP)/boss.MaxHP;

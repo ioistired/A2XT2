@@ -485,14 +485,21 @@ local function progressMusic()
 	audiotimer = audioTimes[n];
 end
 
-local function StartBoss()
-	musicList = shuffleMusic();
+local function playMusic()
+	Audio.MusicVolume(128);
+	Audio.MusicOpen(Misc.resolveFile("music/a2xt-boss8.ogg"))--Misc.resolveFile("entropyelemental_"..n..".ogg"));
+	Audio.MusicPlay();
+	nomusic = false;
+end
+
+local function StartBoss(fromCheckpoint)
+	--[[musicList = shuffleMusic();
 	progressMusic();
 	
-	nomusic = false;
+	nomusic = false;]]
 	
 	starttime = lunatime.time();
-	boss.Start();
+	boss.Start(fromCheckpoint);
 	
 	_, mainloop = eventu.run(events.intro);
 end
@@ -708,9 +715,9 @@ function bossAPI.onTick()
 			Audio.MusicStop();
 		else
 			Audio.MusicResume();
-			if(Audio.MusicClock() >= audiotimer) then
-				progressMusic();
-			end
+			--if(Audio.MusicClock() >= audiotimer) then
+			--	progressMusic();
+			--end
 		end
 	end
 	
@@ -2112,12 +2119,14 @@ local function phase_rocket()
 	setPhase();
 end
 
+local ceilingTime = 350;
+
 function events.intro()
 	moveBody(lunatime.toTicks(6), pumpernick.x, pumpernick.y - 400);
 	
 	waitForBody();
 	
-	eventu.waitFrames(350);
+	eventu.waitFrames(ceilingTime);
 	
 	
 	moveBody(lunatime.toTicks(1), pumpernick.x, pumpernick.y + 400);
@@ -2318,6 +2327,8 @@ end
 
 function cutscene.intro_checkpoint()
 
+	ceilingTime = 80;
+	playMusic();
 	---[[
 	local cam = scene.camera
 	cam.targets = {}
@@ -2348,7 +2359,7 @@ function cutscene.intro_checkpoint()
 	Section(bossAPI.section).boundary = b;
 	ACTOR_DEMO:BecomePlayer()
 	
-	StartBoss();
+	StartBoss(true);
 	
 	eventu.waitFrames(64);
 	scene.endScene();
@@ -2477,6 +2488,7 @@ function cutscene.intro()
 	b.bottom = Zero.y + 600;
 	Section(bossAPI.section).boundary = b;
 	
+	playMusic();
 	StartBoss();
 	eventu.waitFrames(64);
 	
