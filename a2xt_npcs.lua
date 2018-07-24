@@ -121,7 +121,11 @@ for i = 987,995 do
 	table.insert(pengs, s);
 end
 
-
+for _,v in ipairs(pengs) do
+	npcManager.setNpcSettings(v);
+	npcManager.registerEvent(v.id, pengs, "onTickNPC");
+	npcManager.registerEvent(v.id, pengs, "onStartNPC");
+end	
 
 npcManager.setNpcSettings({id = 151, talkrange = 0});	
 
