@@ -1,0 +1,6 @@
+gfxheight=72
+width=50
+height=72
+speed=0
+frames=5
+framestyle=1
