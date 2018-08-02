@@ -12,7 +12,7 @@
 0
 #FALSE#
 #FALSE#
-"Mikkofier-Monoland/YumeNikki_snow.mp3"
+"Mikkofier-Monoland/YumeNikki_snow.ogg"
 -180000
 -180600
 -180000
@@ -24,7 +24,7 @@
 0
 #FALSE#
 #FALSE#
-"Mikkofier-Monoland/YumeNikki_snow.mp3"
+"Mikkofier-Monoland/YumeNikki_snow.ogg"
 -160000
 -160600
 -160000
@@ -36,7 +36,7 @@
 0
 #FALSE#
 #FALSE#
-"Mikkofier-Monoland/YumeNikki_town.mp3"
+"Mikkofier-Monoland/YumeNikki_town.ogg"
 -140000
 -141056
 -140000
@@ -48,7 +48,7 @@
 0
 #FALSE#
 #FALSE#
-"Mikkofier-Monoland/YumeNikki_domain.mp3"
+"Mikkofier-Monoland/YumeNikki_domain.ogg"
 -120000
 -120600
 -120000
@@ -60,7 +60,7 @@
 0
 #FALSE#
 #TRUE#
-"Mikkofier-Monoland/YumeNikki_water.mp3"
+"Mikkofier-Monoland/YumeNikki_water.ogg"
 -100000
 -100600
 -100000
@@ -72,7 +72,7 @@
 0
 #FALSE#
 #FALSE#
-"Mikkofier-Monoland/yumenikki_path.mp3"
+"Mikkofier-Monoland/yumenikki_path.ogg"
 -80000
 -80992
 -80000
@@ -84,7 +84,7 @@
 0
 #FALSE#
 #FALSE#
-"Mikkofier-Monoland/yumenikki_domain.mp3"
+"Mikkofier-Monoland/yumenikki_domain.ogg"
 -60000
 -60600
 -60000
@@ -96,7 +96,7 @@
 0
 #FALSE#
 #FALSE#
-"Mikkofier-Monoland/YumeNikki_encounter.mp3"
+"Mikkofier-Monoland/YumeNikki_encounter.ogg"
 -40000
 -40600
 -40000
@@ -108,7 +108,7 @@
 26
 #FALSE#
 #FALSE#
-"Mikkofier-Monoland/yumenikki_happy.mp3"
+"Mikkofier-Monoland/yumenikki_happy.ogg"
 -20000
 -20600
 -20000
@@ -120,7 +120,7 @@
 0
 #FALSE#
 #FALSE#
-"Mikkofier-Monoland/YumeNikki_town.mp3"
+"Mikkofier-Monoland/YumeNikki_town.ogg"
 0
 -600
 0
@@ -132,7 +132,7 @@
 28
 #FALSE#
 #FALSE#
-"Mikkofier-Monoland/yumenikki_happy.mp3"
+"Mikkofier-Monoland/yumenikki_happy.ogg"
 20000
 19400
 20000
@@ -47038,7 +47038,7 @@
 ""
 ""
 ""
-380.5
+381
 -344
 -1
 94
@@ -47053,7 +47053,7 @@
 "blather1"
 ""
 ""
-663.5
+664
 -369
 -1
 102
@@ -59064,7 +59064,7 @@
 ""
 ""
 ""
--139624.5
+-139625
 -140945
 1
 102
