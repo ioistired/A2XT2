@@ -13,6 +13,7 @@ local message = API.load("a2xt_message");
 local scene = API.load("a2xt_scene");
 local textblox = API.load("textblox");
 local checkpoints = API.load("checkpoints");
+local cman = API.load("cameraman")
 
 local playerManager = API.load("playerManager")
 
@@ -2266,7 +2267,13 @@ function cutscene.intro_checkpoint()
 	StartBoss();
 end
 
-function cutscene.intro()
+function cutscene.intro()	
+
+	local cam = scene.camera
+	cam.targets = {}
+	cam.sectionBoundY = false
+	cam.x = Zero.x+400;
+	cam.y = Zero.y+330;
 
 	local b = Section(bossAPI.section).boundary;
 	b.left = Zero.x-64;
@@ -2377,7 +2384,9 @@ function cutscene.intro()
 	waitAndDo(32, SetReady);
 	
 	m = showPumpMsg {target=eye_pos, text="<tremble>UGH.</tremble><page>YOU'RE JUST. <tremble>NO.<pause 20> FUN.</tremble><page>Fine. If you must draw your blade on me, let's just get this over with."}
-	waitMsgWhileReady(m);
+	waitMsgWhileReady(m);	
+	
+	scene.setupBossScreen{targets = {}}
 	
 	Audio.MusicStopFadeOut(2000);
 	
@@ -2443,7 +2452,7 @@ function events.InitBoss(checkpoint)
 		scene.startScene{scene=cutscene.intro_checkpoint, noletterbox=true}
 		--scene.startScene{scene=cutscene.mid, noletterbox=true}
 	else
-		scene.startScene{scene=cutscene.intro, noletterbox=true}
+		scene.startScene{scene=cutscene.intro}
 	end
 end
 
@@ -2757,9 +2766,10 @@ local function DrawBG()
 	local gametime = lunatime.time() - starttime;
 	
 	if(gametime < 5 or not drawBG) then
+		tess.y = 300+(Zero.y-camera.y)*0.5
 		tess:Draw(-99,false,tess_colour);
 		backgrounds.pulsetimer = lunatime.time()-bg_pulsetime;
-		backgrounds.Draw(-99.9);
+		backgrounds.Draw(-99.9, Zero.y-camera.y);
 	end
 	
 	if(drawBG) then

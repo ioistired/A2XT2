@@ -1,16 +1,29 @@
-function onLoopSection0()
-	if(player.x > -199232 and player.x < -194880) then
-		mem(0x00B2C8AA,FIELD_WORD,1)
-	elseif(player.x > -193280 and player.x < -192608 and player.y < -200384) then
-		mem(0x00B2C8AA,FIELD_WORD,1)
-	elseif(player.x > -188736 and player.x < -184416) then
-		if(player.x > -185586 and player.x < -185408 and player.y > -200384) then
-			mem(0x00B2C8AA,FIELD_WORD,0)
+local function testDraw(obj)
+	if(obj.x > -199232 and obj.x < -194880) then
+		return true;
+	elseif(obj.x > -193280 and obj.x < -192608 and obj.y < -200384) then
+		return true;
+	elseif(obj.x > -188736 and obj.x < -184416) then
+		if(obj.x > -185586 and obj.x < -185408 and obj.y > -200384) then
+			return false;
 		else
-			mem(0x00B2C8AA,FIELD_WORD,1)
+			return true;
 		end
 	else
-		mem(0x00B2C8AA,FIELD_WORD,0)
+		return false;
+	end
+end
+
+function onDraw()
+	if(testDraw(player)) then
+		
+		--mem(0x00B2C8AA,FIELD_WORD,1)
+		
+		for _,v in ipairs(Animation.get{74}) do
+			v.drawOnlyMask = true;
+		end
+	
+		player:render{color = Color.black, mountcolor = Color.black, drawmounts = true};
 	end
 end
 

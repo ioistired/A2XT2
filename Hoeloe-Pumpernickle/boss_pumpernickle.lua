@@ -30,7 +30,7 @@ boss.SuperTitle = "Maximillion"
 boss.Name = "Pumpernickle"
 boss.SubTitle = "Off Several Rockers"
 
-boss.MaxHP = 70;
+boss.MaxHP = 65;
 
 boss.TitleDisplayTime = 360;
 
@@ -373,6 +373,7 @@ local backgrounds = API.load("CORE/core_bg");
 
 local flip_stabletime = -6393693;
 backgrounds.initFlipclocks(-flip_stabletime);
+backgrounds.drawconsole = false;
 backgrounds.colour = Color.lightblue;
 backgrounds.flipsilent = true;
 
@@ -405,6 +406,7 @@ function bossAPI.Begin(fromCheckpoint)
 		registerEvent(bossAPI, "onTick");
 		registerEvent(bossAPI, "onDraw");
 		registerEvent(bossAPI, "onCameraUpdate");
+		registerEvent(bossAPI, "onCameraDraw");
 		
 		bossBegun = true;
 		
@@ -483,14 +485,21 @@ local function progressMusic()
 	audiotimer = audioTimes[n];
 end
 
-local function StartBoss()
-	musicList = shuffleMusic();
+local function playMusic()
+	Audio.MusicVolume(128);
+	Audio.MusicOpen(Misc.resolveFile("music/a2xt-boss8.ogg"))--Misc.resolveFile("entropyelemental_"..n..".ogg"));
+	Audio.MusicPlay();
+	nomusic = false;
+end
+
+local function StartBoss(fromCheckpoint)
+	--[[musicList = shuffleMusic();
 	progressMusic();
 	
-	nomusic = false;
+	nomusic = false;]]
 	
 	starttime = lunatime.time();
-	boss.Start();
+	boss.Start(fromCheckpoint);
 	
 	_, mainloop = eventu.run(events.intro);
 end
@@ -702,13 +711,13 @@ function bossAPI.onTick()
 	
 	if(boss.Active) then
 		--Workaround for bug with music resuming erroneously when the window loses focus
-		if(nomusic) then
+		if(nomusic or player:mem(0x13E, FIELD_WORD) > 0) then
 			Audio.MusicStop();
 		else
 			Audio.MusicResume();
-			if(Audio.MusicClock() >= audiotimer) then
-				progressMusic();
-			end
+			--if(Audio.MusicClock() >= audiotimer) then
+			--	progressMusic();
+			--end
 		end
 	end
 	
@@ -755,7 +764,7 @@ function bossAPI.onTick()
 			pumpernick.hitbox:Draw();
 		end
 		
-		if(pumpernick.hitboxActive) then
+		if(pumpernick.hitboxActive and boss.isReady()) then
 			doBounce(function() 
 						if(pumpernick.eye.state == EYE_OPEN and pumpernick.eye.timer == 0) then
 							damage(1);
@@ -842,10 +851,10 @@ local function DrawBG()
 	
 	tess:Draw(-99,false,Color.lightblue);
 	backgrounds.pulsetimer = lunatime.time();
-	backgrounds.Draw(-99.9);
+	backgrounds.Draw(-99.9, Zero.y-camera.y);
 	
 	--drawReflection();
-	glasstarget:captureAt(0);
+	
 	
 	screentarget:clear(0);
 	if(currentMusicBG ~= nil) then
@@ -853,7 +862,7 @@ local function DrawBG()
 	end
 	
 	Graphics.drawBox{texture=screentarget,x=Zero.x,y=Zero.y,priority=-70,sceneCoords=true,w=800,h=600, color = {1,1,1,0.75}};
-	Graphics.drawBox{texture=glasstarget,x=Zero.x+30,y=Zero.y,priority=-70,sceneCoords=true,w=740,h=580, color = {0.9,0.95,1,0.2}};
+	Graphics.drawBox{texture=glasstarget,x=Zero.x+30,y=camera.y,priority=-70,sceneCoords=true,w=740,h=580, color = {0.9,0.95,1,0.2}};
 	Graphics.drawImageToSceneWP(bgwindow,Zero.x,Zero.y,-70);
 end
 
@@ -903,6 +912,10 @@ function bossAPI.onCameraUpdate()
 	if(Zero ~= nil) then
 		--Camera.get()[1].x = Zero.x;
 	end
+end
+
+function bossAPI.onCameraDraw()
+	glasstarget:captureAt(-1);
 end
 
 ----------------------------------------------------------------------
@@ -2106,12 +2119,14 @@ local function phase_rocket()
 	setPhase();
 end
 
+local ceilingTime = 350;
+
 function events.intro()
 	moveBody(lunatime.toTicks(6), pumpernick.x, pumpernick.y - 400);
 	
 	waitForBody();
 	
-	eventu.waitFrames(350);
+	eventu.waitFrames(ceilingTime);
 	
 	
 	moveBody(lunatime.toTicks(1), pumpernick.x, pumpernick.y + 400);
@@ -2203,19 +2218,34 @@ function events.finish()
 	player.speedY = 0;
 	player.direction = 1;
 	--player.keys.right = true;
-	player.x = Zero.x+180;
+	player.x = Zero.x+220;
 	player.y = Zero.y+600-32-player.height;
 	
 	ACTOR_DEMO:PlayerReplaceNPC()
 	actors.ToActors {ACTOR_DEMO, ACTOR_IRIS, ACTOR_KOOD, ACTOR_RAOCOW, ACTOR_SHEATH}
 	
+	ACTOR_IRIS.x = ACTOR_DEMO.x - 40;
+	ACTOR_RAOCOW.x = ACTOR_IRIS.x - 40;
+	ACTOR_KOOD.x = ACTOR_RAOCOW.x - 40;
+	ACTOR_SHEATH.x = ACTOR_KOOD.x - 40;
+	
 	boss.Active = false;
 	
-	eventu.run(function() eventu.waitFrames(0); scene.startScene{scene=cutscene.finish, noletterbox=true} end)
+	eventu.run(function() eventu.waitFrames(0); scene.startScene{scene=cutscene.finish} end)
 end
 
 function cutscene.finish()
 
+	
+	local cam = scene.camera
+	cam.sectionBoundY = false
+	cam.targets = {}
+	cam.x = Zero.x + 400
+	cam.y = Zero.y + 300
+	
+	cam:Queue{time = 1, zoom = 1.1, y = Zero.y+350}
+	
+	
 	eventu.waitFrames(64);
 	
 	local demo = {x = player.x+64, y = player.y, width = player.width, height = player.height};
@@ -2283,10 +2313,14 @@ function cutscene.finish()
 	Defines.earthquake=4;
 	
 	eventu.waitFrames(96);
-	message.showMessageBox {target=ACTOR_KOOD, text="We... we did it!  We saved the universe! ...Again!"}
+	ACTOR_KOOD : Talk{text="We... we did it!  We saved the universe! ...Again!"}
 	message.waitMessageEnd();
-	eventu.waitFrames(32);
-	message.showMessageBox {target=ACTOR_IRIS, text="Weren't you just boasting about our track record?  Why are you surprised?"}
+	eventu.waitFrames(20);
+	ACTOR_IRIS.direction = DIR_LEFT
+	eventu.waitFrames(4);
+	ACTOR_IRIS : Pose ("upset")
+	eventu.waitFrames(8);
+	ACTOR_IRIS : Talk{text="Weren't you just boasting about our track record?  Why are you surprised?"}
 	message.waitMessageEnd();
 	eventu.waitFrames(32);
 	message.showMessageBox {target=ub, text="Congratulations!", keepOnscreen = true}
@@ -2297,9 +2331,11 @@ end
 
 function cutscene.intro_checkpoint()
 
+	ceilingTime = 80;
+	playMusic();
 	---[[
 	local cam = scene.camera
-	cam.targets = player
+	cam.targets = {}
 	cam.x = Zero.x+400;
 	cam.y = Zero.y+300;
 	--]]
@@ -2327,7 +2363,7 @@ function cutscene.intro_checkpoint()
 	Section(bossAPI.section).boundary = b;
 	ACTOR_DEMO:BecomePlayer()
 	
-	StartBoss();
+	StartBoss(true);
 	
 	eventu.waitFrames(64);
 	scene.endScene();
@@ -2353,8 +2389,8 @@ function cutscene.intro()
 	cam.sectionBoundY = false
 	cam.targets = {}
 	cam.x = Zero.x + 400
-	cam.y = Zero.y + 400
-	cam.zoom = 1.125
+	cam.y = Zero.y + 350
+	cam.zoom = 1.1
 
 	actors.groundY = -200032
 	ACTOR_DEMO:PlayerReplaceNPC()
@@ -2374,7 +2410,7 @@ function cutscene.intro()
 		ACTOR_SHEATH : Walk(3)
 		eventu.waitFrames(8);
 
-		eventu.waitFrames(80);
+		eventu.waitFrames(70);
 
 		ACTOR_DEMO : StopWalking();
 		eventu.waitFrames(4);
@@ -2413,15 +2449,15 @@ function cutscene.intro()
 	
 	message.showMessageBox {target=pump, text="And here they are. The bipeds, here to ruin my fun.<page>Really, children, why must you resist? I'm sure if you gave entropy a try you'd love it!"}
 	message.waitMessageEnd();
-	message.showMessageBox {target=ACTOR_DEMO, text="Sorry, not interested."}
+	ACTOR_DEMO : Talk{text="Sorry, not interested."}
 	message.waitMessageEnd();
-	message.showMessageBox {target=ACTOR_IRIS, text="With a sales pitch like that, the product's probably pretty underwhelming."}
+	ACTOR_IRIS : Talk{text="With a sales pitch like that, the product's probably pretty underwhelming."}
 	message.waitMessageEnd();
-	message.showMessageBox {target=ACTOR_KOOD, text="We've stopped at least, what, five other omnicidal maniacs already? So I dunno what makes you think you're so special!"}
+	ACTOR_KOOD : Talk{text="We've stopped at least, what, five other omnicidal maniacs already? So I dunno what makes you think you're so special!"}
 	message.waitMessageEnd();
-	message.showMessageBox {target=ACTOR_SHEATH, text="I forgot what we're talking about but, uh... what they said!"}
+	ACTOR_SHEATH : Talk{text="I forgot what we're talking about but, uh... what they said!"}
 	message.waitMessageEnd();
-	message.showMessageBox {target=ACTOR_RAOCOW, text="Yeah, you big dumb space potato!"}
+	ACTOR_RAOCOW : Talk{text="Yeah, you big dumb space potato!"}
 	message.waitMessageEnd();
 	pumpernick.eye.state = EYE_CLOSED;
 	eventu.waitFrames(96);
@@ -2432,10 +2468,10 @@ function cutscene.intro()
 
 	eventu.waitFrames(16);
 	message.showMessageBox {target=pump, text="Show me your resolve, children! Prove to me you're truly the 'future of cyclops kind' that Augustus says you are!"}
-	scene.setupBossScreen()
+	scene.setupBossScreen{targets = {}}
 	Audio.MusicStopFadeOut(1000);
 
-	cam:Queue{time = 3, y = Zero.y+300}
+	--cam:Queue{time = 3, y = Zero.y+300}
 
 	message.waitMessageEnd();
 	eventu.waitFrames(64);
@@ -2456,6 +2492,7 @@ function cutscene.intro()
 	b.bottom = Zero.y + 600;
 	Section(bossAPI.section).boundary = b;
 	
+	playMusic();
 	StartBoss();
 	eventu.waitFrames(64);
 	
