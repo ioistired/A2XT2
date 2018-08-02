@@ -1,4 +1,3 @@
--- STILL SUPER WIP
 local animDefaults = API.load("base/animdefaults")
 
 local Actor = API.load("actorclass")
@@ -354,7 +353,7 @@ do  -- metamethods
 
 		-- Generate the object
 		if  tbl.objects.actor == nil  then
-			local newBounds = newRECTd()
+			local newBounds = {}
 			newBounds.top = player.sectionObj.boundary.top-1000
 			newBounds.left = player.sectionObj.boundary.left-1000
 			newBounds.right = player.sectionObj.boundary.right+1000
@@ -371,7 +370,8 @@ do  -- metamethods
 			                     --debug = true
 			                    }
 
-			tbl.objects.actor = Actor(table.join (tbl.actorArgs, specialDefs))
+			local allArgs = table.join (tbl.actorArgs, specialDefs)
+			tbl.objects.actor = Actor(allArgs)
 		end
 
 		-- Apply named arguments
@@ -580,7 +580,7 @@ do
 			if  self.playable.id ~= nil  then
 				obj.width, obj.height = getPlayerSettingsSize (self.playable.id, 2)
 
-			elseif  self.npcId ~= nil  then
+			elseif  self.gfxType == "npc"  then
 				obj.width, obj.height = NPC.config[self.npcId].width, NPC.config[self.npcId].height
 			end
 		end
@@ -714,16 +714,16 @@ do
 			actorArgs = {
 				name=name,
 				animSet = nil,
-				width = nil,
-				height = nil,
+				width = ljson.general.width,
+				height = ljson.general.height,
 				scale = ljson.general.scale  or  2,
 				xScale = ljson.general.xScale  or  1,
 				yScale = ljson.general.yScale  or  1,
 				state = "walk",
 				xAlignGfx = animatx.ALIGN.MID,
 				yAlignGfx = animatx.ALIGN.BOTTOM,
-				xAlignBox = animatx.ALIGN.MID,
-				yAlignBox = animatx.ALIGN.BOTTOM,
+				xAlign = animatx.ALIGN.MID,
+				yAlign = animatx.ALIGN.BOTTOM,
 				xOffsetGfx = 0,
 				yOffsetGfx = 0,
 				xOffsetBox = 0,
@@ -784,15 +784,23 @@ do
 			aArgs.xAlignGfx = animatx.ALIGN.LEFT
 			aArgs.yAlignGfx = animatx.ALIGN.TOP
 			aArgs.scale = 1
-		end
 
-		if  inst.gfxType == "npc"  then
+		elseif  inst.gfxType == "npc"  then
 			local config = NPC.config[inst.npcId]
 			setProps.rows = config.frames * (config.framestyle+1)
 			setProps.columns = 1
 			setProps.sheet = Graphics.sprites.npc[inst.npcId].img
+
 			aArgs.scale = 1
+
+		else
+			if  inst.npcId ~= nil  then
+				aArgs.width = aArgs.width  or  (NPC.config[inst.npcId].width/2)
+				aArgs.height = aArgs.height  or  (NPC.config[inst.npcId].height/2)
+				--Text.dialog(name, aArgs.width, aArgs.height)
+			end
 		end
+
 		setProps.scale = aArgs.scale
 
 

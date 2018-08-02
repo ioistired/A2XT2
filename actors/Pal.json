@@ -1,8 +1,6 @@
 {
 	"general" : {
-		"npc" : 985,
-		"width" : 16,
-		"height" : 16
+		"npc" : 985
 	},
 
 	"gfx" : {
