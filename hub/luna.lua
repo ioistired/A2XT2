@@ -21,6 +21,9 @@ Block.config[1262].frames = 4;
 
 local leekjuice = Graphics.loadImage("leek juice.png");
 local leekjuicecap = Graphics.loadImage("leek juice cap.png");
+local leekbackground = Graphics.loadImage("funnel-bg.png");
+
+local gears = {};
 
 local SUPER_LEEKS = 3; --TEMP: Replace with global value
 
@@ -443,6 +446,7 @@ message.presetSequences.jukebox = function(args)
 end
 
 
+local retconEdges = {};
 
 
 function onStart()
@@ -451,6 +455,99 @@ function onStart()
 		SaveData["world"..i].superleek=true
 	end
 	SaveData["world2"].unlocked=true
+	
+	--Get gears
+	for _,v in ipairs(BGO.get{21,22,16,17}) do
+		v.isHidden = true;
+		local t = { 
+			img=imagic.Create
+			{
+				x=v.x+v.width*0.5, 
+				y=v.y+v.height*0.5,
+				width=v.width,
+				height=v.height,
+				primitive=imagic.TYPE_BOX,
+				align=imagic.ALIGN_CENTRE,
+				texture=Graphics.sprites.background[v.id].img,
+				scene=true
+			}
+		}
+		t.priority = -99;
+		t.color = Color.grey;
+		if(v.id == 16 or v.id == 17) then
+			t.priority = -88;
+			t.color = Color.white;
+		end
+		t.direction = 1;
+		if(v.layerName == "CCWGears") then
+			t.direction = -1;
+			t.img:Rotate(-12)
+		end
+		table.insert(gears, t)
+	end
+	
+	--Get RETCON edge pieces
+	do
+		local txs = {}
+		local vs = {}
+		local idx = 1;
+		for _,v in ipairs(Block.get(243, player.section)) do
+			local x = v.x - 64;
+			local y = v.y;
+			
+			for j = 0,v.height-32,32 do
+				for i = 0,v.width+64-32,32 do
+					vs[idx] = x + i;
+					vs[idx+1] = y + j;
+					vs[idx+2] = x + i + 32;
+					vs[idx+3] = y + j;
+					vs[idx+4] = x + i;
+					vs[idx+5] = y + j + 32;
+					vs[idx+6] = x + i;
+					vs[idx+7] = y + j + 32;
+					vs[idx+8] = x + i + 32;
+					vs[idx+9] = y + j;
+					vs[idx+10] = x + i + 32;
+					vs[idx+11] = y + j + 32;
+					
+					local tx = 0;
+					if(i >= 32) then
+						if(i <= v.width) then
+							tx = 0.33;
+						else
+							tx = 0.67;
+						end
+					end
+					
+					local ty = 0;
+					if(j >= 32) then
+						if(j < v.height-32) then
+							ty = 0.33;
+						else
+							ty = 0.67;
+						end
+					end
+					
+					txs[idx] = tx;
+					txs[idx+1] = ty;
+					txs[idx+2] = tx+0.33;
+					txs[idx+3] = ty;
+					txs[idx+4] = tx;
+					txs[idx+5] = ty+0.33;
+					txs[idx+6] = tx;
+					txs[idx+7] = ty+0.33;
+					txs[idx+8] = tx+0.33;
+					txs[idx+9] = ty;
+					txs[idx+10] = tx+0.33;
+					txs[idx+11] = ty+0.33;
+					
+					idx = idx + 12;
+				end
+			end
+		end
+		retconEdges.vs = vs;
+		retconEdges.txs = txs;
+	end
 end
 
 function onLoadSection1(playerIndex)
@@ -468,7 +565,20 @@ local function set_block_frame(id, v)
 	return writemem(GM_FRAME + 2*(id-1), FIELD_WORD, v)
 end
 
+function onTick()
+	for _,v in ipairs(gears) do
+		v.img:Rotate(v.direction);
+	end
+end
+
+local function drawRetconEdges()
+	
+	Graphics.glDraw{vertexCoords = retconEdges.vs, textureCoords = retconEdges.txs, sceneCoords = true, texture = Graphics.sprites.block[243].img, priority=-89.9}
+end
+
 function onDraw()
+
+	drawRetconEdges();
 
 	--Gear animation
 	if gearAnimTimer > 0 then
@@ -515,10 +625,16 @@ function onDraw()
 	
 	Graphics.glDraw{vertexCoords = gearfadeverts, vertexColors = gearfadecols, sceneCoords = true, priority = -89}
 	
+	for _,v in ipairs(gears) do
+		v.img:Draw(v.priority, v.color);
+	end
+	
 	bubbletarget:clear(-89);
 	leekbubbles:Draw(-89, true, bubbletarget, false);
 
 	for _,v in ipairs(BGO.get(1, player.section)) do
+		Graphics.drawImageToSceneWP(leekbackground, v.x, v.y, -89);
+		
 		local h = 24 + SUPER_LEEKS*36;
 		local x = v.x;
 		local y = v.y+v.height-h;
