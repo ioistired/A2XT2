@@ -30,6 +30,8 @@ local SUPER_LEEKS = 3; --TEMP: Replace with global value
 local bubbletarget = Graphics.CaptureBuffer(48, 208);
 local leekbubbles = particles.Emitter(24, 208-12, Misc.resolveFile("p_leekjuice.ini"));
 
+local leekRewardZones = {};
+
 
 local slotStrip = Graphics.loadImage("iconstrip.png")
 local slotw9 = Graphics.loadImage("../graphics/hud/worlds/world9.png")
@@ -548,6 +550,22 @@ function onStart()
 		retconEdges.vs = vs;
 		retconEdges.txs = txs;
 	end
+
+	
+	--Get leek reward camera zones
+	for _,v in ipairs(BGO.get(10, 3)) do
+		for i = v.x+32, v.x+v.width-64, 32 do
+			if i == v.x+32 or i == v.x+v.width-64 then
+				for j = v.y, v.y+v.height-32, 32 do
+					Block.spawn(1, i, j)
+				end
+			end
+			Block.spawn(1, i, v.y-32)
+		end
+		
+		table.insert(leekRewardZones, { x = v.x + v.width*0.5 - 400, y = v.y + v.height*0.5 - 300});
+	end
+	
 end
 
 function onLoadSection1(playerIndex)
@@ -574,6 +592,33 @@ end
 local function drawRetconEdges()
 	
 	Graphics.glDraw{vertexCoords = retconEdges.vs, textureCoords = retconEdges.txs, sceneCoords = true, texture = Graphics.sprites.block[243].img, priority=-89.9}
+end
+
+function onCameraUpdate(event, camidx)
+	local c = Camera.get()[camidx];
+	
+	for _,v in ipairs(leekRewardZones) do
+		if (player.x > v.x and player.y > v.y
+		and player.x < v.x + 800 and player.y < v.y + 600) then
+			c.x = v.x;
+			c.y = v.y;
+			break;
+		end
+	end
+end
+
+function onMessageBox(eventObj, msg)
+	local s = msg:match("^You need (%d+) stars? to enter%.$");
+	if(s) then
+		eventObj.cancelled = true;
+		if(s == "1") then
+			s = s..CHAR_LEEK.." is required to unlock this door.";
+		else
+			s = s..CHAR_LEEK.." are required to unlock this door.";
+		end
+		
+		message.talkToNPC(nil, s);
+	end
 end
 
 function onDraw()

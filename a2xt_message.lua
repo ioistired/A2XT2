@@ -1111,6 +1111,7 @@ function a2xt_message.talkToNPC(npc, message)
 end
 
 function a2xt_message.onMessageBox(eventObj, message)
+	if(eventObj.cancelled) then return end;
 	local npc = nil;
 	if(player.upKeyPressing) then
 		npc = a2xt_message.getTalkNPC();

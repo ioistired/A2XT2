@@ -9,7 +9,14 @@ local leveldata;
 A2XT_FONT_MAIN = textblox.Font (textblox.FONTTYPE_SPRITE, {ini = "graphics/fonts/font_main.ini", image = Graphics.loadImage(Misc.resolveFile("graphics/fonts/font_main.png"))})	
 
 CHAR_RC = "<color white>\127<color default>"
+CHAR_LEEK = "<color white>\135<color default>"
 CHAR_NEW = "<color white>\128<color default>"
+CHAR_ICON_DEMO = "<color white>\129<color default>"
+CHAR_ICON_IRIS = "<color white>\130<color default>"
+CHAR_ICON_KOOD = "<color white>\131<color default>"
+CHAR_ICON_RAOCOW = "<color white>\132<color default>"
+CHAR_ICON_SHEATH = "<color white>\133<color default>"
+CHAR_ICON_BROADSWORD = "<color white>\134<color default>"
 
 
 textblox.presetProps[textblox.PRESET_SYSTEM].font = A2XT_FONT_MAIN
