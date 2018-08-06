@@ -1,7 +1,9 @@
 local imagic = API.load("imagic")
 local eventu = API.load("eventu")
 local particles = API.load("particles")
+local colliders = API.load("colliders")
 local rng = API.load("rng")
+local pblock = API.load("pblock")
 local textblox = API.load("textblox")
 
 local leveldata = API.load("a2xt_leveldata")
@@ -24,6 +26,15 @@ local leekjuicecap = Graphics.loadImage("leek juice cap.png");
 local leekbackground = Graphics.loadImage("funnel-bg.png");
 
 local gears = {};
+local gearsOnLift = {};
+local liftGearPlatform = nil;
+local liftGear = Graphics.loadImage("liftGear.png");
+local liftRailGear = Graphics.loadImage("liftRailGear.png");
+
+local railGear = {t = 32, f = 0}
+local liftCollider = colliders.Box(0,0,7*32,8);
+local liftTimer = 8;
+local liftEvent = nil;
 
 local SUPER_LEEKS = 3; --TEMP: Replace with global value
 
@@ -458,6 +469,14 @@ function onStart()
 	end
 	SaveData["world2"].unlocked=true
 	
+	for _,v in ipairs(Block.get(1262, 2)) do
+		if(v.layerName == "RETCONLift") then
+			v.layerName = nil;
+			liftGearPlatform = pblock.wrap(v);
+			liftGearPlatform.data.isLift = true;
+		end
+	end
+	
 	--Get gears
 	for _,v in ipairs(BGO.get{21,22,16,17}) do
 		v.isHidden = true;
@@ -478,7 +497,7 @@ function onStart()
 		t.color = Color.grey;
 		if(v.id == 16 or v.id == 17) then
 			t.priority = -88;
-			t.color = Color.white;
+			t.color = Color(0.8,0.8,0.8,1);
 		end
 		t.direction = 1;
 		if(v.layerName == "CCWGears") then
@@ -486,6 +505,9 @@ function onStart()
 			t.img:Rotate(-12)
 		end
 		table.insert(gears, t)
+		if(v.layerName == "RETCONLift") then
+			table.insert(gearsOnLift, t);
+		end
 	end
 	
 	--Get RETCON edge pieces
@@ -587,6 +609,107 @@ function onTick()
 	for _,v in ipairs(gears) do
 		v.img:Rotate(v.direction);
 	end
+	
+	for _,v in ipairs(Block.get(1216, player.section)) do
+		railGear.t = railGear.t - math.abs(v.layerObj.speedY);
+		if(railGear.t <= 0) then
+			railGear.f = 1-railGear.f;
+			railGear.t = 32;
+		end
+		liftCollider.x = v.x - (3*32);
+		liftCollider.y = v.y - liftCollider.height;
+	end
+	
+	--THIS BE THE LIFT
+	if(liftEvent == nil and player:isGroundTouching() and player.y + player.height <= liftCollider.y + liftCollider.height and colliders.collide(liftCollider, player)) then
+		liftTimer = liftTimer - 1;
+		if(liftTimer <= 0) then
+			_,liftEvent = eventu.run(function()
+				local t = 0;
+				local layer = Layer.get("RETCONLift");
+				
+				local T = 1.5*64;
+				local D = -576;
+				local V = -16;
+				local y = 0;
+				
+				while(true) do
+					--layer.speedY = 3*D*t*t/(T*T*T);
+					--layer.speedY = ((V*T - 2*D)/(T*T))*t*t*t + ((V + 6*D + 3*V*T)/(2*T))*t*t;
+					layer.speedY = ((6*D*t*t)/(T*T)  +  ((3*V*t*t) + (6*D*t))/T  -  2*V*t)/(5*T); 
+					t = t + 1;
+					
+					if(t == T) then
+						layer.speedY = D-y;
+					elseif(t > T) then
+						layer:stop();
+						
+						break;
+					end
+					
+					liftGearPlatform:translate(0,layer.speedY);
+					liftGearPlatform.speedX = 4/7;
+					y = y+layer.speedY;
+					
+					for _,v in ipairs(gearsOnLift) do
+						v.img.y = y - 160288 + 48;
+					end
+					
+					eventu.waitFrames(0);
+				end
+				
+				t = 0;
+				
+				local timer = 8;
+				
+				while(true) do
+					if(not player:isGroundTouching()) then
+						timer = timer - 1;
+						if(timer <= 0) then
+							break;
+						end
+					else
+						timer = 8;
+					end
+					eventu.waitFrames(0);
+				end
+				
+				eventu.waitFrames(32);
+				
+				while(true) do
+					layer.speedY = -2*D*t/(T*T);
+					t = t + 1;
+					
+					if(t == T) then
+						layer.speedY = -y;
+					elseif(t > T) then
+						layer:stop();
+						
+						break;
+					end
+					
+					liftGearPlatform:translate(0,layer.speedY);
+					liftGearPlatform.speedX = 4/7;
+					y = y+layer.speedY;
+					
+					for _,v in ipairs(gearsOnLift) do
+						v.img.y = y - 160288 + 48;
+					end
+					
+					eventu.waitFrames(0);
+				end
+				
+				
+				while(colliders.collide(liftCollider, player)) do
+					eventu.waitFrames(0);
+				end
+				
+				liftEvent = nil;
+			end);
+		end
+	else
+		liftTimer = 8;
+	end
 end
 
 local function drawRetconEdges()
@@ -621,6 +744,11 @@ function onMessageBox(eventObj, msg)
 	end
 end
 
+local BLOCK_FRAME = readmem(0x00B2BEA0, FIELD_DWORD)
+local function get_block_frame(id)
+	return readmem(BLOCK_FRAME + 2*(id-1), FIELD_WORD)
+end
+
 function onDraw()
 
 	drawRetconEdges();
@@ -637,35 +765,47 @@ function onDraw()
 	local gearfadeverts = {}
 	local gearfadecols = {}
 	for _,v in ipairs(Block.get(1262, player.section)) do
-		v.speedX = 4/7;
-		local x = v.x;
-		local w = v.width*0.45;
-		local a1 = 0.75;
-		local a2 = 0;
-		local la = a1;
-		local ra = a2;
-		for i = 1,2 do
+	
+		if(pblock.wrap(v).data.isLift) then
+			Graphics.drawImageToSceneWP(liftGear, v.x, v.y, 0, 32*get_block_frame(v.id), 128, 32, -85)
 		
-			table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y)
-			table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y)
-			table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y+v.height)
-			table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y+v.height)
-			table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y)
-			table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y+v.height)
+		else
+	
+			v.speedX = 4/7;
+			local x = v.x;
+			local w = v.width*0.45;
+			local a1 = 0.75;
+			local a2 = 0;
+			local la = a1;
+			local ra = a2;
+			for i = 1,2 do
 			
-			table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
-			table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
-			table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
-			table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
-			table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
-			table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
-			
-			
-			local c = la;
-			la = ra;
-			ra = c;
-			x = v.x+v.width - w;
+				table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y)
+				table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y)
+				table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y+v.height)
+				table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y+v.height)
+				table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y)
+				table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y+v.height)
+				
+				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
+				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
+				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
+				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
+				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
+				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
+				
+				
+				local c = la;
+				la = ra;
+				ra = c;
+				x = v.x+v.width - w;
+			end	
 		end
+	end
+	
+	--Gear rail
+	for _,v in ipairs(Block.get(1216, player.section)) do
+		Graphics.drawImageToSceneWP(liftRailGear, v.x, v.y+16, 0, 32*railGear.f, 32, 32, -65)
 	end
 	
 	Graphics.glDraw{vertexCoords = gearfadeverts, vertexColors = gearfadecols, sceneCoords = true, priority = -89}
