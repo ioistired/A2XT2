@@ -461,6 +461,10 @@ end
 
 local retconEdges = {};
 
+local leekDoorCounters = {};
+
+local gearfadeverts = {};
+local gearfadecols = {};
 
 function onStart()
 	for  i=0,1  do
@@ -468,6 +472,51 @@ function onStart()
 		SaveData["world"..i].superleek=true
 	end
 	SaveData["world2"].unlocked=true
+	
+	for _,v in ipairs(BGO.get(13, 2)) do
+		local w = Warp.getIntersectingEntrance(v.x, v.y, v.x+v.width, v.y+128)[1];
+		
+		if(w) then
+			local t = {x = v.x + v.width*0.5, y = v.y + v.height*0.5, v = w:mem(0x12, FIELD_WORD)}
+			table.insert(leekDoorCounters, t);
+		end
+	end
+			
+	--Gear fading for perspective
+	for _,v in ipairs(Block.get(1262, player.section)) do
+		if(v.layerName ~= "RETCONLift") then
+	
+			v.speedX = 4/7;
+			local x = v.x;
+			local w = v.width*0.45;
+			local a1 = 0.75;
+			local a2 = 0;
+			local la = a1;
+			local ra = a2;
+			for i = 1,2 do
+			
+				table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y)
+				table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y)
+				table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y+v.height)
+				table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y+v.height)
+				table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y)
+				table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y+v.height)
+				
+				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
+				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
+				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
+				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
+				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
+				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
+				
+				
+				local c = la;
+				la = ra;
+				ra = c;
+				x = v.x+v.width - w;
+			end	
+		end
+	end
 	
 	for _,v in ipairs(Block.get(1262, 2)) do
 		if(v.layerName == "RETCONLift") then
@@ -748,6 +797,7 @@ function onMessageBox(eventObj, msg)
 		end
 		
 		message.talkToNPC(nil, s);
+		Misc.pause();
 	end
 end
 
@@ -757,6 +807,10 @@ local function get_block_frame(id)
 end
 
 function onDraw()
+
+	for _,v in ipairs(leekDoorCounters) do
+		textblox.printExt(v.v, {x = v.x, y = v.y-2, width=48, font = textblox.FONT_SPRITEDEFAULT6X2, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_MID, z=-40, color=0x924E00AA, bind=textblox.BIND_LEVEL})
+	end
 
 	drawRetconEdges();
 
@@ -768,47 +822,8 @@ function onDraw()
 		set_block_frame(1262, (get_block_frame(1262)+1)%4)
 	end
 
-	--Gear fading for perspective
-	local gearfadeverts = {}
-	local gearfadecols = {}
-	for _,v in ipairs(Block.get(1262, player.section)) do
 	
-		if(pblock.wrap(v).data.isLift) then
-			Graphics.drawImageToSceneWP(liftGear, v.x, v.y, 0, 32*get_block_frame(v.id), 128, 32, -85)
-		
-		else
-	
-			v.speedX = 4/7;
-			local x = v.x;
-			local w = v.width*0.45;
-			local a1 = 0.75;
-			local a2 = 0;
-			local la = a1;
-			local ra = a2;
-			for i = 1,2 do
-			
-				table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y)
-				table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y)
-				table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y+v.height)
-				table.insert(gearfadeverts, x)		table.insert(gearfadeverts, v.y+v.height)
-				table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y)
-				table.insert(gearfadeverts, x+w)	table.insert(gearfadeverts, v.y+v.height)
-				
-				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
-				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
-				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
-				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, la)
-				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
-				table.insert(gearfadecols, 0) table.insert(gearfadecols, 0)  table.insert(gearfadecols, 0)  table.insert(gearfadecols, ra)
-				
-				
-				local c = la;
-				la = ra;
-				ra = c;
-				x = v.x+v.width - w;
-			end	
-		end
-	end
+	Graphics.drawImageToSceneWP(liftGear, liftGearPlatform.x, liftGearPlatform.y, 0, 32*get_block_frame(liftGearPlatform.id), 128, 32, -85)
 	
 	--Gear rail
 	for _,v in ipairs(Block.get(1216, player.section)) do
