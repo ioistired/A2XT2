@@ -494,16 +494,24 @@ function onStart()
 			}
 		}
 		t.priority = -99;
-		t.color = Color.grey;
+		t.color = Color(0.3,0.3,0.3,1);
+		
+		--In front of blocks
 		if(v.id == 16 or v.id == 17) then
 			t.priority = -88;
-			t.color = Color(0.8,0.8,0.8,1);
+			t.color = Color(0.65,0.65,0.65,1);
 		end
 		t.direction = 1;
 		if(v.layerName == "CCWGears") then
 			t.direction = -1;
 			t.img:Rotate(-12)
 		end
+		
+		--Large gears
+		if(v.id == 17 or v.id == 22) then
+			t.direction = t.direction*0.5;
+		end
+		
 		table.insert(gears, t)
 		if(v.layerName == "RETCONLift") then
 			table.insert(gearsOnLift, t);
