@@ -630,7 +630,7 @@ function onTick()
 				
 				local T = 1.5*64;
 				local D = -576;
-				local V = -16;
+				local V = -24;
 				local y = 0;
 				
 				while(true) do
@@ -657,13 +657,12 @@ function onTick()
 					
 					eventu.waitFrames(0);
 				end
-				
 				t = 0;
 				
 				local timer = 8;
 				
 				while(true) do
-					if(not player:isGroundTouching()) then
+					if(not colliders.collide(liftCollider, player)) then
 						timer = timer - 1;
 						if(timer <= 0) then
 							break;
@@ -805,7 +804,7 @@ function onDraw()
 	
 	--Gear rail
 	for _,v in ipairs(Block.get(1216, player.section)) do
-		Graphics.drawImageToSceneWP(liftRailGear, v.x, v.y+16, 0, 32*railGear.f, 32, 32, -65)
+		Graphics.drawImageToSceneWP(liftRailGear, v.x, v.y+16, 0, 32*railGear.f, 32, 32, -25)
 	end
 	
 	Graphics.glDraw{vertexCoords = gearfadeverts, vertexColors = gearfadecols, sceneCoords = true, priority = -89}
