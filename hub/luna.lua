@@ -477,7 +477,7 @@ function onStart()
 		local w = Warp.getIntersectingEntrance(v.x, v.y, v.x+v.width, v.y+128)[1];
 		
 		if(w) then
-			local t = {x = v.x + v.width*0.5, y = v.y + v.height*0.5, v = w:mem(0x12, FIELD_WORD)}
+			local t = {x = v.x + v.width*0.5, y = v.y + v.height*0.5, v = w:mem(0x12, FIELD_WORD), imgx = v.x, imgy = v.y}
 			table.insert(leekDoorCounters, t);
 		end
 	end
@@ -806,10 +806,23 @@ local function get_block_frame(id)
 	return readmem(BLOCK_FRAME + 2*(id-1), FIELD_WORD)
 end
 
-function onDraw()
+--{0xBD0A00AA,0x924E00AA,0x00CA55AA}
+local leekDoorColors = {0xBD0A00AA,0xBD0A00AA,0x009A35AA}
 
+
+function onDraw()
 	for _,v in ipairs(leekDoorCounters) do
-		textblox.printExt(v.v, {x = v.x, y = v.y-2, width=48, font = textblox.FONT_SPRITEDEFAULT6X2, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_MID, z=-40, color=0x924E00AA, bind=textblox.BIND_LEVEL})
+		local c = 1;
+		local leeks = mem(0x00B251E0, FIELD_WORD)
+		if(v.v - leeks <= 0) then
+			c = 3;
+		elseif(v.v - leeks < 10) then
+			c = 2;
+		end
+		
+		Graphics.drawImageToSceneWP(Graphics.sprites.background[13].img, v.imgx, v.imgy, 0, (c-1)*32, 64, 32, -40);
+		
+		textblox.printExt(v.v, {x = v.x, y = v.y-2, width=48, font = textblox.FONT_SPRITEDEFAULT6X2, halign = textblox.HALIGN_MID, valign = textblox.VALIGN_MID, z=-40, color=leekDoorColors[c], bind=textblox.BIND_LEVEL})
 	end
 
 	drawRetconEdges();
