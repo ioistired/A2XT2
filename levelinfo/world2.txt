@@ -48,3 +48,10 @@ LEVEL:raocow-thisleveliscanon
 	Type=LEVEL
 	Exit=JAR
 	Raocoins=true
+LEVEL:Enjl-Stylish Summit
+	Name=Stylish Summit
+	Author=Enjl
+	Type=LEVEL
+	Chars=DIRK
+	Exit=ROULETTE
+	Raocoins=true
