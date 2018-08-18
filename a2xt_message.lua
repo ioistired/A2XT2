@@ -862,7 +862,7 @@ function a2xt_message.waitMessagePage(message, page)
 				messageStillExists = not (message.currentPage >= page)
 			end
 
-			eventu.waitFrames(0)
+			eventu.waitFrames(0, true)
 		end
 		eventu.signal("_messageDone")
 	end)
