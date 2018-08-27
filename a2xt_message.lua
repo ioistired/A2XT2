@@ -270,7 +270,7 @@ local function checkForSpace(player, npc, range, direction, dbg)
 	if(#blockList > 0) then
 		for i = 1,3 do
 			py = py + player.height * 0.25;
-			local b, p, n, obj = colliders.raycast({px,py}, {-direction * range, 0}, blockList, dbg or false)
+			local b, p, n, obj = colliders.raycast({px,py}, {direction * range, 0}, blockList, dbg or false)
 			if(b and (math.abs(n.x) > 0.65 or obj.y <= player.y-16)) then
 				return false;
 			end
