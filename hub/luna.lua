@@ -16,7 +16,7 @@ local pendSpr = Graphics.loadImage("pendulum.png")
 local reflections = Graphics.CaptureBuffer(800,600);
 
 local sanctuary = API.load("a2xt_leeksanctuary");
-sanctuary.world = 3;
+sanctuary.world = 10;
 
 
 Block.config[1262].frames = 4;

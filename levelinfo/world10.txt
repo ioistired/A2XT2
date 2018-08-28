@@ -5,8 +5,8 @@ LEVEL:hub
 	Peng=999
 LEVEL:Enjl-RETCON
 	Name=R.E.T.C.O.N.
-	Author=Enjl
+	Author=7NameSam
 	Type=EOW
 	Exit=LEEK
-	Chars=DIB
+	Chars=DIR
 	Raocoins=false
