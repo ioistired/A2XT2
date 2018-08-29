@@ -1539,7 +1539,7 @@ local function drawWater(cam)
 		end
 end
 
-function onCameraUpdate(obj, camid)
+function onCameraUpdate(camid)
 	if(camid ~= 1) then return end;
 	local cam = Camera.get()[1];
 	

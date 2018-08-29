@@ -401,7 +401,7 @@ function onNPCKill(eventObj, npc, reason)
 	end
 end
 
-function onCameraUpdate(eventObj)
+function onCameraUpdate()
 	if player.section == 1 and lockcamera and camera then
 		camera.x = campos.x
 		camera.y = campos.y

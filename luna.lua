@@ -39,7 +39,7 @@ end
 --Despawn buffer that allows fixes a vanilla bug that causes NPCs to not spawn if they despawn on the same frame they are brought into view.
 local cam = Camera.get()[1];
 local max = math.max;
-function onCameraDraw(event, camidx)
+function onCameraDraw(camidx)
 	local x,y = cam.x, cam.y;
 	for _,v in ipairs(NPC.getIntersecting(x-32, y-32, x+cam.width+32, y+cam.height+32)) do
 		local n = v:mem(0x12A, FIELD_WORD);

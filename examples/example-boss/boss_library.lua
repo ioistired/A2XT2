@@ -12,10 +12,12 @@ local checkpoints = API.load("checkpoints");
 
 local playerManager = API.load("playerManager")
 
+--sets the bosses name
 boss.SuperTitle = "This is"
 boss.Name = "A Boss"
 boss.SubTitle = "He's probably cool"
 
+--set the bosses max HP
 boss.MaxHP = 100;
 
 boss.TitleDisplayTime = 360;
@@ -82,6 +84,15 @@ function bossAPI.Begin(fromCheckpoint)
 	end
 end
 
+--waitAndDo is a useful coroutine function - it waits t frames and performs func() every frame
+local function waitAndDo(t, func)
+	while(t > 0) do
+		t = t-1;
+		func();
+		eventu.waitFrames(0);
+	end
+end
+
 --coroutine containing the main boss event loop
 local function EventLoop()
 end
@@ -98,6 +109,7 @@ local function StartBoss()
 	_,mainloop = eventu.run(EventLoop);
 end
 
+--Do custom boss drawing here
 local function DrawBoss()
 end
 
@@ -116,18 +128,10 @@ function bossAPI.onDraw()
 	DrawBoss();
 end
 
+--locks the camera to the section border - may not be necessary, depending on the boss
 function bossAPI.onCameraUpdate()
 	if(Zero ~= nil) then
 		Camera.get()[1].x = Zero.x;
-	end
-end
-
---waitAndDo is a useful coroutine function - it waits t frames and performs func() every frame
-local function waitAndDo(t, func)
-	while(t > 0) do
-		t = t-1;
-		func();
-		eventu.waitFrames(0);
 	end
 end
 

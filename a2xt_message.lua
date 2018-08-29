@@ -963,7 +963,7 @@ function a2xt_message.onDraw()
 end
 
 
-function a2xt_message.onCameraUpdate(eventobj, camindex)
+function a2xt_message.onCameraUpdate(camindex)
 	if(camindex > 1) then return end;
 	
 	-- Free reference to the most recent message if necessary

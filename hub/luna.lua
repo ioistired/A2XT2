@@ -773,7 +773,7 @@ local function drawRetconEdges()
 	Graphics.glDraw{vertexCoords = retconEdges.vs, textureCoords = retconEdges.txs, sceneCoords = true, texture = Graphics.sprites.block[243].img, priority=-89.9}
 end
 
-function onCameraUpdate(event, camidx)
+function onCameraUpdate(camidx)
 	local c = Camera.get()[camidx];
 	
 	for _,v in ipairs(leekRewardZones) do
