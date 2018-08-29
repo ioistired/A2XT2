@@ -636,9 +636,9 @@ local function drawLargeBullet()
 	if(largeBullet) then
 		for _,v in ipairs(largeBullet.imgs) do
 			for i = 1,16,4 do
-				v.vertColors[i] = 1-(largeBullet.launchTimer/largeBulletChargeTime);
-				v.vertColors[i+1] = 1-(largeBullet.launchTimer/largeBulletChargeTime);
-				v.vertColors[i+2] = 1-(largeBullet.launchTimer/largeBulletChargeTime);
+				v.vertexColors[i] = 1-(largeBullet.launchTimer/largeBulletChargeTime);
+				v.vertexColors[i+1] = 1-(largeBullet.launchTimer/largeBulletChargeTime);
+				v.vertexColors[i+2] = 1-(largeBullet.launchTimer/largeBulletChargeTime);
 			end
 			v:Draw(-50)
 		end
