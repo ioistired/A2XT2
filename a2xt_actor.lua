@@ -448,8 +448,8 @@ do
 				player.x = current.x
 				player.y = current.y
 				if  current == actor  then
-					player.x = current.collision.left
-					player.y = current.collision.top
+					player.x = current.left
+					player.y = current.top
 				end
 				player.speedX = current.speedX
 				player.speedY = current.speedY
@@ -477,8 +477,8 @@ do
 			elseif  current ~= nil  then
 				local spawnX,spawnY = obj.x, obj.y
 				if  obj == self.objects.actor  then
-					spawnX = current.collision.left
-					spawnY = current.collision.top -- current.collision.bottom - NPC.config[self.npcId].height
+					spawnX = current.left
+					spawnY = current.top -- current.collision.bottom - NPC.config[self.npcId].height
 				end
 				local npcRef = NPC.spawn(self.npcId, spawnX, spawnY, true)
 				self.objects.npc = pnpc.wrap(npcRef)
