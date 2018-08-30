@@ -475,12 +475,13 @@ do
 
 			-- Otherwise if the current object exists, spawn a new NPC at its position
 			elseif  current ~= nil  then
-				local spawnX,spawnY = obj.x, obj.y
-				if  obj == self.objects.actor  then
+				local spawnX,spawnY = current.x, current.y
+				if  current == self.objects.actor  then
 					spawnX = current.left
 					spawnY = current.top -- current.collision.bottom - NPC.config[self.npcId].height
 				end
-				local npcRef = NPC.spawn(self.npcId, spawnX, spawnY, true)
+				
+				local npcRef = NPC.spawn(self.npcId, spawnX, spawnY, player.section, true)
 				self.objects.npc = pnpc.wrap(npcRef)
 				self.objects.current = self.objects.npc
 
@@ -992,10 +993,12 @@ function a2xt_actor.onTick ()
 			actorObj:update()
 		end
 
-		namespace:_HideObjects ()
-		namespace:_Hitbox ()
-		namespace:_Physics ()
-		namespace:_Animation ()
+		if(namespace and (namespace.isValid or namespace.isValid == nil)) then
+			namespace:_HideObjects ()
+			namespace:_Hitbox ()
+			namespace:_Physics ()
+			namespace:_Animation ()
+		end
 	end
 end
 
