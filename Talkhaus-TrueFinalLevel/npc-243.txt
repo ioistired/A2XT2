@@ -1,0 +1,9 @@
+jumphurt=1
+nohurt=1
+frames=2
+framestyle=1
+image=""
+script=""
+gridoffsetx=4278190096
+gridoffsety=4281335896
+gridalign=4281335896
