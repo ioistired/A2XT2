@@ -65,3 +65,10 @@ LEVEL:WestonSmith-SeaSideSlumber
 	Type=LEVEL
 	Exit=LEEK
 	Raocoins=true
+LEVEL:roundthewheel-BubbleTrouble
+	Name=Bubble Trouble
+	Author=roundthewheel
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=false
+	Chars=DIRK
