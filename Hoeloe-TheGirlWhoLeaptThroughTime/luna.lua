@@ -38,8 +38,7 @@ local function startMusic()
 end
 
 local function cor_intro()
-	Audio.SeizeStream(0);
-	Audio.MusicStop();
+	playMusic(1)
 	local cam = cman.playerCam[1]
 	cam.targets={}
 	local camx = -200000+400
@@ -153,7 +152,7 @@ local function cor_intro()
 	cam:Reset();
 	cpintro:collect();
 	scene.endScene();
-	Audio.ReleaseStream(0)
+	playMusic(0)
 end
 
 
@@ -260,14 +259,14 @@ function onCameraDraw()
 	drawBG(10, -187680+700, -200480-120, 600, 300, 0.4)
 	drawBG(11, -185600, -200448, 600, 300, 0.3)
 	
-	if(camera.x > exitpos.x - 150 - 800) then
+	if(camera.x > exitpos.x - 200 - 800) then
 		Graphics.drawBox{x = exitpos.x - 150, y=exitpos.y - 150, width=300, height=300, texture = tarpz, shader=portalfgShader, 
 							uniforms =	{
 											cycle=50+25*math.sin(lunatime.tick()/100)
 										},
 							sceneCoords = true,
 							priority = -96}
-		exitParticles:draw(-96);
+		exitParticles:draw(-96, true);
 	end
 	
 	if(endLevel > 0) then
