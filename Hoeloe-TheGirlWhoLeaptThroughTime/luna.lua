@@ -2,7 +2,8 @@ local scene = API.load("a2xt_scene");
 local actors = API.load("a2xt_actor");
 local eventu = API.load("eventu");
 local message = API.load("a2xt_message");
-local cman = API.load("cameraman")
+local cman = API.load("cameraman");
+local pnpc = API.load("pnpc");
 
 local checkpoints = API.load("checkpoints");
 local colliders = API.load("colliders");
@@ -11,6 +12,7 @@ local particles = API.load("particles");
 local introText = Graphics.loadImage("intro.png")
 local startingroom = Graphics.loadImage("startroom.png")
 local noise = Graphics.loadImage("noise.png")
+local bird = Graphics.loadImage("magicbird.png")
 
 local earthquakeset = 0;
 
@@ -32,6 +34,9 @@ local tarpz = Graphics.loadImage("tarpzimg.png");
 
 local cpintro = checkpoints.create{x=-199710--[[+17000]], y=-200232, section = 0}	
 
+local birdpos;
+local drawbird = false;
+
 local function startMusic()
 	Audio.MusicOpen("09 Copied City OST - Nier Automata.ogg");
 	Audio.MusicPlay();
@@ -47,10 +52,15 @@ local function cor_intro()
 	cam.y = camy;
 	
 	actors.groundY=-200194;
-	actors.ToActors {ACTOR_SHEATH, ACTOR_SCIENCE}
+	actors.ToActors {ACTOR_SHEATH}
+	
+	local science = pnpc.wrap(NPC.get(427)[1]);
 	
 	local introtextalpha = 0;
 	local t = 0;
+	
+	local brd = BGO.get(128)[1];
+	birdpos = vector.v2(brd.x, brd.y);
 	
 	while(t < 64) do
 		Graphics.drawScreen{color = Color.black, priority = 0};
@@ -88,13 +98,13 @@ local function cor_intro()
 	eventu.waitSeconds(1);
 	
 	
-	ACTOR_SCIENCE : Talk{text="You are. the only hope."}	
+	message.showMessageBox {target=science, type="intercom", text="You are. the only hope."}
 	message.waitMessageEnd()
 	
 	eventu.waitSeconds(1);
 	
-	local a = Animation.spawn(13, ACTOR_SCIENCE.x, ACTOR_SCIENCE.y - 2*ACTOR_SCIENCE.height - 16);
-	ACTOR_SCIENCE:BecomeNPC ():kill()
+	local a = Animation.spawn(13, science.x+science.width*0.5, science.y - 16);
+	science:kill()
 	SFX.play(22)
 	
 	eventu.waitSeconds(4);
@@ -132,11 +142,18 @@ local function cor_intro()
 	SFX.play("Dissolve.ogg");
 	startroomtime = 600;
 	
+	drawbird = true;
+	
 	while(startroomtime > 0) do
 		startroomtime = startroomtime-1;
+		
+		if(startroomtime < 200) then
+			birdpos = math.lerp(birdpos, vector.v2(player.x+player.width*0.5-32, player.y+16-48), 0.05);
+		end
+		
 		eventu.waitFrames(0);
 	end
-	
+	drawbird = false;
 	t = 0;
 	
 	while(t < 64) do
@@ -240,6 +257,11 @@ local function drawBG(id, x, y, width, height, parallax)
 end
 
 function onCameraDraw()
+
+	if(drawbird and birdpos) then
+		Graphics.drawImageToSceneWP(bird, birdpos.x+8, birdpos.y, -95);
+	end
+
 	if(startroomvisible) then
 		Graphics.drawScreen{color=Color.black, priority = -99}
 	elseif(startroomtime > 0) then

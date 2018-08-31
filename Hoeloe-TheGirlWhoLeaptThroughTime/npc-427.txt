@@ -1,0 +1,7 @@
+framestyle=0
+width=42
+height=34
+gfxwidth=42
+gfxheight=34
+noblockcollision=true
+nogravity=true
