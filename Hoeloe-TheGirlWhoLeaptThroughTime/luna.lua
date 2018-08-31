@@ -115,6 +115,7 @@ local function cor_intro()
 	message.waitMessageEnd()
 	eventu.waitSeconds(1);
 	earthquakeset = 3;
+	SFX.play("Earthquake.ogg");
 	eventu.waitSeconds(0.25);
 	cam.targets={}
 	cam:Queue{time=1.5, zoom=1, x=camx, y=camy}
@@ -125,9 +126,11 @@ local function cor_intro()
 	ACTOR_SHEATH.gfx.speed = 0;
 	
 	eventu.waitSeconds(0.5);
+	Audio.MusicStop();
 	
 	startinglayer:hide(true);
 	startroomvisible = false;
+	SFX.play("Dissolve.ogg");
 	startroomtime = 600;
 	
 	while(startroomtime > 0) do
@@ -136,6 +139,7 @@ local function cor_intro()
 	end
 	
 	t = 0;
+	
 	while(t < 64) do
 		earthquakeset = 5*(1-t/64);
 		t = t+1;
@@ -178,6 +182,7 @@ end
 local firstSniffit = true;
 local exitpos = vector.v2(-183136+150, -200096-150);
 local exitBox = colliders.Circle(exitpos.x, exitpos.y, 50);
+local exitsound = SFX.create{x=exitpos.x,y=exitpos.y,falloffRadius=800,sound=Misc.resolveFile("Portal.ogg")}
 local exitParticles = particles.Emitter(exitpos.x, exitpos.y, Misc.resolveFile("p_portal.ini"), 1);
 local endLevel = -1;
 
@@ -204,6 +209,7 @@ function onTick()
 		endLevel = endLevel-1;
 		player.speedX = (exitpos.x-(player.x+player.width*0.5))*0.02;
 		player.speedY = (exitpos.y-(player.y+player.height*0.5))*0.02;
+		exitsound.volume = endLevel/256;
 		if(endLevel == 1) then
 			Level.winState(2);
 			Level.exit();
