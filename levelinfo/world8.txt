@@ -18,6 +18,27 @@ LEVEL:FrozenQuills-Soaring Sawmill
 	Exit=ROULETTE
 	Secret=KEY
 	Raocoins=true
+LEVEL:WestonSmith-NightLightFright
+	Name=Night Light Fright
+	Author=WestonSmith
+	Type=LEVEL
+	Exit=LEEK
+	Chars=DRS
+	FilterBig
+	FilterPowers
+	FilterMounts
+LEVEL:cramps-man-Flip Block Skyway
+	Name=Flip Block Skyway
+	Author=cramps-man
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true
+	Chars=DIR
+LEVEL:lucasadrianogb-The Ninji Gravity Machinery Store
+	Name=The Ninji Gravity Machinery Store
+	Author=lucasadrianogb
+	Type=LEVEL
+	Exit=LEEK
 LEVEL:Axon-PanicAttackInHighAltitude
 	Name=Panic Attack in High Altitude
 	Author=Axon
@@ -40,27 +61,6 @@ LEVEL:CyberSymphonics-RainbowRaftRide
 	Exit=LEEK
 	Raocoins=true
 	Chars=D
-LEVEL:WestonSmith-NightLightFright
-	Name=Night Light Fright
-	Author=WestonSmith
-	Type=LEVEL
-	Exit=LEEK
-	Chars=DRS
-	FilterBig
-	FilterPowers
-	FilterMounts
-LEVEL:cramps-man-Flip Block Skyway
-	Name=Flip Block Skyway
-	Author=cramps-man
-	Type=LEVEL
-	Exit=TAPE
-	Raocoins=true
-	Chars=DIR
-LEVEL:lucasadrianogb-The Ninji Gravity Machinery Store
-	Name=The Ninji Gravity Machinery Store
-	Author=lucasadrianogb
-	Type=LEVEL
-	Exit=LEEK
 LEVEL:SAJewers-SideCrawlersClimb
 	Name=Side Crawler's Climb
 	Author=SAJewers

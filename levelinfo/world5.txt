@@ -29,6 +29,12 @@ LEVEL:FrozenQuills-EveryoneHatesNinjis
 	Type=LEVEL
 	Exit=LEEK
 	Raocoins=true
+LEVEL:WestonSmith-SeaSideSlumber
+	Name=Sea Side Slumber
+	Author=WestonSmith
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=true
 LEVEL:Unaniem-It is 5 AM
 	Name=It is 5AM
 	Author=Unaniem
@@ -42,6 +48,13 @@ LEVEL:Holy-Sunrise
 	Type=LEVEL
 	Exit=LEEK
 	Raocoins=true
+LEVEL:roundthewheel-BubbleTrouble
+	Name=Bubble Trouble
+	Author=roundthewheel
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=false
+	Chars=DIRK
 LEVEL:SpoonyBard-SeaTurtleSanctuary
 	Name=Sea Turtle Sanctuary
 	Author=SpoonyBardOL
@@ -59,16 +72,3 @@ LEVEL:Karatekid5-StarlightResortGrandReopening
 	FilterMounts
 	FilterLeaf
 	FilterOnion
-LEVEL:WestonSmith-SeaSideSlumber
-	Name=Sea Side Slumber
-	Author=WestonSmith
-	Type=LEVEL
-	Exit=LEEK
-	Raocoins=true
-LEVEL:roundthewheel-BubbleTrouble
-	Name=Bubble Trouble
-	Author=roundthewheel
-	Type=LEVEL
-	Exit=LEEK
-	Raocoins=false
-	Chars=DIRK

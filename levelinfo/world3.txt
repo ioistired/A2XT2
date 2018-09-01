@@ -13,10 +13,21 @@ LEVEL:Hoeloe-Demos Journey Through Time
 	Chars=D
 	FilterTier1
 	FilterMounts
+LEVEL:Dusk209-TempleOfStupid
+	Name=Temple of Stupid
+	Author=Dusk209
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=false
 LEVEL:Darkonius64-Cliffship_Canyon
 	Name=Cliffship Canyon
 	Author=Darkonius Makavar
 	Type=LEVEL
+	Exit=LEEK
+LEVEL:SMCslevelengine-DustyGrave
+	Name=Dusty Grave
+	Author=SMCslevelengine
+	Type=EOW
 	Exit=LEEK
 LEVEL:Hoeloe-Temporis
 	Name=Temporis
@@ -25,18 +36,18 @@ LEVEL:Hoeloe-Temporis
 	Peng=993
 	Card=Butts
 	Card=Professor Doctor D. Duff Dickson Esq.
-LEVEL:louiejub-Desert_Dash_Goopa_Brigade
-	Name=Desert Dash: Goopa Brigade!
-	Author=Louiejub
-	Type=LEVEL
-	Exit=LEEK
-	Chars=R
 LEVEL:FrozenQuills-Awesome Moonlight Oasis Vinesaw Pool Party
 	Name=Awesome Moonlight Oasis Vinesaw Pool Party
 	Author=FrozenQuills
 	Type=LEVEL
 	Exit=JAR
 	Raocoins=true
+LEVEL:louiejub-Desert_Dash_Goopa_Brigade
+	Name=Desert Dash: Goopa Brigade!
+	Author=Louiejub
+	Type=LEVEL
+	Exit=LEEK
+	Chars=R
 LEVEL:Mabel-LynariDesert
 	Name=Lynari Desert
 	Author=Mabel

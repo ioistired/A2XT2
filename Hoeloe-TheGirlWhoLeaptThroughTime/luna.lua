@@ -174,6 +174,7 @@ end
 
 
 function onStart()
+	SaveData.currentTutorial = "Hoeloe-TheGirlWhoLeaptThroughTime.lvl"
 	dissolveShader:compileFromFile(nil, "dissolve.frag")
 	portalbgShader:compileFromFile(nil, "portalbg.frag")
 	portalfgShader:compileFromFile(nil, "portalfg.frag")
