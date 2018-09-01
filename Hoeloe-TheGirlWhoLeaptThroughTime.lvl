@@ -15682,7 +15682,7 @@
 "StartingRoom"
 #FALSE#
 "StartingSizeable"
-#FALSE#
+#TRUE#
 "next"
 "Level - Start"
 ""
