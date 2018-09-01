@@ -1,16 +1,3 @@
-LEVEL:Mikkofier-ObstacleCourseInACave
-	Name=Obstacle Course In A Cave
-	Author=Mikkofier
-	Type=LEVEL
-	Exit=TAPE
-	Secret=CASH
-	Chars=DI
-LEVEL:Holy-Ectoplasmania
-	Name=Ectoplasmania
-	Author=Holy
-	Type=LEVEL
-	Exit=CASH
-	Chars=D
 LEVEL:SpoonyBard-MangroveCavern
 	Name=Mangrove Cavern
 	Author=SpoonyBardOL
@@ -18,6 +5,12 @@ LEVEL:SpoonyBard-MangroveCavern
 	Exit=TAPE
 	Secret=KEY
 	Raocoins=true
+LEVEL:MrSecurity-Glum
+	Name=Glum
+	Author=MrSecurity/SAJewers
+	Type=LEVEL
+	Exit=TAPE
+	Secret=KEY
 LEVEL:Oddwrath-BatAnEye
 	Name=Bat An Eye
 	Author=Oddwrath
@@ -25,9 +18,29 @@ LEVEL:Oddwrath-BatAnEye
 	Exit=LEEK
 	Chars=DIR
 	FilterMounts
-LEVEL:MrSecurity-Glum
-	Name=Glum
-	Author=MrSecurity/SAJewers
+LEVEL:Holy-Ectoplasmania
+	Name=Ectoplasmania
+	Author=Holy
+	Type=LEVEL
+	Exit=CASH
+	Chars=D
+LEVEL:gameguy888-HazyMaizeCave
+	Name=Hazy Maize Cave
+	Author=gameguy888
 	Type=LEVEL
 	Exit=TAPE
-	Secret=KEY
+	FilterMounts
+LEVEL:Mikkofier-ObstacleCourseInACave
+	Name=Obstacle Course In A Cave
+	Author=Mikkofier
+	Type=LEVEL
+	Exit=TAPE
+	Secret=CASH
+	Chars=DI
+LEVEL:EntropyRogue-OvergrownUnderground
+	Name=Overgrown Underground
+	Author=EntropyRogue
+	Raocoins=true
+	Type=EOW
+	Exit=Leek
+	FilterMounts

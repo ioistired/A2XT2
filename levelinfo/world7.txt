@@ -4,6 +4,13 @@ LEVEL:SAJewers-DownDownDownToMephistosCafe
 	Type=LEVEL
 	Exit=JAR
 	Secret=LEEK
+LEVEL:Axon-IndustrialPandemonium
+	Name=Industrial Pandemonium
+	Author=Axon
+	Type=LEVEL
+	Exit=TAPE
+	Secret=LEEK
+	Chars=D
 LEVEL:Isrieri-WayTooHighrise
 	Name=Way Too Highrise
 	Author=Isrieri
@@ -15,22 +22,22 @@ LEVEL:Axon-AnnBrownAndTheFountainhead
 	Type=LEVEL
 	Exit=LEEK
 	Chars=D
+LEVEL:Wohlstand-Industrial-town
+	Name=Industrial Town
+	Author=Wohlstand
+	Type=TOWN
+	Peng=995
 LEVEL:cadwyn-hoperidesalone
 	Name=Hope Rides Alone
 	Author=Cadwyn/SAJewers
-	Type=LEVEL
+	Chars=R
+	Type=EOW
 	Exit=CASH
 LEVEL:Wohlstand-What-About-Railways
 	Name=What About Railways?
 	Author=Wohlstand
 	Type=LEVEL
 	Exit=WARP 19
-	Raocoins=true
-LEVEL:Dusk209-FrozenShellFactory
-	Name=Frozen Shell Factory
-	Author=Dusk209/SAJewers
-	Type=LEVEL
-	Exit=ROULETTE
 	Raocoins=true
 LEVEL:SAJewers-LPProductionFactory
 	Name=LP Production Factory
@@ -50,21 +57,15 @@ LEVEL:Darkonius64-Frightening_Factory
 	Type=LEVEL
 	Exit=LEEK
 	Chars=DI
-LEVEL:Axon-IndustrialPandemonium
-	Name=Industrial Pandemonium
-	Author=Axon
+LEVEL:Dusk209-FrozenShellFactory
+	Name=Frozen Shell Factory
+	Author=Dusk209/SAJewers
 	Type=LEVEL
-	Exit=TAPE
-	Secret=LEEK
-	Chars=D
+	Exit=ROULETTE
+	Raocoins=true
 LEVEL:Sedron-EntropyEngine
 	Name=Entropy Engine
 	Author=Sedron
 	Type=LEVEL
 	Exit=LEEK
-LEVEL:Wohlstand-Industrial-town
-	Name=Industrial Town
-	Author=Wohlstand
-	Type=TOWN
-	Peng=995
 	

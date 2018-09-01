@@ -8,6 +8,8 @@ local pnpc = API.load("pnpc");
 local checkpoints = API.load("checkpoints");
 local colliders = API.load("colliders");
 local particles = API.load("particles");
+local imagic = API.load("imagic");
+local rng = API.load("rng");
 
 local introText = Graphics.loadImage("intro.png")
 local startingroom = Graphics.loadImage("startroom.png")
@@ -17,6 +19,7 @@ local bird = Graphics.loadImage("magicbird.png")
 local earthquakeset = 0;
 
 local startinglayer;
+local startingsizeable;
 local startroomvisible = true;
 local startroomtime = 0;
 
@@ -40,6 +43,19 @@ local drawbird = false;
 local function startMusic()
 	Audio.MusicOpen("09 Copied City OST - Nier Automata.ogg");
 	Audio.MusicPlay();
+end
+
+local floaters = {};
+
+local function makeFloater(x, y, rotation, speed, rotspeed, ttl, size)
+	local vs = {}
+	local a = rotation;
+	for i=1,6 do
+		table.insert(vs, vector.v2(0,size):rotate(a));
+		a = a + 60;
+	end
+	
+	table.insert(floaters, {spd = speed, rotspd = rotspeed, ttl = ttl, totalttl = ttl, obj=imagic.create{primitive = imagic.TYPE_POLY, x = x, y = y, verts = vs, sceneCoords = false}})
 end
 
 local function cor_intro()
@@ -165,6 +181,7 @@ local function cor_intro()
 	eventu.waitSeconds(1.5);
 	ACTOR_SHEATH:Pose("idle")
 	eventu.waitSeconds(1);
+	startingsizeable:show(true);
 	ACTOR_SHEATH:BecomePlayer();
 	cam:Reset();
 	cpintro:collect();
@@ -174,10 +191,12 @@ end
 
 
 function onStart()
+	SaveData.currentTutorial = "Hoeloe-TheGirlWhoLeaptThroughTime.lvl"
 	dissolveShader:compileFromFile(nil, "dissolve.frag")
 	portalbgShader:compileFromFile(nil, "portalbg.frag")
 	portalfgShader:compileFromFile(nil, "portalfg.frag")
 	startinglayer = Layer.get("StartingRoom");
+	startingsizeable = Layer.get("StartingSizeable");
 
 	player:transform(CHARACTER_SHEATH);
 	player.powerup = 2;
@@ -187,6 +206,7 @@ function onStart()
 	
 	if(cpintro.collected) then
 		startinglayer:hide(true);
+		startingsizeable:show(true);
 		startroomvisible = false;
 		ACTOR_SHEATH:BecomePlayer();
 	else
@@ -231,6 +251,22 @@ function onTick()
 			Level.exit();
 		end
 	end
+	
+	if(player.x > -199424 and rng.randomInt(25) == 0) then
+		makeFloater(rng.random(0,800), rng.random(0,600), rng.random(0,360), vector.v2(rng.random(-3,3), rng.random(-3,3)), rng.random(-3,3), rng.randomInt(64,8*64), rng.random(32,128))
+	end
+	
+	for i = #floaters,1,-1 do
+		local v = floaters[i];
+		v.ttl = v.ttl-1;
+		if(v.ttl <= 0) then
+			table.remove(floaters, i);
+		else
+			v.obj.x = v.obj.x + v.spd.x;
+			v.obj.y = v.obj.y + v.spd.y;
+			v.obj:rotate(v.rotspd);
+		end
+	end
 end
 
 local function drawBG(id, x, y, width, height, parallax)
@@ -266,6 +302,11 @@ function onCameraDraw()
 		Graphics.drawScreen{color=Color.black, priority = -99}
 	elseif(startroomtime > 0) then
 		Graphics.drawScreen{texture=startingroom, priority = -26, shader = dissolveShader, uniforms = {alpha = 1 - startroomtime/600, noise = noise}}
+	end
+	
+	for _,v in ipairs(floaters) do
+		local s = math.sin(math.pi*v.ttl/v.totalttl);
+		v.obj:draw(-96, {0.4,0.5,0.8,s*s*0.25});
 	end
 	
 	drawBG(2, -198832, -200384-150, 600, 300, 0.4)

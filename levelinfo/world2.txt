@@ -17,24 +17,6 @@ LEVEL:MonkeyShrapnel-AbodeoftheBunnies
 	Type=LEVEL
 	Exit=ROULETTE
 	Raocoins=true
-LEVEL:SAJewers-MountianDescent
-	Name=Mountain Descent
-	Author=SAJewers
-	Type=LEVEL
-	Exit=TAPE
-	Raocoins=true
-LEVEL:louiejub-Castle Climb During Wintertime
-	Name=Castle Climb During Wintertime
-	Author=louiejub
-	Type=LEVEL
-	Exit=LEEK
-	Raocoins=false
-LEVEL:WestonSmith-IceBlockDrop
-	Name=Ice Block Drop
-	Author=WestonSmith
-	Type=LEVEL
-	Exit=ROULETTE
-	Raocoins=true
 LEVEL:Pyro-Peaceful Snowy Night
 	Name=Peaceful Snowy Night
 	Author=Pyro
@@ -42,16 +24,34 @@ LEVEL:Pyro-Peaceful Snowy Night
 	Exit=ROULETTE
 	Secret=KEY
 	Raocoins=true
+LEVEL:louiejub-Castle Climb During Wintertime
+	Name=Castle Climb During Wintertime
+	Author=louiejub
+	Type=LEVEL
+	Exit=LEEK
+	Raocoins=false
+LEVEL:Enjl-Stylish Summit
+	Name=Stylish Summit
+	Author=Enjl
+	Type=LEVEL
+	Chars=DIRK
+	Exit=ROULETTE
+	Raocoins=true
+LEVEL:SAJewers-MountianDescent
+	Name=Mountain Descent
+	Author=SAJewers
+	Type=LEVEL
+	Exit=TAPE
+	Raocoins=true
 LEVEL:raocow-thisleveliscanon
 	Name=this level is canon
 	Author=raocow
 	Type=LEVEL
 	Exit=JAR
 	Raocoins=true
-LEVEL:Enjl-Stylish Summit
-	Name=Stylish Summit
-	Author=Enjl
+LEVEL:WestonSmith-IceBlockDrop
+	Name=Ice Block Drop
+	Author=WestonSmith
 	Type=LEVEL
-	Chars=DIRK
 	Exit=ROULETTE
 	Raocoins=true

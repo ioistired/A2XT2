@@ -12,27 +12,6 @@ LEVEL:castlepokemetroid-shoezone3
 	Exit=LEEK
 	Secret=CASH
 	Raocoins=true
-LEVEL:Holy-Merano
-	Name=Merano
-	Author=Holy
-	Type=LEVEL
-	Exit=LEEK
-	Chars=D
-	FilterBig
-	FilterPowers
-LEVEL:arabsalmon - Bog Standard
-	Name=Bog Standard
-	Author=arabsalmon
-	Type=LEVEL
-	Exit=LEEK
-	Chars=D
-	FilterPowers
-	FilterMounts
-LEVEL:Unaniem-ANMT
-	Name=ANMT
-	Author=Unaniem
-	Type=LEVEL
-	Exit=TAPE
 LEVEL:Pyro-fieldofgoopers1
 	Name=field of goopers 1
 	Author=Pyro
@@ -40,27 +19,6 @@ LEVEL:Pyro-fieldofgoopers1
 	Exit=TAPE
 	Raocoins=true
 	Chars=DIRK
-LEVEL:Mikkofier-raocowsWorkday
-	Name=Raocow's Workday
-	Author=Mikkofier
-	Type=LEVEL
-	Exit=CASH
-	Chars=R
-LEVEL:Hoeloe-qqqqqq
-	Name=qqqqqq
-	Author=Hoeloe
-	Type=LEVEL
-	Exit=LEEK
-	Secret=ROULETTE
-	Chars=D
-LEVEL:ztarwuff-TheUpsAndDownsOfADemo
-	Name=The Ups and Downs of a Demo
-	Author=ztarwuff
-	Type=LEVEL
-	Exit=LEEK
-	Chars=D
-	FilterPowers
-	FilterMounts
 LEVEL:platinumtriforce-thefallofdemo
 	Name=The "Fall" of Demo
 	Author=PlatinumTriforce/SAJewers
@@ -69,3 +27,51 @@ LEVEL:platinumtriforce-thefallofdemo
 	Secret=CASH
 	Raocoins=true
 	Chars=D
+LEVEL:Holy-Merano
+	Name=Merano
+	Author=Holy
+	Type=LEVEL
+	Exit=LEEK
+	Chars=D
+	FilterBig
+	FilterPowers
+LEVEL:Hoeloe-qqqqqq
+	Name=qqqqqq
+	Author=Hoeloe
+	Type=LEVEL
+	Exit=LEEK
+	Secret=ROULETTE
+	Chars=D
+LEVEL:Mikkofier-raocowsWorkday
+	Name=Raocow's Workday
+	Author=Mikkofier
+	Type=LEVEL
+	Exit=CASH
+	Chars=R
+LEVEL:Unaniem-ANMT
+	Name=ANMT
+	Author=Unaniem
+	Type=LEVEL
+	Exit=TAPE
+LEVEL:arabsalmon - Bog Standard
+	Name=Bog Standard
+	Author=arabsalmon
+	Type=LEVEL
+	Exit=LEEK
+	Chars=D
+	FilterPowers
+	FilterMounts
+LEVEL:ztarwuff-TheUpsAndDownsOfADemo
+	Name=The Ups and Downs of a Demo
+	Author=ztarwuff
+	Type=LEVEL
+	Exit=LEEK
+	Chars=D
+	FilterPowers
+	FilterMounts
+LEVEL:ztarwuff and rockythechao-Castle6
+	Name=Bellissimo Schloss del Mundo Chaotique
+	Author=ztarwuff & rockythechao
+	Type=EOW
+	Exit=LEEK
+	Raocoins=true
