@@ -253,7 +253,7 @@ function onTick()
 	end
 	
 	if(player.x > -199424 and rng.randomInt(25) == 0) then
-		makeFloater(rng.random(0,800), rng.random(0,600), rng.random(0,360), vector.v2(rng.random(-3,3), rng.random(-3,3)), rng.random(-3,3), rng.random(64,8*64), rng.random(32,128))
+		makeFloater(rng.random(0,800), rng.random(0,600), rng.random(0,360), vector.v2(rng.random(-3,3), rng.random(-3,3)), rng.random(-3,3), rng.randomInt(64,8*64), rng.random(32,128))
 	end
 	
 	for i = #floaters,1,-1 do
