@@ -754,10 +754,10 @@ a2xt_message.presetSequences.hubportal = function(args)
 end
 
 -- ***********************************
--- ** SIBLING NPCs                  **
+-- ** RELATIVES NPCs                **
 -- ***********************************
-local siblings = {settings={}}
-local siblingsShared = {
+local relatives = {settings={}}
+local relativesShared = {
 	gfxwidth = 32,
 	gfxheight = 64,
 	width = 24, 
@@ -766,7 +766,7 @@ local siblingsShared = {
 	frames = 1
 }
 
-local siblingsSettings = {
+local relativesSettings = {
 	[962]={
 		gfxwidth = 54,
 		height = 48,
@@ -798,7 +798,12 @@ local siblingsSettings = {
 	[967]={}
 }
 
-local siblingData = {
+local relativesData = {
+	[948]={name="Uncle Broadsword"},
+	[949]={name="Uncle @sbestos"},
+	[950]={name="Uncle Denmark"},
+	[951]={name="Uncle Rewind"},
+	[952]={name="Uncle Pumpernickel"},
 	[962]={name="Garish"},
 	[963]={name="Mishi"},
 	[964]={name="Pandamona"},
@@ -809,16 +814,16 @@ local siblingData = {
 
 
 for _,v in ipairs{962,963,964,965,966,967} do
-	local s = table.join(siblingsSettings[v], siblingsShared, defaults);
+	local s = table.join(relativesSettings[v], relativesShared, defaults);
 	s.id = v;
 
-	siblings.settings[v] = npcManager.setNpcSettings(s);
-	npcManager.registerEvent(v, siblings, "onTickNPC");
+	relatives.settings[v] = npcManager.setNpcSettings(s);
+	npcManager.registerEvent(v, relatives, "onTickNPC");
 end
 
-function siblings:onTickNPC()
+function relatives:onTickNPC()
 	self.friendly = true;
-	self.data.name = self.data.name  or  siblingData[self.id].name;
+	self.data.name = self.data.name  or  relativesData[self.id].name;
 end
 
 

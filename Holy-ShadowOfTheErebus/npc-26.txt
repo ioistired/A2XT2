@@ -1,0 +1,2 @@
+grabtop=0
+grabside=0

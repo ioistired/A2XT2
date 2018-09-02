@@ -1,0 +1,11 @@
+framestyle=1
+frames=1
+width=72
+height=72
+gfxwidth=96
+gfxheight=96
+gfxoffsetx=24
+gfxoffsety=24 
+nohurt=0
+jumphurt=1
+score=0
