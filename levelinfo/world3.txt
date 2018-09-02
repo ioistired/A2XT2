@@ -58,3 +58,9 @@ LEVEL:Franky-desertfun
 	Author=Franky
 	Type=LEVEL
 	Exit=TAPE
+LEVEL:Holy-ShadowOfTheErebus
+	Name=Shadow of the Erebus
+	Author=Holy
+	Type=EOW
+	Exit=LEEK
+	Raocoins=true

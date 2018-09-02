@@ -1,7 +1,7 @@
 local rng = API.load ("rng")
 
 
-
+local darkness = API.load("darkness")
 
 
 function round(num) 
@@ -33,10 +33,13 @@ local sides = sidesArray[imgIndex]
 local full = Graphics.loadImage("full.png")
 local lamp = Graphics.loadImage("lamp.png")
 
+local field = darkness.Create{falloff=Misc.resolveFile("falloff_jitter.glsl"), uniforms = {noise = Graphics.loadImage("noise.png"), time = 0}, sections={0,2,3,4}}
+local plight = darkness.Light(0,0,0,1,Color.white);
+field:AddLight(plight);
 
-function onLoad()
+function onStart()
 	Audio.SeizeStream(-1)
-
+	plight:Attach(player);
 end
 
 
@@ -87,7 +90,11 @@ function manageDarkness (props)
 		nextLoop = rng.randomInt (5,15)
 	end
 	
-		
+	if(lunatime.tick()%8 == 0) then
+		field.uniforms.time = field.uniforms.time + 1;
+	end
+	plight.radius = (150-encroach)/150 * 760;
+	--[[
 	--CREATE DARKNESS
 	--bottom
 		Graphics.drawImageToScene (tops,player.x - (134 + encroach),player.y + player.height - 32 + (166 - (encroach*2.45)))
@@ -100,7 +107,7 @@ function manageDarkness (props)
 
 	--right	
 		Graphics.drawImageToScene (sides,player.x + (166 - (encroach*2.45)),player.y + player.height - 32 - 1440 + (166 + encroach))
-
+]]
 	--	Text.print(encroach,400,300)
 
 	
