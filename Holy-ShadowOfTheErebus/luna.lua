@@ -1,8 +1,10 @@
 local rng = API.load ("rng")
 
+local checkpoints = API.load("checkpoints");
 
 local darkness = API.load("darkness")
 
+local cp1 = checkpoints.create{x=-98976+16, y=-100192, section = 5}	
 
 function round(num) 
     if num >= 0 then return math.floor(num+.5) 
@@ -13,7 +15,7 @@ local encroach = 40
 local bun = 0
 local yeah = 0
 local moon = 0
-local stars = 0
+local stars = false
 local dense = 1.0
 local musak = 97
 local framecount = 0
@@ -30,15 +32,20 @@ end
 local tops = topsArray[imgIndex]
 local sides = sidesArray[imgIndex]
 
-local full = Graphics.loadImage("full.png")
 local lamp = Graphics.loadImage("lamp.png")
 
-local field = darkness.Create{falloff=Misc.resolveFile("falloff_jitter.glsl"), uniforms = {noise = Graphics.loadImage("noise.png"), time = 0}, sections={0,2,3,4}}
+local field = darkness.Create{falloff=Misc.resolveFile("falloff_jitter.glsl"), uniforms = {noise = Graphics.loadImage("noise.png"), time = 0}, sections={0,2,3,4, 5}}
 local plight = darkness.Light(0,0,0,1,Color.white);
 field:AddLight(plight);
 
+darkness.objects.bgos[57] = darkness.objects.bgos[96]
+
 function onStart()
 	Audio.SeizeStream(-1)
+	Audio.MusicOpen("banditcamp2.ogg")
+	Audio.MusicPlay()
+	Audio.MusicVolume (100)
+	
 	plight:Attach(player);
 end
 
@@ -58,7 +65,6 @@ function boolDefault (args)
 	
 	return returnval;
 end
-
 
 function manageDarkness (props)
 	local controlAudio = boolDefault {props.controlAudio, true}
@@ -115,7 +121,7 @@ function manageDarkness (props)
 
 	
 	--DARKNESS ABATED WHEN TOUCH LAMP
-	for _, b in pairs (BGO.getIntersecting(player.x, player.y, player.x + player.width, player.y + player.height)) do
+	for _, b in ipairs (BGO.getIntersecting(player.x, player.y, player.x + player.width, player.y + player.height)) do
 		if (b.id == 95 or b.id == 96) then
 			encroach = encroach - (encroach * growRate)
 			lampTouched = true
@@ -130,11 +136,9 @@ function manageDarkness (props)
 	
 	
 	--DRAW WHITE CIRCLE FOR LAMP
-	if (not lampTouched)  and  showWhiteCircle  then
-		for _, b in pairs(BGO.get()) do
-			if (b.id == 96) then
-				Graphics.drawImageToSceneWP(lamp,b.x,b.y,1.1)
-			end
+	if (not lampTouched or encroach > 125)  and  showWhiteCircle  then
+		for _, b in ipairs(BGO.get(96, player.section)) do
+			Graphics.drawImageToSceneWP(lamp,b.x,b.y,1.1)
 		end
 	end
 
@@ -156,9 +160,11 @@ function manageDarkness (props)
 	if  controlAudio  then
 		if  altAudio  then
 			if (encroach > 65 and encroach < 130) then
-			Audio.MusicVolume(round(0 + ((encroach - 65) * 1.5)))
+				Audio.MusicVolume(round(0 + ((encroach - 65) * 1.5)))
 			elseif (encroach > 130) then
-			Audio.MusicVolume(round(97.5))
+				Audio.MusicVolume(round(97.5))
+			else
+				Audio.MusicVolume(0)
 			end
 		else
 			--AUDIO STUFF
@@ -187,108 +193,115 @@ function manageDarkness (props)
 	end
 end
 
+local lastSection = 1;
 
-
-function onLoopSection0 ()
-	manageDarkness {}
-end
-
-
-function onLoadSection1 ()
-	Audio.MusicOpen ("banditcamp2.ogg")
-	Audio.MusicPlay ()
-	Audio.MusicVolume (100)
-end
-
-
-function onLoopSection1 ()
-	-- If the player dies, stop the music
-	if (player:mem(0x13E,FIELD_WORD) ~= 0) then
-		Audio.MusicStop ()
-	end
-end
-
-function onLoopSection2 ()
-	local bun = 40 + ((player.y + 160000) / 16.8)
-	manageDarkness {forcedVal = bun}
-end
-
-
-function onLoadSection3()
-	Audio.MusicOpen ("noise.ogg")
-	Audio.MusicVolume (0)
-	Audio.MusicPlay ()
-end
-
-function onLoopSection3()
-	manageDarkness {showWhiteCircle=false, shrinkIfDead=false}
-end
-
-
-function onLoadSection4()
-	Audio.MusicStop()
-end
-
-function onLoopSection4()
-	manageDarkness {}
-end
-
-
-
-function onLoadSection5 ()
-	encroach = 150
-	Audio.MusicOpen ("noise.ogg")
-	Audio.MusicVolume (round(97.5))
-	Audio.MusicPlay ()
-end
-
-function onLoopSection5 ()
-	manageDarkness {superShrink=true, growRate=0.08, shrinkRate=0.08, shrinkIfDead=false, useMoon=true, altAudio=true}
-end
-
-
-
-
-function onEvent(eventname)
-	if eventname == "axe" then
-		moon = 1
-	elseif eventname == "curtain" then
-		stars = 1
-	end
-end
-
-
-
-
---OUTER SPACE STUFF !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-function onLoopSection7 ()
-	if (stars == 0) then
-		if (musak >= 0) then
-			Audio.MusicVolume(round(musak))
-			musak = musak - 0.25
-		elseif (musak < 0) then
+function onTick()
+	--Entered a new section
+	if(player.section ~= lastSection) then
+		if(player.section == 3) then
+			Audio.MusicOpen ("noise.ogg")
+			Audio.MusicVolume (0)
+			Audio.MusicPlay ()
+		elseif(player.section == 4) then
 			Audio.MusicStop()
+		elseif(player.section == 5) then
+			encroach = 150
+			Audio.MusicOpen ("noise.ogg")
+			Audio.MusicVolume (round(97.5))
+			Audio.MusicPlay ()
+			
+			field.ambient = Color.black
 		end
 	end
-
-	if (dense > 0) then
-		Graphics.drawImage(full,0,0,dense)
-		if (stars == 1) then
+	
+	local changedSection = false;
+	
+	if(player.section == 0) then
+		manageDarkness {}
+	elseif(player.section == 1) then
+		-- If the player dies, stop the music
+		if(player:mem(0x13E,FIELD_WORD) ~= 0) then
+			Audio.MusicStop ()
+		end
+		
+		--Warp when player jumps down hole
+		if(player.y + player.height >= -180000) then
+			player.section = 2;
+			player.x = player.x + 19776;
+			player.y = -160608-32;
+			changedSection = true;
+		end
+	elseif(player.section == 2) then
+		local bun = 40 + ((player.y + 160000) / 16.8)
+		manageDarkness {forcedVal = bun}
+		
+		--Warp when player jumps down hole
+		if(player.y + player.height >= -160000) then
+			player.section = 0;
+			player.x = player.x - 39424;
+			player.y = -200896-32;
+			changedSection = true;
+		end
+		
+	elseif(player.section == 3) then
+		manageDarkness {showWhiteCircle=false, shrinkIfDead=false, controlAudio=false}		
+		
+		if(player.y + player.height > -138272) then
+			Audio.MusicVolume(math.min(100, Audio.MusicVolume()+0.12))
+		end
+		
+		--Warp when player jumps down hole
+		if(player.y + player.height >= -128512) then
+			player.section = 5;
+			player.x = -98976;
+			player.y = -100608-32;
+			changedSection = true;
+		end
+	elseif(player.section == 4) then
+		manageDarkness {}
+		
+		--Warp when player jumps down hole
+		if(player.y + player.height >= -120000) then
+			player.section = 3;
+			player.x = player.x - 20448;
+			player.y = -140608-32;
+			changedSection = true;
+		end
+	elseif(player.section == 5) then
+		manageDarkness {superShrink=true, growRate=0.08, shrinkRate=0.08, shrinkIfDead=false, useMoon=true, altAudio=true}
+		if(not cp1.collected and player:isOnGround()) then
+			cp1:collect()
+		end
+	--OUTER SPACE STUFF !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	elseif(player.section == 6) then
+		if (dense > 0) then
+			dense = dense - 0.001
+		end
+	elseif(player.section == 7) then
+		if (not stars) then
+			if (musak >= 0) then
+				Audio.MusicVolume(round(musak))
+				musak = musak - 0.25
+			elseif (musak < 0) then
+				Audio.MusicStop()
+				stars = true
+				triggerEvent("curtain")
+			end
+		elseif (dense > 0) then
 			Audio.MusicOpen("wilderness2.ogg")
 			Audio.MusicVolume(100)
 			Audio.MusicPlay()
 			dense = dense - 0.001
 		end
 	end
-end
-
-function onLoopSection6 ()
-	if (dense > 0) then
-		Graphics.drawImage (full,0,0,dense)
-		dense = dense - 0.001
+	
+	if(not changedSection) then
+		lastSection = player.section;
 	end
 end
 
-
-
-
+function onDraw()
+	if((player.section == 6 or player.section == 7) and dense > 0) then
+		Graphics.drawScreen{color={0,0,0,dense}}
+	end
+end
