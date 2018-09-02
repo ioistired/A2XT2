@@ -93,6 +93,9 @@ function manageDarkness (props)
 	if(lunatime.tick()%8 == 0) then
 		field.uniforms.time = field.uniforms.time + 1;
 	end
+	if(player:mem(0x13E, FIELD_WORD) ~= 0) then
+		plight:Detach();
+	end
 	plight.radius = (150-encroach)/150 * 760;
 	--[[
 	--CREATE DARKNESS
