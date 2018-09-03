@@ -45,7 +45,7 @@ local bgoReplacementIDs = {42,80,86,96,116,121,122,153}
 Block.config[223].frames = 16;
 
 function onTick()
-	for k,v in pairs(Block.get(223)) do
+	for k,v in ipairs(Block.get(223)) do
 		v.speedX = -6
 	end
 end
