@@ -48,6 +48,14 @@ function onTick()
 	for k,v in ipairs(Block.get(223)) do
 		v.speedX = -6
 	end
+	for _, q in pairs(BGO.getIntersecting(player.x, player.y, player.x + player.width, player.y + player.height)) do
+		if q.id == 150 then
+			if not q.isHidden then
+				player.x = -179648
+				player.y = -180352
+			end
+		end
+	end
 end
 
 local function randomiseTileset()
