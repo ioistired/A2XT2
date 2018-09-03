@@ -35,7 +35,7 @@ LEVEL:Enjl-Stylish Summit
 	Author=Enjl
 	Type=LEVEL
 	Chars=DIRK
-	Exit=ROULETTE
+	Exit=JAR
 	Raocoins=true
 LEVEL:SAJewers-MountianDescent
 	Name=Mountain Descent
