@@ -26,14 +26,14 @@ local rewardBox = {}
 for  _,v in ipairs{"card", "raocoin", "costume"}  do
 	local img = Graphics.loadImage(Misc.resolveFile("graphics/rewards/reward_"..v..".png"));
 	rewardImg[v] = img
-	rewardBox[v] = imagic.Create{x=400, y=-999, scene=true, align=imagic.ALIGN_CENTRE, primitive=imagic.TYPE_BOX, width=img.width*2, height=img.height*2, texture=img};
+	rewardBox[v] = imagic.Create{x=400, y=-9999999, scene=true, align=imagic.ALIGN_CENTRE, primitive=imagic.TYPE_BOX, width=img.width*2, height=img.height*2, texture=img};
 end
 
 rewardBox.none = {x=0,Draw = function() end}
 
 local exclamations = {"Hot DOG", "Hot DIGGITY", "Hot ZIGGETY", "Sweet", "Radicola", "Righteous", "Swanky", "Yes", "Oh man", "Heck yeah", "Yay", "Excellent", "Woo", "Woohoo", "Cool beans", "All right", "Cor blimey", "Nice", "Lawdy", "WHAT", "No way", "Hallelujah", "Wow", "Gee whiz", "Oh me, oh my", "Yippee", "Holy smokes", "Holy mackerel", "Holy priceless collection of etruscan snoods, Batman", "Holy hotpockets", "Holy known unknown flying objects", "Holy cow", "Holy guacamole", "Holy hamstrings", "Well, whaddaya know", "Oh, hey", "Brilliant", "Beautiful", "Billions of bilious blue blistering barnacles", "Ten thousand thundering typhoons", "Great Scott", "NANI?!?", "MAJIDE?!?", "NO! THAT'S IMPOSSIBLE", "Outstanding", "Incredible", "Amazing", "Spectacular", "Unbelievable", "Inconceivable", "Huh, how about that", "Welp", "Objection", "Hold it", "Take that", "Huzzah", "Jackpot", "Hey! Listen", "Mamma-mia", "Oooh", "Believe your justice", "Neato", "Jeepers", "Man alive", "Rock solid", "Mathematical", "BEHOLD", "Jeezy Petes", "Appa! Yip yip", "Bajabbers", "Blabbering blatherskite", "Good news, everyone"}
 
-local currBox = rewardBox.raocoin
+local currBox = nil
 
 local function cor_giveReward (args)
 
@@ -123,7 +123,7 @@ local function cor_giveReward (args)
 	end
 	eventu.abort(showMsgLoop)
 	eventu.abort(raiseSpr)
-	currBox.y = -999
+	currBox = nil;
 	if(args.useTransitions) then
 		cam:Transition {time=0.5, targets=targetTemp, yOffset=yOffTemp, zoom=zoomTemp, easeBoth=cman.EASE.QUAD, runWhilePaused=true}
 	end
@@ -154,15 +154,20 @@ end
 
 
 function rewards:onDraw()
-	sunburstBox.y = currBox.y
-	sunburstBox.x = currBox.x
+	if(currBox ~= nil) then
+		sunburstBox.y = currBox.y
+		sunburstBox.x = currBox.x
 
-	sunburstBox:Rotate(0.5)
-	sunburstBox:Draw{priority=-1.1, color=0xFFFFFF99}
+		sunburstBox:Rotate(0.5)
+		sunburstBox:Draw{priority=-1.1, color=0xFFFFFF99}
 
-	for  k,v in pairs(rewardBox)  do
-		v.x = player.x + 0.5*player.width
-		v:Draw{priority=-1}
+		currBox.x = player.x + 0.5*player.width;
+		currBox:Draw{priority=-1};
+		
+		--[[for  k,v in pairs(rewardBox)  do
+			v.x = player.x + 0.5*player.width
+			v:Draw{priority=-1}
+		end]]
 	end
 end
 
