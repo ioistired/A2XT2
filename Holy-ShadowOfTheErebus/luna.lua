@@ -41,11 +41,6 @@ field:AddLight(plight);
 darkness.objects.bgos[57] = darkness.objects.bgos[96]
 
 function onStart()
-	Audio.SeizeStream(-1)
-	Audio.MusicOpen("banditcamp2.ogg")
-	Audio.MusicPlay()
-	Audio.MusicVolume (100)
-	
 	plight:Attach(player);
 end
 
@@ -230,6 +225,7 @@ function onTick()
 			player.x = player.x + 19776;
 			player.y = -160608-32;
 			changedSection = true;
+			playMusic(2);
 		end
 	elseif(player.section == 2) then
 		local bun = 40 + ((player.y + 160000) / 16.8)
@@ -241,6 +237,7 @@ function onTick()
 			player.x = player.x - 39424;
 			player.y = -200896-32;
 			changedSection = true;
+			playMusic(0);
 		end
 		
 	elseif(player.section == 3) then
@@ -256,6 +253,7 @@ function onTick()
 			player.x = -98976;
 			player.y = -100608-32;
 			changedSection = true;
+			playMusic(5);
 		end
 	elseif(player.section == 4) then
 		manageDarkness {}
@@ -266,32 +264,43 @@ function onTick()
 			player.x = player.x - 20448;
 			player.y = -140608-32;
 			changedSection = true;
+			playMusic(3);
 		end
 	elseif(player.section == 5) then
 		manageDarkness {superShrink=true, growRate=0.08, shrinkRate=0.08, shrinkIfDead=false, useMoon=true, altAudio=true}
 		if(not cp1.collected and player:isOnGround()) then
 			cp1:collect()
 		end
-	--OUTER SPACE STUFF !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	elseif(player.section == 6) then
-		if (dense > 0) then
-			dense = dense - 0.001
-		end
-	elseif(player.section == 7) then
-		if (not stars) then
+		if (player.x > -96150)  then
+			player.x = -96128
 			if (musak >= 0) then
 				Audio.MusicVolume(round(musak))
 				musak = musak - 0.25
 			elseif (musak < 0) then
-				Audio.MusicStop()
+				player.section = 7;
+				player.x = -59512;
+				player.y = -60128-player.height;
+				changedSection = true;
 				stars = true
 				triggerEvent("curtain")
+				playMusic(7)
 			end
+		end
+
+	--OUTER SPACE STUFF !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	elseif(player.section == 6) then
+		if (dense > 0) then
+			dense = dense - 0.002
+			Audio.MusicVolume(100-100*dense)
+		end
+	elseif(player.section == 7) then
+		if (not stars) then
+
 		elseif (dense > 0) then
-			Audio.MusicOpen("wilderness2.ogg")
-			Audio.MusicVolume(100)
-			Audio.MusicPlay()
-			dense = dense - 0.001
+			--Audio.MusicOpen("wilderness2.ogg")
+			Audio.MusicVolume(100-100*dense)
+			--Audio.MusicPlay()
+			dense = dense - 0.002
 		end
 	end
 	
