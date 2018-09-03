@@ -59,7 +59,6 @@ local function makeFloater(x, y, rotation, speed, rotspeed, ttl, size)
 end
 
 local function cor_intro()
-	playMusic(1)
 	local cam = cman.playerCam[1]
 	cam.targets={}
 	local camx = -200000+400
@@ -186,7 +185,7 @@ local function cor_intro()
 	cam:Reset();
 	cpintro:collect();
 	scene.endScene();
-	playMusic(0)
+	playMusic(1)
 end
 
 
@@ -209,6 +208,7 @@ function onStart()
 		startingsizeable:show(true);
 		startroomvisible = false;
 		ACTOR_SHEATH:BecomePlayer();
+		playMusic(1);
 	else
 		scene.startScene{scene=cor_intro}
 	end
