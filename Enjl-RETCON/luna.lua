@@ -42,6 +42,14 @@ local bgoReplacementList =
 		}
 local bgoReplacementIDs = {42,80,86,96,116,121,122,153}
 
+Block.config[223].frames = 16;
+
+function onTick()
+	for k,v in pairs(Block.get(223)) do
+		v.speedX = -6
+	end
+end
+
 local function randomiseTileset()
 	rng.seed = 57
 	for k,v in ipairs(Block.get(blockReplacementIDs)) do
@@ -100,6 +108,8 @@ local function randomiseTileset()
 		v:remove();
 	end
 end
+
+
 
 local function openingCutscene()
 	--[[
@@ -184,8 +194,19 @@ local function drawMonitor(id, dir)
 	}
 end
 
+local GM_FRAME = readmem(0x00B2BEA0, FIELD_DWORD)
+local function get_block_frame(id)
+	return readmem(GM_FRAME + 2*(id-1), FIELD_WORD)
+end
+local function set_block_frame(id, v)
+	return writemem(GM_FRAME + 2*(id-1), FIELD_WORD, v)
+end
+
 function onDraw()
 	for _,v in ipairs(sizeables) do
 		Graphics.glDraw{vertexCoords = v.verts, textureCoords = v.txs, texture = v.img, sceneCoords = true, priority = -95.01}
 	end
+
+	set_block_frame(223, (get_block_frame(223)+1)%16)
 end
+
