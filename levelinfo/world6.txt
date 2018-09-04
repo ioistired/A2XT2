@@ -72,6 +72,6 @@ LEVEL:ztarwuff-TheUpsAndDownsOfADemo
 LEVEL:ztarwuff and rockythechao-Castle6
 	Name=Bellissimo Schloss del Mundo Chaotique
 	Author=ztarwuff & rockythechao
-	Type=EOW
+	Type=LEVEL
 	Exit=LEEK
 	Raocoins=true

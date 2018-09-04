@@ -70,5 +70,17 @@ LEVEL:SAJewers-SideCrawlersClimb
 LEVEL:talkhaus-FinalLevel
 	Name=The R.E.B.O.O.T.
 	Author=talkhaus
+	Type=LEVEL
+	Exit=LEEK
+LEVEL:Hoeloe-Pumpernickle
+	Name=Uncle Pumpernickle
+	Author=Hoeloe
 	Type=EOW
 	Exit=LEEK
+	Chars=D
+LEVEL:Hoeloe-TumultaGloria
+	Name=Tumulta Gloria
+	Author=Hoeloe
+	Type=EOW
+	Exit=JAR
+	Chars=B

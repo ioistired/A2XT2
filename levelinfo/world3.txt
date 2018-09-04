@@ -27,7 +27,7 @@ LEVEL:Darkonius64-Cliffship_Canyon
 LEVEL:SMCslevelengine-DustyGrave
 	Name=Dusty Grave
 	Author=SMCslevelengine
-	Type=EOW
+	Type=LEVEL
 	Exit=LEEK
 LEVEL:Hoeloe-Temporis
 	Name=Temporis
@@ -61,6 +61,6 @@ LEVEL:Franky-desertfun
 LEVEL:Holy-ShadowOfTheErebus
 	Name=Shadow of the Erebus
 	Author=Holy
-	Type=EOW
+	Type=LEVEL
 	Exit=LEEK
 	Raocoins=true

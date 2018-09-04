@@ -24,6 +24,7 @@ LEVEL:rockythechao-AquaticGrotto
 	Type=LEVEL
 	Talktime=true
 	Exit=LEEK
+	Raocoins=true
 	Chars=DIRKS
 LEVEL:Holy-Ectoplasmania
 	Name=Ectoplasmania
@@ -48,6 +49,6 @@ LEVEL:EntropyRogue-OvergrownUnderground
 	Name=Overgrown Underground
 	Author=EntropyRogue
 	Raocoins=true
-	Type=EOW
+	Type=LEVEL
 	Exit=Leek
 	FilterMounts
