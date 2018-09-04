@@ -645,6 +645,14 @@ end
 -- ** PORTALS           **
 -- ***********************
 local portal = {}
+local portalclosing = 0;
+local portalwarp = 0;
+local portalfade = 0;
+local portalData = {
+    [974] = {name = "Return to P.O.R.T.(S.)", event="townportal"},
+    [975] = {name = "Leave P.O.R.T.(S.)", event="hubportal"}
+}
+
 local portalSettings = table.join(
 	{
 	 gfxwidth = 128, 
@@ -653,8 +661,7 @@ local portalSettings = table.join(
 	 width = 64, 
 	 height = 64,
 	 framestyle = 0,
-	 frames = 15,
-	 framespeed = 3
+	 frames = 1
 	},
 	defaults);
 
@@ -668,29 +675,100 @@ end
 for _,v in ipairs(portal) do
 	npcManager.setNpcSettings(v);
 	npcManager.registerEvent(v.id, portal, "onTickNPC");
+	npcManager.registerEvent(v.id, portal, "onDrawNPC");
 	--npcManager.registerEvent(v.id, portal, "onTickNPC");
 	--npcManager.registerEvent(v.id, portal, "onDrawNPC");
 end	
 
-local portalEvents = {[974]="townportal",[975]="hubportal"}
+registerEvent(portal, "onDraw");
+
+
+
+local portalTarget = Graphics.CaptureBuffer(64,64);
+local portalShader = Shader();
+portalShader:compileFromFile(nil, Misc.resolveFile("shaders/portal.frag"));
+
+function portal.onDraw()
+	portalTarget:clear(-100);
+	Graphics.drawBox{x=0, y=0, width=64, height=64, shader = portalShader, uniforms = {iTime = lunatime.time(), radius = 0.65}, target = portalTarget, priority = -100}
+	
+	if(portalwarp > 0) then
+		--player:mem(0x142, FIELD_BOOL, false);
+		--player:render{color=math.lerp(Color.white, Color.alphawhite, portalwarp*2)}
+		if(portalwarp > 0.5) then
+			player:mem(0x142, FIELD_BOOL, true);
+		end
+		Graphics.drawCircle{x = player.x+player.width*0.5, y = player.y+player.height*0.5, radius = math.sin(portalwarp*math.pi)*math.sin(portalwarp*math.pi)*64, sceneCoords = true, priority = -25}
+	end
+	
+	if(portalfade > 0) then
+		Graphics.drawScreen{color={1,1,1,portalfade}, priority = 5}
+	end
+end
+
+
 function portal:onTickNPC()
+	self.data.talkIcon = 6;
+	self.data.iconOffset = 32;
 	self.friendly = true
-	self.data.event = portalEvents[self.id]
+    self.data.event = portalData[self.id].event
+    self.data.name = portalData[self.id].name
+	
+	if(self.data.glowtimer == nil) then
+		self.data.glowtimer = 0;
+	end
+	
+	if(self:mem(0x44,FIELD_BOOL) and colliders.collide(player, self)) then --Can be talked to
+		self.data.glowtimer = math.min(self.data.glowtimer+0.1, 1);
+	else
+		self.data.glowtimer = math.max(self.data.glowtimer-0.1, 0);
+	end
+end
+
+function portal:onDrawNPC()
+	local w = math.lerp(128,160,portalclosing);
+	local h = math.lerp(128,0,portalclosing);
+	local x = self.x+(self.width-w)*0.5;
+	local y = self.y+(self.height-h)*0.5 - 20;
+	Graphics.drawBox{x=x, y=y, width=w, height=h, texture = portalTarget, priority = -45.00001, sceneCoords = true}
+	
+	if(self.data.glowtimer > 0) then --Can be talked to
+		local c = self.data.glowtimer;
+		Graphics.drawBox{x=x, y=y, width=w, height=h, texture = portalTarget, priority = -45.00001, sceneCoords = true, vertexColors={c,c,c,0,c,c,c,0,c,c,c,0,c,c,c,0}}
+	end
 end
 
 a2xt_message.presetSequences.townportal = function(args)
+	eventu.waitSeconds(0.5)
 	a2xt_message.promptChosen = false
 	a2xt_message.showPrompt {options = {"Return to P.O.R.T.(S.)", a2xt_message.getNoOption()}}
 	a2xt_message.waitPrompt ()
 
+	eventu.waitSeconds(0.5)
 	if  (a2xt_message.promptChoice == 1)  then
-		eventu.waitSeconds(1)
+		
+		for i=0,64 do
+			portalwarp = math.min(i/32,1);
+			portalclosing = math.clamp((i-32)/16,0,1);
+			if(i == 32) then
+				eventu.waitSeconds(0.5);
+			end
+			eventu.waitFrames(0);
+		end
+		
+		Audio.MusicStopFadeOut(1000);
+		for i=0,64 do
+			portalfade = i/64;
+			eventu.waitFrames(0);
+		end
 		a2xt_leveldata.LoadLevel("hub.lvl",0)
-		a2xt_scene.endScene()
 	end
+	a2xt_scene.endScene()
+	a2xt_message.endMessage();
 end
 
 a2xt_message.presetSequences.hubportal = function(args)
+	eventu.waitSeconds(0.5)
 	local portal = args.npc
 
 	local worldOptions = {}
@@ -725,8 +803,14 @@ a2xt_message.presetSequences.hubportal = function(args)
 
 	-- If the player selected one of the worlds, either go to that map position or the SOW level
 	if(a2xt_message.promptChoice ~= #worldOptions)  then
-		eventu.waitSeconds(1)
+		Audio.MusicStopFadeOut(1000);
+		for i=0,64 do
+			portalfade = i/64;
+			eventu.waitFrames(0);
+		end
+		
 		a2xt_scene.endScene()
+		a2xt_message.endMessage();
 
 		local worldNum = optionWorlds[a2xt_message.promptChoice]
 		local worldStartLevel = a2xt_leveldata.GetWorldStart(worldNum)
@@ -751,6 +835,7 @@ a2xt_message.presetSequences.hubportal = function(args)
 
 	-- End scene
 	a2xt_scene.endScene()
+	a2xt_message.endMessage();
 end
 
 -- ***********************************

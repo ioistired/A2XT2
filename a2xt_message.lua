@@ -24,7 +24,7 @@ local messageInvincibile = 0;
 function a2xt_message.onInitAPI()
 	registerEvent (a2xt_message, "onStart", "onStart", false)
 	registerEvent (a2xt_message, "onTick", "onTick", false)
-	registerEvent (a2xt_message, "onCameraUpdate", "onCameraUpdate", false)
+	registerEvent (a2xt_message, "onCameraDraw", "onCameraDraw", false)
 	registerEvent (a2xt_message, "onDraw", "onDraw", false)
 	registerEvent (a2xt_message, "onMessageBox", "onMessageBox", false)
 	
@@ -75,8 +75,8 @@ textblox.presetProps[5] = table.join(
 --***************************
 --** Variables             **
 --***************************
-local iconSeqs = {[1]="2p2,3,4,5", [2]="2p2,3,4,5", [3]="2p2,3,4,5", [4]="2p2,3,4,5"}
-local iconSet = animatx.Set {sheet=Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_talk.png")), states=4, frames=5, sequences=iconSeqs}
+local iconSeqs = {[1]="2p2,3,4,5", [2]="2p2,3,4,5", [3]="2p2,3,4,5", [4]="2p2,3,4,5", [5]="2p2,3,4p2,5", [6]="2p2,3,4p2,3"}
+local iconSet = animatx.Set {sheet=Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_talk.png")), states=6, frames=5, sequences=iconSeqs}
 
 local uiFont = A2XT_FONT_MAIN
 
@@ -963,7 +963,7 @@ function a2xt_message.onDraw()
 end
 
 
-function a2xt_message.onCameraUpdate(camindex)
+function a2xt_message.onCameraDraw(camindex)
 	if(camindex > 1) then return end;
 	
 	-- Free reference to the most recent message if necessary
@@ -994,7 +994,7 @@ function a2xt_message.onCameraUpdate(camindex)
 
 	-- Main icon update loop
 	if  not a2xt_scene.inCutscene  then
-		for  k,v in pairs (NPC.getIntersecting(cam.x-48, cam.y-64, cam.x+cam.width+64, cam.y+cam.height+64))  do
+		for  k,v in ipairs (NPC.getIntersecting(cam.x-48, cam.y-64, cam.x+cam.width+64, cam.y+cam.height+64))  do
 			-- If the NPC qualifies
 			v = pnpc.wrap(v)
 			if(v.id == 979) then --Is a chest
@@ -1019,7 +1019,7 @@ function a2xt_message.onCameraUpdate(camindex)
 						-- Initialize the pnpc data
 						if  v.data.a2xt_message == nil then
 							v.data.a2xt_message = {
-												   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y, z=1, alpha=0, state=v.data.talkIcon or 1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
+												   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y-(v.data.iconOffset or 0), z=1, alpha=0, state=v.data.talkIcon or 1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
 												   talkedTo = false,
 												   currScale = 1
 												  }
