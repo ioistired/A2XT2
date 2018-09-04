@@ -803,11 +803,13 @@ a2xt_message.presetSequences.hubportal = function(args)
 
 	-- If the player selected one of the worlds, either go to that map position or the SOW level
 	if(a2xt_message.promptChoice ~= #worldOptions)  then
+		Audio.SeizeStream(-1);
 		Audio.MusicStopFadeOut(1000);
 		for i=0,64 do
 			portalfade = i/64;
 			eventu.waitFrames(0);
 		end
+		eventu.waitSeconds(0.5)
 		
 		a2xt_scene.endScene()
 		a2xt_message.endMessage();
