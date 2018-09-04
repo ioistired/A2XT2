@@ -574,6 +574,18 @@ if(not isOverworld) then
 	local function checkWarp(data)
 		return type(data) == "table" and player:mem(0x15E, FIELD_WORD) == data[1];
 	end
+	
+	function leveldata.clearLevel(fromSecret)
+		local name = string.sub(Level.filename(), 0, -5);
+		local data = lvl[name];
+		if(data) then
+			if(fromSecret) then
+				SaveData.completion[name].Secret = true;
+			else
+				SaveData.completion[name].Exit = true;
+			end
+		end
+	end
 
 	function leveldata.onExitLevel()
 		local name = string.sub(Level.filename(), 0, -5);
