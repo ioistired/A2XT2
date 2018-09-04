@@ -32,6 +32,12 @@ LEVEL:Holy-Ectoplasmania
 	Type=LEVEL
 	Exit=CASH
 	Chars=D
+LEVEL:HenryRichard-Ew, These Non-Newtonian Fluids are Orange!
+	Name=Ew, These Non-Newtonian Fluids are Orange!
+	Author=HenryRichard
+	Type=LEVEL
+	Exit=LEEK
+	Chars=DI
 LEVEL:gameguy888-HazyMaizeCave
 	Name=Hazy Maize Cave
 	Author=gameguy888
