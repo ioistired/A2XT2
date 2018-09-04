@@ -18,6 +18,13 @@ LEVEL:Oddwrath-BatAnEye
 	Exit=LEEK
 	Chars=DIR
 	FilterMounts
+LEVEL:rockythechao-AquaticGrotto
+	Name=Aquatic Grotto
+	Author=Rockythechao
+	Type=LEVEL
+	Talktime=true
+	Exit=LEEK
+	Chars=DIRKS
 LEVEL:Holy-Ectoplasmania
 	Name=Ectoplasmania
 	Author=Holy
