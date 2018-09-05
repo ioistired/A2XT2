@@ -25,6 +25,8 @@ local leekjuice = Graphics.loadImage("leek juice.png");
 local leekjuicecap = Graphics.loadImage("leek juice cap.png");
 local leekbackground = Graphics.loadImage("funnel-bg.png");
 
+local phonebox = Graphics.loadImage("phonebox.png");
+
 local gears = {};
 local gearsOnLift = {};
 local liftGearPlatform = nil;
@@ -811,6 +813,17 @@ local leekDoorColors = {0xBD0A00AA,0xBD0A00AA,0x009A35AA}
 
 
 function onDraw()
+	
+	--Phonebox door
+	if(player:mem(0x122, FIELD_WORD) == 7) then
+		for _,v in ipairs(BGO.get(141)) do
+			if(colliders.collide(player, colliders.Box(v.x, v.y, v.width, v.height))) then
+				local f = math.floor((player:mem(0x124,FIELD_DFLOAT)/30)*4);
+				Graphics.drawImageToSceneWP(phonebox, v.x, v.y, 0, 128*f, 96, 128, -60);
+			end
+		end
+	end
+
 	for _,v in ipairs(leekDoorCounters) do
 		local c = 1;
 		local leeks = mem(0x00B251E0, FIELD_WORD)

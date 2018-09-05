@@ -29,7 +29,7 @@ math.random();
 math.random();
 local index = math.random(1,#imgs)
 
-local img = Graphics.loadImage("graphics/loading/"..imgs[index]);
+local img = Graphics.loadImage(mem(0x00B2C61C, FIELD_STRING).."graphics/loading/"..imgs[index]);
 local seq = frames[index]
 
 local x = -64;
@@ -41,7 +41,7 @@ local img2;
 local state = 0;
 
 if(imgs2[index]) then
-	img2 = Graphics.loadImage("graphics/loading/"..imgs2[index]);
+	img2 = Graphics.loadImage(mem(0x00B2C61C, FIELD_STRING).."graphics/loading/"..imgs2[index]);
 end
 
 function onDraw()
