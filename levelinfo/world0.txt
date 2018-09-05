@@ -6,6 +6,15 @@ LEVEL:Pyro-Tutorial Area Region Place Zone
 	Raocoins=false
 	Chars=D
 	FilterPowers
+LEVEL:Enjl-HideAndLeap
+	Name=Hide and Leap!
+	Author=Enjl
+	Type=LEVEL
+	Exit=CASH
+	Raocoins=false
+	Chars=R
+	FilterPowers
+	FilterMounts
 LEVEL:Hoeloe-TheGirlWhoLeaptThroughTime
 	Name=The Girl Who Leapt Through Time (and Space?)
 	Author=Hoeloe
