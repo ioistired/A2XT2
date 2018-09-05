@@ -27,7 +27,7 @@ LEVEL:Darkonius64-Cliffship_Canyon
 LEVEL:SMCslevelengine-DustyGrave
 	Name=Dusty Grave
 	Author=SMCslevelengine
-	Type=EOW
+	Type=LEVEL
 	Exit=LEEK
 LEVEL:Hoeloe-Temporis
 	Name=Temporis
@@ -44,7 +44,7 @@ LEVEL:FrozenQuills-Awesome Moonlight Oasis Vinesaw Pool Party
 	Raocoins=true
 LEVEL:louiejub-Desert_Dash_Goopa_Brigade
 	Name=Desert Dash: Goopa Brigade!
-	Author=Louiejub
+	Author=GenesisJames
 	Type=LEVEL
 	Exit=LEEK
 	Chars=R
@@ -61,6 +61,6 @@ LEVEL:Franky-desertfun
 LEVEL:Holy-ShadowOfTheErebus
 	Name=Shadow of the Erebus
 	Author=Holy
-	Type=EOW
+	Type=LEVEL
 	Exit=LEEK
 	Raocoins=true

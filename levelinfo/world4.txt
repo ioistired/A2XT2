@@ -18,12 +18,26 @@ LEVEL:Oddwrath-BatAnEye
 	Exit=LEEK
 	Chars=DIR
 	FilterMounts
+LEVEL:rockythechao-AquaticGrotto
+	Name=Aquatic Grotto
+	Author=Rockythechao
+	Type=LEVEL
+	Talktime=true
+	Exit=LEEK
+	Raocoins=true
+	Chars=DIRKS
 LEVEL:Holy-Ectoplasmania
 	Name=Ectoplasmania
 	Author=Holy
 	Type=LEVEL
 	Exit=CASH
 	Chars=D
+LEVEL:HenryRichard-Ew, These Non-Newtonian Fluids are Orange!
+	Name=Ew, These Non-Newtonian Fluids are Orange!
+	Author=HenryRichard
+	Type=LEVEL
+	Exit=LEEK
+	Chars=DI
 LEVEL:gameguy888-HazyMaizeCave
 	Name=Hazy Maize Cave
 	Author=gameguy888
@@ -41,6 +55,6 @@ LEVEL:EntropyRogue-OvergrownUnderground
 	Name=Overgrown Underground
 	Author=EntropyRogue
 	Raocoins=true
-	Type=EOW
+	Type=LEVEL
 	Exit=Leek
 	FilterMounts

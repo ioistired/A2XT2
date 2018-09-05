@@ -31,7 +31,7 @@ LEVEL:cadwyn-hoperidesalone
 	Name=Hope Rides Alone
 	Author=Cadwyn/SAJewers
 	Chars=R
-	Type=EOW
+	Type=LEVEL
 	Exit=CASH
 LEVEL:Wohlstand-What-About-Railways
 	Name=What About Railways?

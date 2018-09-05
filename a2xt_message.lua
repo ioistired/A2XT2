@@ -24,7 +24,7 @@ local messageInvincibile = 0;
 function a2xt_message.onInitAPI()
 	registerEvent (a2xt_message, "onStart", "onStart", false)
 	registerEvent (a2xt_message, "onTick", "onTick", false)
-	registerEvent (a2xt_message, "onCameraUpdate", "onCameraUpdate", false)
+	registerEvent (a2xt_message, "onCameraDraw", "onCameraDraw", false)
 	registerEvent (a2xt_message, "onDraw", "onDraw", false)
 	registerEvent (a2xt_message, "onMessageBox", "onMessageBox", false)
 	
@@ -75,8 +75,8 @@ textblox.presetProps[5] = table.join(
 --***************************
 --** Variables             **
 --***************************
-local iconSeqs = {[1]="2p2,3,4,5", [2]="2p2,3,4,5", [3]="2p2,3,4,5", [4]="2p2,3,4,5"}
-local iconSet = animatx.Set {sheet=Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_talk.png")), states=4, frames=5, sequences=iconSeqs}
+local iconSeqs = {[1]="2p2,3,4,5", [2]="2p2,3,4,5", [3]="2p2,3,4,5", [4]="2p2,3,4,5", [5]="2p2,3,4p2,5", [6]="2p2,3,4p2,3"}
+local iconSet = animatx.Set {sheet=Graphics.loadImage(Misc.resolveFile("graphics/HUD/icon_talk.png")), states=6, frames=5, sequences=iconSeqs}
 
 local uiFont = A2XT_FONT_MAIN
 
@@ -118,8 +118,8 @@ a2xt_message.type = {bubble=textblox.PRESET_BUBBLE, system=textblox.PRESET_SYSTE
 a2xt_message.presetSequences = {}
 a2xt_message.presetSequences._multipageTest = "Beginning multi-page test.<page>AAAAAAAAAAAAAAAA<page>AAAAAAAAAAAAAAAAAAAA<page>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA<page>*inhales*<page>AAAAAAAAAAoh hi there<page>Test concluded.  Check the message API's presetSequences._multipageTest to see the code for this sequence."
 
-local yesTable = {"Sure","K","Arrighty","ACCEPT","Radicola","Yeh","Okie doke","Aw HELL yea","Neat beans","Sure","Sure, why not","YES","All of my yes","Totes","Okay","I guess","Great!","Awesome!","Heck yeah!","Fully approve.","This pleases me","I'm down with it.","Righteous","I see no problem with this.","Meh, whatever.","*Shake excitedly*","I feel good about this.","Full steam ahead!","Oh, very much so.","Yes yes yes yes yes yes yes","*nod solemnly*","Supersauce","*resigning nod*","I'm leaning yes","My mind says no but my heart says yes","Jump up, superstar"};
-local noTable = {"Lame.","Nah","No","NO","Are you serious...?","no no no no no no no no no","Don't","Do not","Do not want","DECLINE","*growl in contempt*","I dunno...","NO. BAD.","Nnnnnnope!","Goodbye!","NEGATIVE","STRONGLY DISAGREE","DECLINE","*Excessive display of disapproval*","Maybe next time","Downright bogus","Negatory, good buddy","Who put you on the planet?","Think of the consequences, you fool!","How about no?","Count me out.","No. Just, no.","I don't even","Never.","You will regret this.","*piercing gaze*","Despair engulfs me.","why","Do I have to answer that?","A curse upon thee!"}
+local yesTable = {"Sure","K","Arrighty","ACCEPT","Radicola","Yeh","Okie doke","Aw HELL yea","Neat beans","Sure","Sure, why not","YES","All of my yes","Totes","Okay","I guess","Great!","Awesome!","Heck yeah!","Fully approve.","This pleases me","I'm down with it.","Righteous","I see no problem with this.","Meh, whatever.","*Shake excitedly*","I feel good about this.","Full steam ahead!","*sigh*, if I have to...","Aye me bucko","You have my attention","Oh, very much so.","Most definitely","Yes yes yes yes yes yes yes","*nod solemnly*","Supersauce","*resigning nod*","I'm leaning yes","My mind says no but my heart says yes","Jump up, superstar"};
+local noTable = {"Lame.","Nah","No","NO","Are you serious...?","no no no no no no no no no","Don't","Do not","Do not want","DECLINE","*growl in contempt*","I dunno...","NO. BAD.","MAKE IT STOP","Nnnnnnope!","Goodbye!","NEGATIVE","STRONGLY DISAGREE","DECLINE","*Excessive display of disapproval*","Maybe next time","Downright bogus","Negatory, good buddy","Who put you on the planet?","Think of the consequences, you fool!","How about no?","Count me out.","No. Just, no.","I don't even","Never.","You will regret this.","*piercing gaze*","Despair engulfs me.","why","Do I have to answer that?","A curse upon thee!","*Exaggerated gesture of disgust*"}
 local cancelTable = {"Never mind.","On second thought...","This was a mistake!","I changed my mind","Opt out","*Immediate regret*","Okay, let's not","Common sense just kicked in","Wait, I'm a dumb","Forget it"}--,"Wait, did you really think I was going to do that thing?  Well, you were WRONG.  Don't ever judge a book by its cover."}
 
 
@@ -356,7 +356,7 @@ local function cor_talkToNPC (args)
 		eventu.waitSignal("playerPositioned")
 	end
 	
-	if(not isOverworld and not isTownLevel()) then
+	if(not isOverworld and freezesWhileTalking()) then
 		Misc.pause();
 	end
 	messageInvincibile = 32;
@@ -963,7 +963,7 @@ function a2xt_message.onDraw()
 end
 
 
-function a2xt_message.onCameraUpdate(camindex)
+function a2xt_message.onCameraDraw(camindex)
 	if(camindex > 1) then return end;
 	
 	-- Free reference to the most recent message if necessary
@@ -994,7 +994,7 @@ function a2xt_message.onCameraUpdate(camindex)
 
 	-- Main icon update loop
 	if  not a2xt_scene.inCutscene  then
-		for  k,v in pairs (NPC.getIntersecting(cam.x-48, cam.y-64, cam.x+cam.width+64, cam.y+cam.height+64))  do
+		for  k,v in ipairs (NPC.getIntersecting(cam.x-48, cam.y-64, cam.x+cam.width+64, cam.y+cam.height+64))  do
 			-- If the NPC qualifies
 			v = pnpc.wrap(v)
 			if(v.id == 979) then --Is a chest
@@ -1019,7 +1019,7 @@ function a2xt_message.onCameraUpdate(camindex)
 						-- Initialize the pnpc data
 						if  v.data.a2xt_message == nil then
 							v.data.a2xt_message = {
-												   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y, z=1, alpha=0, state=v.data.talkIcon or 1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
+												   iconSpr = iconSet:Instance {x=v.x+v.width*0.5, y=v.y-(v.data.iconOffset or 0), z=1, alpha=0, state=v.data.talkIcon or 1, scale=2, speed=0, yAlign=animatx.ALIGN.BOTTOM, sceneCoords=false, visible=true},
 												   talkedTo = false,
 												   currScale = 1
 												  }

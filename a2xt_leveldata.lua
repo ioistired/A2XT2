@@ -95,6 +95,19 @@ function isTownLevel()
 	end
 end
 
+function freezesWhileTalking()
+	local d = leveldata.GetData();
+	if(d) then
+		if  (d.TalkTime ~= nil)  then  
+			return false
+		else
+			return not isTownLevel();
+		end
+	else
+		return not isTownLevel();
+	end
+end
+
 function isHubLevel()
 	local w = leveldata.GetWorldInfo(10);
 	local d = leveldata.GetData();
@@ -183,7 +196,7 @@ local completion = {};
 
 local worlds = {};
 
-local keywords = {"name","author","type","exit","secret","raocoins","chars","filters","peng","card"}
+local keywords = {"name","author","type","talktime","exit","secret","raocoins","chars","filters","peng","card"}
 
 local function split(s, x)
 	local r = {};
@@ -202,6 +215,11 @@ end
 local function parseType(s)
 	s = string.lower(s);
 	return typemap[s];
+end
+
+local function parseTalkTime(s)
+	s = string.lower(s);
+	return s;
 end
 
 local function parseExit(s)
@@ -325,6 +343,8 @@ local function parseFile(f, fname)
 						dat.Author = kv[2];
 					elseif(kv[1] == "type") then
 						dat.Type = parseType(kv[2]);
+					elseif(kv[1] == "talktime") then
+						dat.TalkTime = parseTalkTime(kv[2]);
 					elseif(kv[1] == "exit") then
 						dat.Exit = parseExit(kv[2]);
 					elseif(kv[1] == "secret") then
@@ -553,6 +573,18 @@ end
 if(not isOverworld) then
 	local function checkWarp(data)
 		return type(data) == "table" and player:mem(0x15E, FIELD_WORD) == data[1];
+	end
+	
+	function leveldata.clearLevel(fromSecret)
+		local name = string.sub(Level.filename(), 0, -5);
+		local data = lvl[name];
+		if(data) then
+			if(fromSecret) then
+				SaveData.completion[name].Secret = true;
+			else
+				SaveData.completion[name].Exit = true;
+			end
+		end
 	end
 
 	function leveldata.onExitLevel()

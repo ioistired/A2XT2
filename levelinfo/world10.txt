@@ -6,7 +6,7 @@ LEVEL:hub
 LEVEL:Enjl-RETCON
 	Name=R.E.T.C.O.N.
 	Author=7NameSam
-	Type=EOW
+	Type=LEVEL
 	Exit=LEEK
-	Chars=DIR
+	Chars=DIRKSB
 	Raocoins=false
