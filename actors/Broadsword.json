@@ -1,0 +1,40 @@
+{
+	"general" : {
+		"npc" : 948,
+		"xScale" : 2
+	},
+
+	"gfx" : {
+		"sheet" : "graphics/actors/anmx_broadsword.png",
+		"columns" : 6,
+		"rows" : 5
+	},
+
+	"sequences" : 
+	{
+		"default" : {
+			"idle" : "1",
+			"walk" : "8,9",
+			"run" : "8,9",
+			"jump" : "17",
+			"fall" : "19",
+			"jump-sword" : "18",
+			"fall-sword" : "20",
+			"spin" : "26,27,28,29",
+			"startled" : "6",
+			"happy" : "2",
+			"angry" : "30",
+			"sad" : "3",
+			"duck" : "4",
+			"onward" : "5",
+			"dead" : "7",
+			"preattack" : "10,11",
+			"attack1" : "12,13,14",
+			"attack2" : "15,16",
+			"diagstab" : "20",
+			"downstab" : "23",
+			"diagenergy" : "21,22",
+			"downenergy" : "24,25"
+		}
+	}
+}
