@@ -873,10 +873,15 @@ do
 			},
 			idle = {
 				onStart = function(self, actor)
-
 					-- Set the animation state and speed
 					actor.gfx.speed = 1
-					actor.gfx:attemptStates ({actor.cachedPose, "idle", "walk", "run"}, {resetTimer=true, commands=true, name=actor.name, source="onStart of "..actor.state})
+					local t;
+					if(actor.cachedPose == nil) then
+						t = {"idle", "walk", "run"};
+					else
+						t = {actor.cachedPose, "idle", "walk", "run"};
+					end
+					actor.gfx:attemptStates (t, {resetTimer=true, commands=true, name=actor.name, source="onStart of "..actor.state})
 				end,
 				onTick = function(self, actor)
 					-- Switch to walking

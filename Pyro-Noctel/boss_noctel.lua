@@ -5,14 +5,15 @@ local message = API.load("a2xt_message");
 local cman = API.load("cameraman");
 local pnpc = API.load("pnpc");
 local imagic = API.load("imagic");
+local colliders = API.load("colliders");
 local checkpoints = API.load("checkpoints");
 
 local boss = API.load("a2xt_boss");
 
-boss.SuperTitle = "Grand High Ingoopinator"
+boss.SuperTitle = "Grand High Ingoopitor"
 boss.Name = "Noctel"
 
-boss.MaxHP = 10;
+boss.MaxHP = 15;
 boss.TitleDisplayTime = 160;
 
 actors.groundY = -200192;
@@ -41,13 +42,67 @@ local function chooseText(demo, iris, kood, raocow, sheath)
 	end
 end
 
+local STATE_DEFAULT = 0;
+local STATE_SPIN = 1;
+
+local bossState = STATE_DEFAULT;
+
 local capeimg = Graphics.loadImage("cape.png");
 local capeObj = nil;
+
+local function attack_move()
+	ACTOR_NOCTEL:Jump{strength=4};
+	eventu.waitSeconds(0.5);
+	ACTOR_NOCTEL:Jump{strength=4};
+	eventu.waitSeconds(0.5);
+	ACTOR_NOCTEL:Jump{strength=4};
+	eventu.waitSeconds(0.1);	
+	ACTOR_NOCTEL:Pose("spin");
+	bossState = STATE_SPIN;
+	if(player.x < ACTOR_NOCTEL.x) then
+		ACTOR_NOCTEL.speedX = -8;
+	else
+		ACTOR_NOCTEL.speedX = 8;
+	end
+	
+	while(true) do
+		ACTOR_NOCTEL:Pose("spin");
+		if(ACTOR_NOCTEL.x <= -200000+32) then
+			ACTOR_NOCTEL.speedX = 8;
+		elseif(ACTOR_NOCTEL.x >= -199232) then
+			ACTOR_NOCTEL.speedX = -8;
+		end
+		eventu.waitFrames(0)
+	end
+end
+
+local function bossLoop()
+	eventu.waitSeconds(0.5);
+	ACTOR_NOCTEL:Jump{strength=8};
+	
+	local statemap = 4;
+	while(statemap > 0) do
+		ACTOR_NOCTEL.direction = DIR_LEFT;
+		ACTOR_NOCTEL.x = ACTOR_NOCTEL.x + 2.3;
+		eventu.waitFrames(0);
+		if(ACTOR_NOCTEL.gfx.state ~= "jump" and ACTOR_NOCTEL.gfx.state ~= "fall") then
+			statemap = statemap-1;
+		else
+			statemap = 4;
+		end
+	end
+	
+	eventu.waitSeconds(1);
+	attack_move();
+end
 
 local function cor_intro()
 	local p = actors.Player.ToActor();
 	actors.ToActors {ACTOR_NOCTEL}
 	ACTOR_NOCTEL.direction = DIR_RIGHT
+	local seqs = ACTOR_NOCTEL.sequences.processed.default;
+	seqs.idle = seqs.idleCape;
+	seqs.walk = seqs.walkCape;
 	
 	local cam = cman.playerCam[1]
 	cam.targets={}
@@ -57,6 +112,7 @@ local function cor_intro()
 	cam.y = camy;
 	
 	playMusic(1)
+	ACTOR_NOCTEL:Pose("idle1")
 	
 	cam:Queue{time=0.5, zoom=1.1, x = camx, y = camy}
 	
@@ -126,9 +182,12 @@ local function cor_intro()
 	ACTOR_NOCTEL.gfx.speed = 10;
 	ACTOR_NOCTEL:Talk{text = "En garde!"}
 	eventu.waitSeconds(0.5);
-	ACTOR_NOCTEL:Pose("idle2")
+	ACTOR_NOCTEL:Jump{strength = 4}
+	seqs.idle = seqs.idleDef;
+	seqs.walk = seqs.walkDef;
 	capeObj = imagic.Create{primitive = imagic.TYPE_BOX, texture = capeimg, width = 32, height = 32, x = ACTOR_NOCTEL.x, y = ACTOR_NOCTEL.y-48, scene=true}
 	ACTOR_NOCTEL.gfx.speed = s;
+	eventu.waitSeconds(0.5);
 	message.waitMessageEnd()
 	cam:Queue{time=0.5, zoom=1, x = camx, y = camy}
 	scene.endScene();
@@ -139,18 +198,19 @@ local function cor_intro()
 	cp:collect();
 	
 	boss.Start(false);
+		
+	eventu.run(bossLoop);
 end
 
-local function cor_introCheckpoint()
+local function introCheckpoint()
 	actors.ToActors {ACTOR_NOCTEL}
 	ACTOR_NOCTEL.direction = DIR_LEFT
 	ACTOR_NOCTEL.x = ACTOR_NOCTEL.x-128
 	actors.Player:BecomePlayer();
-	ACTOR_NOCTEL.gfx.frame = 5
-	eventu.waitFrames(2);
-	ACTOR_NOCTEL:Pose("idle2")
 	
 	boss.Start(true);
+		
+	eventu.run(bossLoop);
 end
 
 local bossBegun = false;
@@ -160,7 +220,7 @@ function bossAPI.Begin(fromCheckpoint)
 		registerEvent(bossAPI, "onDraw");
 		
 		if(fromCheckpoint) then
-			eventu.run(cor_introCheckpoint);
+			introCheckpoint();
 		else
 			scene.startScene{scene=cor_intro}
 		end
@@ -181,6 +241,20 @@ function bossAPI.onTick()
 		capeObj:rotate(-1);
 		if(capeObj.x > -199200) then
 			capeObj = nil;
+		end
+	end
+	
+	if(boss.Active) then
+		if(colliders.bounce(player,ACTOR_NOCTEL.collider)) then
+			colliders.bounceResponse(player);
+			
+			if(boss.isReady()) then
+				if(bossState == STATE_DEFAULT) then
+					boss.Damage(1);
+				end
+			end
+		elseif(colliders.collide(player, ACTOR_NOCTEL.collider)) then
+			player:harm()
 		end
 	end
 end
