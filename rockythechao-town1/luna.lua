@@ -37,6 +37,8 @@ local parallaxFg = paralx2.Background(1,
   {img=Graphics.loadImage("fgGrass.png"),        depth = -40, priority = -2,   alignY = paralx2.align.BOTTOM, x = 0,    y = 72, repeatX = true});
 parallaxFg.section = 0;
 
+parallaxFg.fillColor = Color.alphablack;
+
 
 
 --*************************

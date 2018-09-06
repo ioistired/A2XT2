@@ -362,7 +362,7 @@ do  -- metamethods
 			local specialDefs = {
 			                     x      = args.x      or  current.x + currentAdd.x,
 			                     y      = args.y      or  current.y + currentAdd.y,
-			                     z      = args.z      or  -1,
+			                     z      = args.z      or  -25,
 			                     state  = args.state  or  "walk",
 			                     direction = args.direction  or  current.direction,
 			                     bounds = newBounds,
