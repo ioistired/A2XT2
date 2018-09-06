@@ -52,5 +52,12 @@ LEVEL:Pyro and rockythechao-Demo vs the Goopinati
 	Name=Demo vs. the Goopinati
 	Author=Pyro & rockythechao
 	Type=LEVEL
-	Exit=LEEK
+	Exit=JAR
 	Raocoins=true
+	Chars=DIRK
+LEVEL:Pyro-Noctel
+	Name=Noctel
+	Author=Pyro
+	Type=EOW
+	Exit=LEEK
+	Chars=DIRK

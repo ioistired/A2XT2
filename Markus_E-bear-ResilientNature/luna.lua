@@ -8,7 +8,7 @@ function onStart()
 	leaves.enabled = true;
 end
 
-function onCameraUpdate()
+function onCameraDraw()
     leaves:Draw();
 end
 

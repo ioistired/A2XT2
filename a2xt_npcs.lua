@@ -2303,5 +2303,13 @@ end
 
 
 
+local noctel = npcManager.setNpcSettings(table.join(
+				 {id = 961,
+				  gfxheight = 56, 
+				  gfxwidth = 32, 
+				  width = 24, 
+				  height = 48, },
+				  defaults))
+
 
 return friendlies

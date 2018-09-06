@@ -433,6 +433,8 @@ do
 				self ()
 			end
 		end
+		
+		return self.objects.current;
 	end
 
 	function Namespace:BecomePlayer () -- Changes the current object into the player, changing player.character accordingly
@@ -947,13 +949,13 @@ end
 --*************************************
 a2xt_actor.Player = {
 	ToActor = function(self)
-		a2xt_actor[CHARACTER_NAME[player.character]]:ToActor()
+		return a2xt_actor[CHARACTER_NAME[player.character]]:ToActor()
 	end,
 	BecomePlayer = function(self)
-		a2xt_actor[CHARACTER_NAME[player.character]]:BecomePlayer()
+		return a2xt_actor[CHARACTER_NAME[player.character]]:BecomePlayer()
 	end,
 	BecomeNPC = function(self)
-		a2xt_actor[CHARACTER_NAME[player.character]]:BecomeNPC()
+		return a2xt_actor[CHARACTER_NAME[player.character]]:BecomeNPC()
 	end
 }
 

@@ -53353,7 +53353,7 @@
 -1
 151
 #FALSE#
-"{key=sign1, name=Sign, verb=Read, scene=signread4}"
+"Finally, a way to keep intruders out! We've invented a special dotted barrier that only us Goopas can get through.<page>Unfortunately, they're hilariously expensive. Still, though. MWAHAHAHA."
 #TRUE#
 #FALSE#
 #FALSE#
@@ -54242,7 +54242,7 @@
 -1
 151
 #FALSE#
-"{key=sign1, name=Sign, verb=Read, scene=signread3}"
+"We've successfully made a Goopa shell that splits into more Goopas when it hits the ground. Our armies are destined to be ENDLESS!"
 #TRUE#
 #FALSE#
 #FALSE#
@@ -54821,7 +54821,7 @@
 -1
 151
 #FALSE#
-"{key=sign1, name=Sign, verb=Read, scene=signread2}"
+"Another experimental success. We've made a sort of vertical wrapping field. How this physically even works, we still don't know.<page>For reference, members - the fields are where the arrows are."
 #TRUE#
 #FALSE#
 #FALSE#
@@ -55710,7 +55710,7 @@
 -1
 151
 #FALSE#
-"{key=sign1, name=Sign, verb=Read, scene=signread1}"
+"We've been doing some experiments on the Goopas lately. So far, we've created a Goopa that ignores the laws of gravity.<page>Further tests will be conducted."
 #TRUE#
 #FALSE#
 #FALSE#
@@ -56228,15 +56228,15 @@
 #FALSE#
 -96752
 -100128
--79920
--80224
+-96752
+-100128
 1
 1
 2
-""
+"Pyro-Noctel.lvl"
 0
 #FALSE#
-#FALSE#
+#TRUE#
 -1
 -1
 0
