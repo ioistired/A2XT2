@@ -793,7 +793,12 @@ do
 			setProps.rows = config.frames * (config.framestyle+1)
 			setProps.columns = 1
 			setProps.sheet = Graphics.sprites.npc[inst.npcId].img
-
+			
+			--TEMP FIX for "sheet cannot be nil" bug
+			if(setProps.sheet == nil) then
+				setProps.sheet = Graphics.loadImage(Misc.resolveFile("npc-"..inst.npcId..".png") or Misc.resolveFile("graphics/npc/npc-"..inst.npcId..".png"))
+			end
+			
 			aArgs.scale = 1
 
 		else
