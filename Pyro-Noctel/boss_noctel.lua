@@ -190,8 +190,8 @@ local function cor_intro()
 	eventu.waitSeconds(0.5);
 	message.waitMessageEnd()
 	cam:Queue{time=0.5, zoom=1, x = camx, y = camy}
-	scene.endScene();
 	eventu.waitSeconds(0.5);
+	scene.endScene();
 	actors.Player:BecomePlayer();
 	
 	playMusic(2)
