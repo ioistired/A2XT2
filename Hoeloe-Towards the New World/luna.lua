@@ -105,7 +105,7 @@ function onDraw()
 	if(snowOffset == 2 and Level.winState() == 0 and maxx > -185920) then
 		Level.winState(1);
 		Audio.SeizeStream(0);
-		Audio.MusicStopFadeOut(26000);
+		Audio.MusicStopFadeOut(14000);
 		Misc.npcToCoins()
 	end
 	
