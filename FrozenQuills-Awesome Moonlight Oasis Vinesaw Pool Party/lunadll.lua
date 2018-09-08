@@ -1,4 +1,3 @@
-
 local colliders = API.load("colliders");
 local hit = false;
 local angle = 0;
@@ -11,10 +10,9 @@ local up = 400;
 local down = 800 - up;
 local speed = 1.4;
 
+local textblox = API.load("textblox");
+textblox.npcPresets[156] = textblox.PRESET_SIGN
 
-function onLoad()
-
-end
 
 function setNpcSpeed(npcid, speed)
    local p = mem(0x00b25c18, FIELD_DWORD) -- Get the pointer to the NPC speed array
@@ -28,90 +26,40 @@ local green = Graphics.loadImage("greenlights.png");
 local yellow = Graphics.loadImage("yellowlights.png");
 local interval = 200;
 
-function onLoopSection0(asdf)
-  local s = tt % interval;
-  if (s < interval/4) then
-    Graphics.drawImage(blue,0,0,0.6);
-  elseif s >= interval/4 and s < interval/2 then
-    Graphics.drawImage(yellow,0,0,0.6);
-  elseif s >= interval/2 and s < (interval*3)/4 then
-    Graphics.drawImage(green,0,0,0.6);
-  else
-    Graphics.drawImage(red,0,0,0.6);
-  end
-  tt = tt + 1;
-  if tt >= 1000 then
-    tt = 0;
-  end
+local lightsVal = 0;
+
+function onTick()
+	if(player.section == 0 or player.section == 1 or player.section == 4 or player.section == 5) then
+		tt = tt + 1;
+		if tt >= 1000 then
+			tt = 0;
+		end
+	end
 end
 
 local maxop = 0.6;
 local maxheight = -180000;
 local minheight = -179808;
-function onLoopSection1(asdf)
-  local s = tt % interval;
-  local height = player.y;
-  
-  if height < maxheight then
-    height = maxheight;
-  end
-  if height > minheight then
-    height = minheight;
-  end
-  local op = maxop * (height-minheight) / (maxheight - minheight);
-  if (s < interval/4) then
-    Graphics.drawImage(blue,0,0,op);
-  elseif s >= interval/4 and s < interval/2 then
-    Graphics.drawImage(yellow,0,0,op);
-  elseif s >= interval/2 and s < (interval*3)/4 then
-    Graphics.drawImage(green,0,0,op);
-  else
-    Graphics.drawImage(red,0,0,op);
-  end
-  tt = tt + 1;
-  if tt >= 1000 then
-    tt = 0;
-  end
-end
 
-function onLoopSection4(asdf)
-  local s = tt % interval;
-  if (s < interval/4) then
-    Graphics.drawImage(blue,0,0,0.6);
-  elseif s >= interval/4 and s < interval/2 then
-    Graphics.drawImage(yellow,0,0,0.6);
-  elseif s >= interval/2 and s < (interval*3)/4 then
-    Graphics.drawImage(green,0,0,0.6);
-  else
-    Graphics.drawImage(red,0,0,0.6);
-  end
-  tt = tt + 1;
-  if tt >= 1000 then
-    tt = 0;
-  end
-end
-
-function onLoopSection5(asdf)
-  local s = tt % interval;
-  if (s < interval/4) then
-    Graphics.drawImage(blue,0,0,0.6);
-  elseif s >= interval/4 and s < interval/2 then
-    Graphics.drawImage(yellow,0,0,0.6);
-  elseif s >= interval/2 and s < (interval*3)/4 then
-    Graphics.drawImage(green,0,0,0.6);
-  else
-    Graphics.drawImage(red,0,0,0.6);
-  end
-  tt = tt + 1;
-  if tt >= 1000 then
-    tt = 0;
-  end
-end
-
-function onKeyUp(key, plIndex)
-
+function onDraw()
+	if(player.section == 0 or player.section == 1 or player.section == 4 or player.section == 5) then
+		local s = tt % interval;
+		local op = maxop;
+		
+		if(player.section == 1) then 
+			
+			local height = math.clamp(player.y, maxheight, minheight);
+			op = maxop * (height-minheight) / (maxheight - minheight);
+		end
+		
+		if (s < interval/4) then
+			Graphics.drawImage(blue,0,0,op);
+		elseif s >= interval/4 and s < interval/2 then
+			Graphics.drawImage(yellow,0,0,op);
+		elseif s >= interval/2 and s < (interval*3)/4 then
+			Graphics.drawImage(green,0,0,op);
+		else
+			Graphics.drawImage(red,0,0,op);
+		end
 	end
-	
-function onKeyDown(key, plIndex)
-
 end

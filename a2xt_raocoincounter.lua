@@ -2,6 +2,7 @@ local pnpc = API.load("pnpc");
 local checkpoints = API.load("checkpoints");
 local settings = API.load("a2xt_settings");
 local colliders = API.load("colliders");
+local npcManager = API.load("npcmanager");
 
 local rc = {};
 
@@ -50,7 +51,7 @@ end
 function rc.onNPCKill(event, npc, reason)
 	if(npc.id == 192) then
 		checkpoints.onCollect(npc,player);
-	elseif(npc.id == 274 and reason == 9 and (colliders.collide(player,npc) or colliders.speedCollide(player,npc))) then
+	elseif(npc.id == 274 and reason == 9 and (colliders.collide(player,npc) or colliders.speedCollide(player,npc) or npcManager.collected(npc, reason))) then
 			raocoinCount = raocoinCount + 1;
 			
 			rc.local_counter = rc.local_counter + 1;	

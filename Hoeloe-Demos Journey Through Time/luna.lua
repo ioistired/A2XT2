@@ -32,13 +32,13 @@ function onTick()
 		wasInRange = true;
 		
 		if(spikescounter == 0) then
-			playSFX("SpikesDown.wav");
+			playSFX("SpikesDown.ogg");
 		elseif(spikescounter == 90) then
-			playSFX("SpikesDown.wav");
+			playSFX("SpikesDown.ogg");
 		elseif(spikescounter == 202) then
-			playSFX("SpikesUp.wav");
+			playSFX("SpikesUp.ogg");
 		elseif(spikescounter == 292) then
-			playSFX("SpikesUp.wav");
+			playSFX("SpikesUp.ogg");
 		end
 		
 		
