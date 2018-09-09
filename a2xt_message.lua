@@ -869,7 +869,7 @@ function a2xt_message.waitMessagePage(message, page)
 
 	return eventu.waitSignal("_messageDone")
 end
-function a2xt_message.waitMessageEnd(message)
+function a2xt_message.waitMessageEnd(message, canResumeWhilePaused)
 	if  message == nil  then
 		message = mostRecentMessage
 	end
@@ -882,7 +882,7 @@ function a2xt_message.waitMessageEnd(message)
 				messageStillExists = not message.deleteMe
 			end
 
-			eventu.waitFrames(0)
+			eventu.waitFrames(0, canResumeWhilePaused)
 		end
 		eventu.signal("_messageEnd")
 	end)

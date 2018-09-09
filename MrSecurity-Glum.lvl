@@ -12,7 +12,7 @@
 30
 #FALSE#
 #FALSE#
-"MrSecurity-Glum\HC91047.hes|72"
+"MrSecurity-Glum\17 - Labyrinth 2.ogg"
 -180000
 -183360
 -180000
@@ -24,7 +24,7 @@
 30
 #FALSE#
 #FALSE#
-"MrSecurity-Glum\HC91047.hes|72"
+"MrSecurity-Glum\17 - Labyrinth 2.ogg"
 -160000
 -160600
 -160000
@@ -36,7 +36,7 @@
 11
 #FALSE#
 #FALSE#
-"MrSecurity-Glum\HC91047.hes|64"
+"MrSecurity-Glum\09 - Town 4.ogg"
 -140000
 -140600
 -140000
@@ -48,7 +48,7 @@
 11
 #FALSE#
 #FALSE#
-"MrSecurity-Glum\HC91047.hes|60"
+"MrSecurity-Glum\05 - House.ogg"
 -120000
 -120600
 -120000
@@ -60,7 +60,7 @@
 11
 #FALSE#
 #FALSE#
-"MrSecurity-Glum\HC91047.hes|59"
+"MrSecurity-Glum\04 - Home.ogg"
 -100000
 -100600
 -100000
@@ -72,7 +72,7 @@
 30
 #FALSE#
 #FALSE#
-"MrSecurity-Glum\HC91047.hes|72"
+"MrSecurity-Glum\17 - Labyrinth 2.ogg"
 -80000
 -81920
 -80000
@@ -84,7 +84,7 @@
 30
 #FALSE#
 #FALSE#
-"MrSecurity-Glum\HC91047.hes|72"
+"MrSecurity-Glum\17 - Labyrinth 2.ogg"
 -60000
 -60600
 -60000
@@ -253,8 +253,8 @@
 #FALSE#
 #FALSE#
 ""
--199640
--200180
+-199676
+-200182
 24
 54
 -199834
@@ -14378,7 +14378,7 @@
 32
 32
 88
-1158
+1985
 #FALSE#
 #FALSE#
 "Default"
@@ -70939,21 +70939,6 @@
 ""
 ""
 ""
--99840
--100128
--1
-192
-#FALSE#
-""
-#FALSE#
-#FALSE#
-#FALSE#
-"Default"
-""
-""
-""
-""
-""
 -98496
 -100128
 -1
@@ -72683,6 +72668,21 @@
 ""
 ""
 ""
+-99840
+-100128
+-1
+400
+#FALSE#
+""
+#FALSE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
 "next"
 -196576
 -200160
@@ -73755,7 +73755,7 @@
 #FALSE#
 #TRUE#
 "Cruise, Right then left"
-.5
+0.5
 0
 0
 0
@@ -74181,7 +74181,7 @@
 #FALSE#
 #FALSE#
 "Cruise, Right then left"
--.5
+-0.5
 0
 0
 0
