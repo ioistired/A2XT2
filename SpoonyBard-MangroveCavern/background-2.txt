@@ -1,0 +1,4 @@
+frames=4
+framespeed=10
+nogravity=1
+priority=-80

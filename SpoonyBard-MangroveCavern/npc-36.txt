@@ -1,3 +1,0 @@
-frames=4
-framestyle=0
-nogravity=1
