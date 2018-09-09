@@ -3,3 +3,4 @@ gfxheight=96
 width=64
 height=96
 framestyle=0
+frames=1
