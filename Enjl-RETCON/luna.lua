@@ -120,7 +120,6 @@ end
 
 
 local function openingCutscene()
-	--[[
 	for i=1, 65 do
 		player.rightKeyPressing = true
 		player.leftKeyPressing = false
@@ -142,7 +141,6 @@ local function openingCutscene()
 	intercom.queueMessage{icon=icon_demo, frames=2, text="Roger."}
 	intercom.queueMessage{icon=icon_ub, frames=2, text="Roger."}
 	intercom.queueMessage{icon=icon_iris, frames=2, text="Alfred."}
-	--]]
 end
 
 function onStart()
@@ -151,12 +149,13 @@ function onStart()
 	else
 		inputs.locked[1].all = false
 	end
-	randomiseTileset()
+	--randomiseTileset()
 	
 	for k,v in ipairs(NPC.get()) do
 		pnpc.wrap(v)
 	end
 end
+
 
 local function drawMonitor(id, dir)
 	local v = secondaryCharacterTable[id]
@@ -201,6 +200,7 @@ local function drawMonitor(id, dir)
 	                color={colSlider,0,0,v.bufferTimer * v.bufferTimer}
 	}
 end
+
 
 local GM_FRAME = readmem(0x00B2BEA0, FIELD_DWORD)
 local function get_block_frame(id)
