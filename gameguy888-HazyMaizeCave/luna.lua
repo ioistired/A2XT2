@@ -24,6 +24,10 @@ function onDraw()
 		c = Color.lerpHSV(barCols[2], barCols[3], (t-0.5)*2);
 	end
 	
+	if(airmeter > 1950) then
+		c = Color.white;
+	end
+	
 	if(Graphics.isHudActivated()) then
 		imagic.bar{x = 400, y = 96, width = 160, height=12, percent = t, align = imagic.ALIGN_CENTRE, texture=barImg, color = c}
 	end
@@ -75,7 +79,6 @@ local nocornColliders = {
 						
 						
 function onTick()
-
 	liftCollider.x = liftCollider.x + lift2Layer.speedX;
 
 	if(player:mem(0x13E, FIELD_WORD) == 0) then
@@ -227,10 +230,10 @@ function onNPCKill(eventObj, killedNPC, killReason)
      --Check if the NPC is on screen, otherwise it must have despawned
         if (killedNPC:mem(0x12A, FIELD_WORD) > 0 and killedNPC:mem(0x138, FIELD_WORD) ~= 2) then
 			
-			if(airIDs[killedNPC.id] ~= nil) then
+			if(airIDs[killedNPC.id] ~= nil and airmeter < 1950) then
 				airmeter = airmeter + airIDs[killedNPC.id];
 				--Cap air meter unless we just got a moon
-				if(killedNPC ~= 188) then
+				if(killedNPC.id ~= 188) then
 					airmeter = math.min(airmeter, 1950);
 				else
 					airmeter = math.min(airmeter, 5850);
