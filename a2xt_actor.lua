@@ -232,7 +232,9 @@ do
 			emote[icon](self)
 		end,
 
-		Pose = function (self, pose)
+		Pose = function (self, pose, priority)
+			if  priority == nil  then  priority = 1;  end;
+
 			local isPlayer = type(self) == "Player"
 			local isNpc = self.ai1 ~= nil
 			local isActor = not isPlayer  and  not isNpc
@@ -241,9 +243,13 @@ do
 				--Text.dialog("POSING: "..pose)
 				self.cachedPose = pose
 				self.gfx:clearQueue ()
-				self.gfx:startState {state=pose, force=true, resetTimer=true, commands=true, source="POSE", name=self.name}
+				self.gfx:startState {state=pose, force=true, resetTimer=true, commands=true, source="POSE", name=self.name, priority=priority}
 				--self.gfx:freeze()
 			end
+		end,
+
+		Unpose = function (self)
+			self.gfx.animPriority = -1
 		end,
 
 		Ground = function (self)
@@ -513,7 +519,7 @@ do
 		end
 	end
 
-	function Namespace:Remove () -- removes the object from the 
+	function Namespace:Remove () -- removes the object from the current objects
 		if  player.character ~= self.playable.id  then
 			self.objects.current = nil
 		end
@@ -533,6 +539,38 @@ do
 		if  self.objects.npc == nil  then
 			_,self.objects.npc = self:GetNPC()
 		end
+	end
+
+	function Namespace:GetSequence (seqName) -- given the string, returns the corresponding sequence and where it's stored
+		local seqProcs = self.sequences.processed
+		local obj = self.objects.actor
+
+		local returnedPath
+		if  obj.direction == DIR_LEFT  or  obj.direction == DIR_RIGHT  then
+			if  seqProcs[obj.direction][seqName] ~= nil  then
+				returnedPath = seqProcs[obj.direction]
+			else
+				returnedPath = seqProcs.default
+			end
+		else
+			if  seqProcs[DIR_LEFT][seqName] ~= nil  then
+				returnedPath = seqProcs[DIR_LEFT]
+			elseif  seqProcs[DIR_RIGHT][seqName] ~= nil  then
+				returnedPath = seqProcs[DIR_RIGHT]
+			else
+				returnedPath = seqProcs.default
+			end
+		end
+
+		local returnedSequence = returnedPath[seqName]
+
+		return  returnedSequence, returnedPath
+	end
+
+	function Namespace:ReplaceSequence (seqStr1, seqStr2) -- replaces the sequence named seqStr1 with the sequence named seqStr2
+		local _,path1 = self:GetSequence(seqStr1)
+		local seq2 = self:GetSequence(seqStr2)
+		path1[seqStr1] = seq2
 	end
 
 
