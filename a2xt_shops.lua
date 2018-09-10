@@ -261,21 +261,32 @@ a2xt_shops.dialogue = {
                                    },
 
                        sanctuary = {
-                                    options = {"What is this place?", "Leeks are kinda dumb.", "Goodbye."},
-                                    options2 = {"I'm sorry, that was uncalled for.", "Really, though, leeks aren't all that great.", "I'm good, thanks."},
-                                    options3 = {"You're right, I'm being a jerk.", "Spring onions are better.", "Okay, fine, I'm going now."},
-                                    options3 = {"I was wrong, leeks are the best vegetable!", "Leeks still suck."},
-                                    welcome = "Welcome, dutiful sprig.  May you find respite in our humble sanctuary.",
-                                    welcome2 = "Oh, it's you again.",
+                                    options = {
+                                               {"What is this place?", "Leeks are kinda dumb.", "Goodbye."},
+                                               {"I'm sorry, that was uncalled for.", "Really, though, leeks aren't all that great.", "I'm good, thanks."},
+                                               {"You're right, I'm being a jerk.", "Spring onions are better.", "Okay, fine, I'm going now."},
+                                               {"I was wrong, leeks are the best vegetable!", "Leeks still suck.", "Later, chumpatroid."}
+                                              },
+                                    welcome = {
+                                               "Welcome, dutiful sprig.  May you find respite in our humble sanctuary.",
+                                               "Welcome, misguided one.  May our humble sanctuary help guide you back to the truth.",
+                                               "Oh, it's you again.",
+                                               "You have some nerve showing your face again in this sanctuary, onion-lover."},
                                     about = "This temple was built to honor and commune with the one true Goddess, the wise and benevolent Lady Leek.<page>In appreciation of our reverence, the Lady extends Her divine aid to any who may need it.  With Her all-seeing eye and ever-present roots, she can reveal the whereabouts of any and all items you may seek.<page>She's also an avid advocate of card collecting, if you're into that stuff.<page>If you have need of Her insight, stand upon the pedestal and let your mind and spirit bask in Her antioxidating radiance.",
-                                    insult = "Why, I never!  The sheer <tremble>audacity</tremble> to utter such blasphemy in these hallowed halls!<page>*deep breath*<page>Forgive me for my  lapse in decorum.<page>It seems you have lost your way.  But fear not, wayward child of the stalk!  If you open up your heart to the Goddess and renounce your heresy, I am sure she will welcome you back with open arms.",
-                                    insult2 = "Again with the sinful slander!<page>If you cannot stay that wicked tongue then kindly take your leave of this sacred place, lest your vile words distress Her leafy goodness!",
-                                    insult3 = "Oh, I see how it is!  You're one of those scismatic heathens!<page>You'll not defile this holy place with your false gods, you barbarian!  Begone at once!",
-                                    apology = "A wise decision.  Reflect upon your mistakes and grow from them, young one. Embrace Her care and you will surely find peace.<page>And further know that, should you lose your way again, the Lady will always forgive you if you choose to accept Her help.",
-                                    apology2 = "I commend you for finally being honest with yourself and accepting Her heavenly truth.  By renouncing the deplorable sacrilege of the Spring Onion, you are now on your way to redemption.<page>It will not be easy atoning for your sins, but as long as you continue to cleanse your soul with the nutrients of virtue, you too shall find true enlightenment.",
-                                    goodbye = "Farewell, fellow seedling.  May the almighty allium bless you with great fortune and bountiful harvest.",
-                                    goodbye2 = "So long, benighted kin.  I hope you may one day come to your senses and return to the path of righteous greenery.",
-                                    goodbye3 = "Good riddance."
+                                    insult = {
+                                              "Why, I never!  The sheer <tremble>audacity</tremble> to utter such blasphemy in these hallowed halls!<page>*deep  breath*<page>Forgive me for my lapse in decorum.<page>It seems you have lost your way.  But fear not, wayward child of the stalk!  If you open up your heart to the Goddess and renounce your heresy, I am sure She will welcome you back with open arms.",
+                                              "Again with the sinful slander!<page>If you cannot stay that wicked tongue then kindly take your leave of this sacred place, lest your vile words distress Her leafy goodness!",
+                                              "Oh, I see how it is!  You're one of those scismatic heathens!<page>You'll not defile this holy place with your false gods, you barbarian!  Begone at once!"
+                                             },
+                                    apology = {
+                                               "A wise decision.  Reflect upon your mistakes and grow from them, young one. Embrace Her care and you will surely find peace.<page>And further know that, should you lose your way again, the Lady will always forgive you if you choose to accept Her help.",
+                                               "I commend you for finally being honest with yourself and accepting Her heavenly truth.  By renouncing the deplorable sacrilege of the Spring Onion, you are now on your way to redemption.<page>It will not be easy atoning for your sins, but as long as you continue to cleanse your soul with the nutrients of virtue, you too shall find true enlightenment."
+                                              },
+                                    goodbye = {
+                                               "Farewell, fellow seedling.  May the almighty allium bless you with great fortune and bountiful harvest.",
+                                               "So long, benighted kin.  I hope you may one day come to your senses and return to the path of righteous greenery.",
+                                               "Good riddance."
+                                              }
                                    }
                       }
 
@@ -446,6 +457,87 @@ message.presetSequences.stable = function(args)
 	scene.endScene()
 end
 ]]
+
+message.presetSequences.sanctuary = function(args)
+	local talker = args.npc
+
+	local dialog   = a2xt_shops.dialogue.sanctuary
+	SaveData.sanctuaryPriest = SaveData.sanctuaryPriest  or  {heresy={[CHARACTER_DEMO]=0, [CHARACTER_IRIS]=0, [CHARACTER_KOOD]=0, [CHARACTER_RAOCOW]=0, [CHARACTER_SHEATH]=0, [CHARACTER_UNCLEBROADSWORD]=0}}
+
+	local sdata = SaveData.sanctuaryPriest
+
+	local variant = SaveData.sanctuaryPriest.heresy[player.character] + 1;
+
+	-- Begin with the prompt
+	message.promptChosen = false
+	message.showMessageBox {target=talker, type="bubble", text=dialog.welcome[math.min(variant, 4)], closeWith="prompt"}
+	message.waitMessageDone ()
+	message.showPrompt {options=dialog.options[math.min(variant,4)]}
+	message.waitPrompt ()
+
+	local choice = message.promptChoice
+	local explainOption = 1
+	local apologyOption = -1
+	local insultOption = 2
+
+	if  sdata.heresy[player.character] > 0  then
+		explainOption = -1
+		apologyOption = 1
+	end
+
+
+
+	-- Explain
+	if  choice == explainOption  then
+		message.showMessageBox {target=talker, type="bubble", text=dialog.about}
+		message.waitMessageEnd()
+
+	-- Insult to raise heresy level
+	elseif  choice == insultOption  then
+
+		if  sdata.heresy[player.character] < 3  then
+			message.showMessageBox {target=talker, type="bubble", text=dialog.insult[math.min(variant,4)]}
+			message.waitMessageEnd()
+			sdata.heresy[player.character] = sdata.heresy[player.character]+1
+		end
+		message.endMessage();
+		scene.endScene()
+
+		-- Kick the player out after enough insults
+		if  sdata.heresy[player.character] >= 3  then
+			local bounds = player.sectionObj.boundary
+			local warpsOut = Warp.getIntersectingEntrance(bounds.left, bounds.top, bounds.right, bounds.bottom)
+			if  #warpsOut > 0  then
+				local warpOut = warpsOut[1]
+
+				scene.setTint({time=0.25, color=0x000000FF})
+				eventu.waitSeconds(0.5)
+				player.x = warpOut.entranceX
+				player.y = warpOut.entranceY-24
+				player:mem(0xF2, FIELD_BOOL, true)
+				eventu.waitSeconds(0.5)
+				scene.setTint({time=0.25, color=0x00000000})
+			end
+		end
+
+	-- Apologize to reset heresy level
+	elseif  choice == apologyOption  then
+		message.showMessageBox {target=talker, type="bubble", text=dialog.apology[math.max(1, math.min(variant-2, 2))]}
+		message.waitMessageEnd()
+		sdata.heresy[player.character] = 0
+		scene.endScene()
+		message.endMessage();
+
+	-- Cancel
+	else
+		message.showMessageBox {target=talker, type="bubble", text=dialog.goodbye[math.min(variant, 3)]}
+		message.waitMessageEnd()
+		scene.endScene()
+		message.endMessage();
+	end
+end
+
+
 
 message.presetSequences.stable = function(args)
 	local talker = args.npc

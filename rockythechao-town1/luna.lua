@@ -1,17 +1,19 @@
 local particles = API.load ("particles")
 local paralx2   = API.load("paralx2");
 
-local NPCID     = API.load ("npcid")
-local npcparse  = API.load ("npcParse")
 local cman      = API.load ("cameraman")
 
+local sanctuary = API.load("a2xt_leeksanctuary");
 local costumes  = API.load ("a2xt_costumes")
 local scene     = API.load ("a2xt_scene")
 local message   = API.load ("a2xt_message")
 local eventu    = API.load ("eventu")
 
--- Configure cinematX (generate actors by parsing NPC messages, activate debug features)
---cinematX.config (true, false, true, true)
+
+
+sanctuary.world = 1;
+sanctuary.sections[4] = true
+
 
 
 for  _,v in pairs{"DEMO","IRIS","KOOD","RAOCOW","SHEATH"}  do
@@ -133,7 +135,7 @@ end
 
 message.presetSequences.lookatthatdog = function(args)
 	local talker = args.npc
-	local palnpc = npcparse.idGroups.pal[1]
+	local palnpc = NPC.get(985,-1)[1]
 	local tempTargets = cman.playerCam[1].targets
 
 	cman.playerCam[1]:Queue {time=0.5, targets={palnpc}, easeBoth=cman.EASE.QUAD}
