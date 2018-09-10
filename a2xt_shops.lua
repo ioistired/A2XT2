@@ -491,6 +491,8 @@ message.presetSequences.sanctuary = function(args)
 	if  choice == explainOption  then
 		message.showMessageBox {target=talker, type="bubble", text=dialog.about}
 		message.waitMessageEnd()
+		message.endMessage();
+		scene.endScene()
 
 	-- Insult to raise heresy level
 	elseif  choice == insultOption  then
@@ -510,8 +512,8 @@ message.presetSequences.sanctuary = function(args)
 			if  #warpsOut > 0  then
 				local warpOut = warpsOut[1]
 
-				scene.setTint({time=0.25, color=0x000000FF})
-				eventu.waitSeconds(0.5)
+				scene.setTint({time=0.125, color=0x000000FF})
+				eventu.waitSeconds(0.125)
 				player.x = warpOut.entranceX
 				player.y = warpOut.entranceY-24
 				player:mem(0xF2, FIELD_BOOL, true)
