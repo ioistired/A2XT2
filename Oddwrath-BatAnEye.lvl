@@ -253,7 +253,7 @@
 #FALSE#
 #FALSE#
 ""
--119770
+-119756
 -120150
 24
 54
@@ -42477,14 +42477,14 @@
 -1
 44
 #FALSE#
-"Big thanks to you for getting rid of these bats! Now we can finally continue haunting these mines in relative peace."
+"{event='boo'}"
 #TRUE#
 #TRUE#
 #FALSE#
 "Hard Working Boss"
 ""
 ""
-"Get to work!"
+""
 ""
 ""
 -159776
@@ -43808,21 +43808,6 @@
 -180256
 1
 33
-#FALSE#
-""
-#FALSE#
-#FALSE#
-#FALSE#
-"Default"
-""
-""
-""
-""
-""
--179712
--180256
--1
-192
 #FALSE#
 ""
 #FALSE#
@@ -46714,6 +46699,21 @@
 ""
 ""
 ""
+-179712
+-180256
+-1
+400
+#FALSE#
+""
+#FALSE#
+#FALSE#
+#FALSE#
+"Default"
+""
+""
+""
+""
+""
 "next"
 -191200
 -200192
@@ -47427,7 +47427,7 @@
 0
 0
 "Get to work!"
-"Alright everyone! We have a lot of territory to reclaim, so get moving! Go, go, go!"
+""
 0
 0
 "Hard Working Ghosts"
@@ -47619,7 +47619,7 @@
 0
 0
 0
-"Oh, that's for you."
+""
 10
 #FALSE#
 #FALSE#
@@ -47640,7 +47640,7 @@
 0
 0
 "Oh, that's for you."
-"...Oh, I almost forgot. I found this in the mine the other day. I'm a spooky ghost, so I have no use for food, but you look like you could use some greens. I'll be off now!"
+""
 0
 0
 "Hard Working Boss"
