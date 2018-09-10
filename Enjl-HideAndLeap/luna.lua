@@ -16,7 +16,7 @@ local function startAsRao()
 	holdRight = false
 	message.showMessageBox {target=player, text="I should be able to find a good hiding spot somewhere around here. I gotta hurry though, since Demo easily gets impatient when she's the seeker."}
 	message.waitMessageEnd()
-	playMusic(20)
+	playMusic(1)
 	timer.activate(400)
 	scene.endScene();
 end
@@ -27,7 +27,7 @@ local function startAsKood()
 	holdRight = false
 	message.showMessageBox {target=player, text="Of course he would destroy everything in his path! Typical. Well, I'll look for a spot in the other direction then!"}
 	message.waitMessageEnd()
-	playMusic(20)
+	playMusic(1)
 	timer.activate(320)
 	scene.endScene();
 end
@@ -38,7 +38,7 @@ local function startAsIris()
 	holdRight = false
 	message.showMessageBox {target=player, text="Kood is probably gonna just bump right into Demo. At this rate, getting the chicken wing should be easy!"}
 	message.waitMessageEnd()
-	playMusic(20)
+	playMusic(1)
 	timer.activate(240)
 	scene.endScene();
 end
