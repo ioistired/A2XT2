@@ -1,0 +1,4 @@
+gfxheight = 134
+gfxwidth = 64
+framestyle = 1
+frames = 1
