@@ -1,4 +1,10 @@
-jumphurt=1
+gfxwidth=48
+gfxheight=28
+width=24
+height=24
+frames=2
+jumphurt=0
 playerblocktop=0
-grabtop=0
-npcblocktop=0
+npcblock1=0
+noblockcollision=1
+framestyle=0
