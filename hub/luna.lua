@@ -19,6 +19,10 @@ local sanctuary = API.load("a2xt_leeksanctuary");
 sanctuary.world = 10;
 
 
+
+local TEMPURAEVENT = {JUKEBOX=1, BIRTHDAY=2, DISCO=3, OPENMIC=4, KARAOKE=5}
+
+
 Block.config[1262].frames = 4;
 
 local leekjuice = Graphics.loadImage("leek juice.png");
@@ -459,6 +463,149 @@ end
 message.presetSequences.jukebox = function(args)
 	return message.presetSequences.jukeboxNormal(args)
 end
+
+
+local tempuraText = {
+                     specials = {
+                                 [2] = "Sardine Sundae",
+                                 [3] = "Bananasnake BBQ",
+                                 [4] = "Rock Candy Apple",
+                                 [5] = "Starlight Stirfry",
+                                 [6] = "Fois Gras",                                 
+                                 [7] = "Soylent Teal",                                 
+                                 [8] = "Nimbuscake",
+                                 [9] = "Continued Causality Cocktail",
+                                 [10] = "Tilted Hotdog"              
+                                },
+                     welcome = "Welcome to the Tempura Anomaly!",
+                     about = "We get customers from throughout time and space here.  Even other realities!<page>You should stop by often, you never know who you'll bump into!",
+                     howHelp = "  How can I help you?",
+                     afterFood = "Wow, uh, you're a fast eater!  Let me know if you need anything else, okay?",
+                     anyway = "Anyway...",
+                     event = {
+                              [TEMPURAEVENT.JUKEBOX] = [[Hey, sorry the jukebox is out of order.  We're waiting for a mechanic to come repair the thing.]],
+                              [TEMPURAEVENT.BIRTHDAY] = [[Hey, happy birthday!]],
+                              [TEMPURAEVENT.OPENMIC] = [[So it's open mic night, but, uh... Tam kinda booked the entire evening for the "grand debut" of his comedy routine.  Maybe you'll be able to take the stage next time?]],
+                              [TEMPURAEVENT.DISCO] = [[Put on your platform shoes 'cause it's Disco Friday!  When history's subjective, no genre's ever truly dead, right?]],
+                              [TEMPURAEVENT.KARAOKE] = [[Hey, it's karaoke night!  You like to sing?<page>Well, uh, the microphone's currently broken so we're just playing songs on the jukebox and letting folks lipsync up on stage.  So if that's more your jam, go for it I guess!]]
+                             },
+                     options = {
+                                about = "What's this place's gimmick again?",
+                                order = "I'd like to order..."
+                               }
+                    }
+
+message.presetSequences.tempuraOwner = function(args)
+	local talker = args.npc
+	local dialog = tempuraText
+
+	local initialMessage = dialog.welcome
+
+	local aboutOptionId, specialOptionId = -1,-1,-1
+
+
+	-- Event check
+	if      (SaveData.tempuraEvent ~= nil)  then
+		initialMessage = dialog.event[SaveData.tempuraEvent]
+
+		if  (SaveData.tempuraEvent ~= TEMPURAEVENT.BIRTHDAY)  then
+			initialMessage = initialMessage .. "<page>" .. dialog.anyway .. dialog.welcome
+		end
+	end
+
+
+	-- Set up the prompt options
+	local optionsList = {}
+
+	if  SaveData.isPostgame  then
+		specialOptionId = #optionsList+1
+		optionsList[specialOptionId] = dialog.options.order
+	end
+	optionsList[#optionsList+1] = message.getCancelOption()
+
+	if  #optionsList > 1  or  SaveData.tempuraEvent == TEMPURAEVENT.BIRTHDAY  then
+		table.insert(optionsList, 1, dialog.options.about)
+		aboutOptionId = 1
+		specialOptionId = specialOptionId+1
+
+		initialMessage = initialMessage .. dialog.howHelp
+
+		local keepTalkingAndNobodyImplodes = true
+		while  keepTalkingAndNobodyImplodes  do
+			message.promptChosen = false
+			message.showMessageBox {target=talker, text=initialMessage, type="bubble", closeWith="prompt"}
+			message.waitMessageDone();
+
+			message.showPrompt{options=optionsList}
+			message.waitPrompt()
+
+			-- Always end the loop unless cancelling from the specials menu
+			keepTalkingAndNobodyImplodes = false;
+
+			-- LET'S ORDER A FOOD, HECK YEAH
+			if      (message.promptChoice == specialOptionId)  then
+				local specialsList = {}
+				for  i=2,9  do
+					specialsList[#specialsList+1] = dialog.specials[i]
+				end
+				specialsList[#specialsList+1] = "Actually, I changed my mind."
+
+				message.promptChosen = false
+				message.showPrompt{options=specialsList}
+				message.waitPrompt()
+
+				-- Cancel and return to the main prompt
+				if  (message.promptChoice == #specialsList)  then
+					keepTalkingAndNobodyImplodes = true;
+
+				-- THE HOTDOG
+				elseif  (message.promptChoice == 10)  then
+
+				-- Select a thing
+				else
+					-- Fade out
+					scene.setTint {time=0.25, color=0x000000FF}
+					eventu.waitSeconds(0.25)
+
+					-- Hide all the layers except the one corresponding to the special
+					for  i=2,9  do
+						local layer = Layer.get("tempura-w"..tostring(i))
+						if layer ~= nil  then
+							layer:hide(true)
+						end
+					end
+					local layer = Layer.get("tempura-w"..tostring(message.promptChoice+1))
+					if  layer ~= nil  then
+						layer:show(true)
+					end
+
+					-- Fade back in
+					scene.setTint {time=0.25, color=0x00000000}
+					eventu.waitSeconds(0.25)
+
+					-- RIP food
+					message.showMessageBox {target=talker, text=dialog.afterFood, type="bubble"}
+					message.waitMessageEnd();
+				end
+
+			-- Ask about the place
+			elseif  (message.promptChoice == aboutOptionId)  then
+				message.showMessageBox {target=talker, text=dialog.about, type="bubble"}
+				message.waitMessageEnd();
+			end
+		end
+
+	-- No prompt necessary, just say what the place is about
+	else
+		initialMessage = initialMessage .. "<page>" .. dialog.about
+		message.showMessageBox {target=talker, text=initialMessage, type="bubble"}
+		message.waitMessageEnd();
+	end
+
+	message.endMessage();
+	scene.endScene();
+end
+
 
 
 local retconEdges = {};
