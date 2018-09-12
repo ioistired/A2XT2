@@ -42,6 +42,7 @@ local function startAsKood()
 	message.waitMessageEnd()
 	Audio.MusicPlay()
 	timer.activate(320)
+	player.direction = -1
 	scene.endScene();
 end
 
@@ -192,7 +193,8 @@ local function endLevel()
 end
 
 function onStart()
-	local mus = Audio.MusicOpen("dont let her find you.ogg")
+	Audio.MusicOpen("dont let her find you.ogg")
+	Audio.SeizeStream(-1)
 	
 	if cp_kood.collected then
 		player:transform(2)
