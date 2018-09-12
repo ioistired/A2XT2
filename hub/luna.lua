@@ -5,6 +5,8 @@ local colliders = API.load("colliders")
 local rng = API.load("rng")
 local pblock = API.load("pblock")
 local textblox = API.load("textblox")
+local darkness = API.load("darkness")
+
 
 local leveldata = API.load("a2xt_leveldata")
 local message = API.load("a2xt_message")
@@ -27,8 +29,49 @@ local CHARBIRTHDAYS = {
 	[CHARACTER_SHEATH]={month=6, day=11}
 }
 
+local tempuraDarkness = darkness.Create{sections={8}}
+local tempuraSpotlight = darkness.Light(-40735,-40290,128,1,Color.white);
+tempuraDarkness:AddLight(tempuraSpotlight);
+tempuraDarkness.enabled = false
+
+
+
 local TEMPURAEVENT = {JUKEBOX=1, BIRTHDAY=2, DISCO=3, OPENMIC=4, KARAOKE=5}
-local TEMPURAEVENTEVENT = {"tempuraEvJukebox","tempuraEvBirthday","tempuraEvDisco","tempuraEvOpenMic","tempuraEvKaraoke"}
+local TEMPURAEVENTPROPS = {
+	{
+		event = "tempuraEvJukebox",
+		music = nil,
+		funct = nil
+	},
+	{
+		event = "tempuraEvBirthday",
+		music = nil,
+		funct = function()
+			tempuraDarkness.enabled = true
+		end
+	},
+	{
+		event = "tempuraEvDisco",
+		music = nil,
+		funct = function()
+			tempuraDarkness.enabled = true
+		end
+	},
+	{
+		event = "tempuraEvOpenMic",
+		music = nil,
+		funct = function()
+			tempuraDarkness.enabled = true
+		end
+	},
+	{
+		event = "tempuraEvKaraoke",
+		music = "caw-foundaheart.ogg",
+		funct = function()
+			tempuraDarkness.enabled = true
+		end
+	}
+}
 
 
 Block.config[1262].frames = 4;
@@ -636,6 +679,7 @@ function onStart()
 	else
 		-- Update game playtime since last visit
 		local sdata = SaveData.tempuraEvent
+		sdata.eventSeen = false
 		sdata.timeSpent = sdata.timeSpent + (lunatime.time() - sdata.lastTime)
 		sdata.lastTime = lunatime.time()
 
@@ -833,6 +877,32 @@ function onLoadSection1(playerIndex)
 	Audio.resetMciSections()
 end
 
+
+
+local function tempuraSpecialEvent(evId)
+	local props = TEMPURAEVENTPROPS[evId]
+	--Text.dialog(props)
+
+	if  props.event ~= nil  then
+		triggerEvent(props.event)
+	end
+
+	if  props.funct ~= nil  then
+		eventu.run(props.funct)
+	end
+
+	if  props.music == ""  then
+		Audio.SeizeStream(-1)
+		Audio.MusicStop()
+
+	elseif  props.music ~= nil  then
+		Audio.SeizeStream(-1)
+		Audio.MusicStop()
+		Audio.MusicOpen("../music/"..props.music)
+		Audio.MusicPlay()
+	end
+end
+
 function onLoadSection8(playerIndex)
 	local currentDate = os.date('*t')
 	local birthday = CHARBIRTHDAYS[player.character]
@@ -842,14 +912,16 @@ function onLoadSection8(playerIndex)
 	-- Trigger the birthday event if the correct day and has been at least one year since the last time
 	if  currentDate.day == birthday.day  and  currentDate.month == birthday.month  and  currentDate.year > lastParty  then
 		sdata.lastBirthday[player.character] = currentDate.year
-		triggerEvent(TEMPURAEVENTEVENT[TEMPURAEVENT.BIRTHDAY])
 		sdata.eventSeen = true
+		tempuraSpecialEvent(TEMPURAEVENT.BIRTHDAY)
 
+	-- Otherwise trigger any queued-up events
 	elseif  sdata.current ~= nil  and  sdata.eventSeen == false  then
-		triggerEvent(TEMPURAEVENTEVENT[sdata.current])
 		sdata.eventSeen = true
+		tempuraSpecialEvent(sdata.current)
 	end
 end
+
 
 
 local gearAnimTimer = 6;
@@ -1011,7 +1083,6 @@ local leekDoorColors = {0xBD0A00AA,0xBD0A00AA,0x009A35AA}
 
 
 function onDraw()
-	
 	--Phonebox door
 	if(player:mem(0x122, FIELD_WORD) == 7) then
 		for _,v in ipairs(BGO.get(141)) do
