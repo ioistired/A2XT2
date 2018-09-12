@@ -15970,7 +15970,7 @@
 -1
 27
 #FALSE#
-"Adm:Welcome to the Tempura Anomaly!<page>We get customers from throughout time and space here.  Even other realities! <page>You should stop by often, you never know who you'll bump into!"
+"{name='Adm',event='tempuraOwner'}"
 #TRUE#
 #TRUE#
 #FALSE#
@@ -18617,6 +18617,22 @@ MEET. HANDSOME GUYS. THAT. CAN. MATCH. MY VAST. INTELLECT.<page>THE CANDIDATES. 
 "pals5"
 #FALSE#
 "pals6"
+#FALSE#
+"tempura-w2"
+#FALSE#
+"tempura-w3"
+#FALSE#
+"tempura-w4"
+#FALSE#
+"tempura-w5"
+#FALSE#
+"tempura-w6"
+#FALSE#
+"tempura-w7"
+#FALSE#
+"tempura-w8"
+#FALSE#
+"tempura-w9"
 #FALSE#
 "next"
 "Level - Start"
