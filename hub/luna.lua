@@ -19,8 +19,16 @@ local sanctuary = API.load("a2xt_leeksanctuary");
 sanctuary.world = 10;
 
 
+local CHARBIRTHDAYS = {
+	[CHARACTER_DEMO]={month=3, day=10},
+	[CHARACTER_IRIS]={month=3, day=10},
+	[CHARACTER_KOOD]={month=5, day=5},
+	[CHARACTER_RAOCOW]={month=3, day=4},
+	[CHARACTER_SHEATH]={month=6, day=11}
+}
 
 local TEMPURAEVENT = {JUKEBOX=1, BIRTHDAY=2, DISCO=3, OPENMIC=4, KARAOKE=5}
+local TEMPURAEVENTEVENT = {"tempuraEvJukebox","tempuraEvBirthday","tempuraEvDisco","tempuraEvOpenMic","tempuraEvKaraoke"}
 
 
 Block.config[1262].frames = 4;
@@ -505,10 +513,10 @@ message.presetSequences.tempuraOwner = function(args)
 
 
 	-- Event check
-	if      (SaveData.tempuraEvent ~= nil)  then
-		initialMessage = dialog.event[SaveData.tempuraEvent]
+	if      (SaveData.tempuraEvent.current ~= nil)  then
+		initialMessage = dialog.event[SaveData.tempuraEvent.current]
 
-		if  (SaveData.tempuraEvent ~= TEMPURAEVENT.BIRTHDAY)  then
+		if  (SaveData.tempuraEvent.current ~= TEMPURAEVENT.BIRTHDAY)  then
 			initialMessage = initialMessage .. "<page>" .. dialog.anyway .. dialog.welcome
 		end
 	end
@@ -523,7 +531,7 @@ message.presetSequences.tempuraOwner = function(args)
 	end
 	optionsList[#optionsList+1] = message.getCancelOption()
 
-	if  #optionsList > 1  or  SaveData.tempuraEvent == TEMPURAEVENT.BIRTHDAY  then
+	if  #optionsList > 1  or  SaveData.tempuraEvent.current == TEMPURAEVENT.BIRTHDAY  then
 		table.insert(optionsList, 1, dialog.options.about)
 		aboutOptionId = 1
 		specialOptionId = specialOptionId+1
@@ -615,13 +623,38 @@ local leekDoorCounters = {};
 local gearfadeverts = {};
 local gearfadecols = {};
 
+
 function onStart()
+
+	-- Tempura Anomaly random event stuff
+	if  SaveData.tempuraEvent == nil  then  
+		SaveData.tempuraEvent = {current=nil, eventSeen=false, remaining={TEMPURAEVENT.JUKEBOX,TEMPURAEVENT.DISCO,TEMPURAEVENT.OPENMIC,TEMPURAEVENT.KARAOKE}, timeSpent=0, lastTime=lunatime.time(), lastBirthday={}}
+		for  _,v in pairs{CHARACTER_DEMO, CHARACTER_IRIS, CHARACTER_KOOD, CHARACTER_RAOCOW, CHARACTER_SHEATH}  do
+			SaveData.tempuraEvent.lastBirthday[v] = 0
+		end
+
+	else
+		-- Update game playtime since last visit
+		local sdata = SaveData.tempuraEvent
+		sdata.timeSpent = sdata.timeSpent + (lunatime.time() - sdata.lastTime)
+		sdata.lastTime = lunatime.time()
+
+		-- If the conditions are met for an event (player has played for at least X hours since the last random event ended), queue one up
+		if  sdata.current == nil  and  sdata.timeSpent > 60*60*rng.random(1,2)  then
+			local eventPos = rng.randomInt(1,#sdata.remaining)
+			sdata.current = sdata.remaining[eventPos]
+			table.remove(sdata.remaining, eventPos)
+		end
+	end
+
+	-- Auto-unlock the worlds up to this point
 	for  i=0,1  do
 		SaveData["world"..i].unlocked=true
 		SaveData["world"..i].superleek=true
 	end
 	SaveData["world2"].unlocked=true
-	
+
+	-- Leek doors
 	for _,v in ipairs(BGO.get(13, 2)) do
 		local w = Warp.getIntersectingEntrance(v.x, v.y, v.x+v.width, v.y+128)[1];
 		
@@ -630,7 +663,7 @@ function onStart()
 			table.insert(leekDoorCounters, t);
 		end
 	end
-			
+
 	--Gear fading for perspective
 	for _,v in ipairs(Block.get(1262, player.section)) do
 		if(v.layerName ~= "RETCONLift") then
@@ -798,6 +831,24 @@ end
 
 function onLoadSection1(playerIndex)
 	Audio.resetMciSections()
+end
+
+function onLoadSection8(playerIndex)
+	local currentDate = os.date('*t')
+	local birthday = CHARBIRTHDAYS[player.character]
+	local sdata = SaveData.tempuraEvent
+	local lastParty = sdata.lastBirthday[player.character]
+
+	-- Trigger the birthday event if the correct day and has been at least one year since the last time
+	if  currentDate.day == birthday.day  and  currentDate.month == birthday.month  and  currentDate.year > lastParty  then
+		sdata.lastBirthday[player.character] = currentDate.year
+		triggerEvent(TEMPURAEVENTEVENT[TEMPURAEVENT.BIRTHDAY])
+		sdata.eventSeen = true
+
+	elseif  sdata.current ~= nil  and  sdata.eventSeen == false  then
+		triggerEvent(TEMPURAEVENTEVENT[sdata.current])
+		sdata.eventSeen = true
+	end
 end
 
 
