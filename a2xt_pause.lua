@@ -79,9 +79,12 @@ local function backtohub()
 	world.playerY = 0;
 	unpause();
 	eventu.run(function() 
-						player.jumpKeyPressing = false;
-						eventu.waitFrames(0); 
-						player.jumpKeyPressing = true;
+						while(true) do
+							player.jumpKeyPressing = false;
+							eventu.waitFrames(0); 
+							player.jumpKeyPressing = true;
+							eventu.waitFrames(0); 
+						end
 				end);
 end
 
