@@ -24,8 +24,23 @@ local meanwhileImg = Graphics.loadImage("meanwhile.png")
 
 local function startAsRao()
 	player.powerup = 2
+	for i=1, 80 do
+		fadeMeanwhile = math.min(fadeMeanwhile + 0.02, 1)
+		eventu.waitFrames(1)
+	end
+	eventu.waitFrames(50)
+	fadeAmount = 1.25
+	for i=1, 15 do
+		fadeAmount = math.min(fadeAmount - 0.02, 1)
+		fadeMeanwhile = math.min(fadeMeanwhile - 0.02, 1)
+		eventu.waitFrames(1)
+	end
 	holdRight = true
-	eventu.waitFrames(65)
+	for i=1, 65 do
+		fadeAmount = math.min(fadeAmount - 0.02, 1)
+		fadeMeanwhile = math.min(fadeMeanwhile - 0.02, 1)
+		eventu.waitFrames(1)
+	end
 	holdRight = false
 	message.showMessageBox {target=player, text="I should be able to find a good hiding spot somewhere around here. I gotta hurry though, since Demo easily gets impatient when she's the seeker."}
 	message.waitMessageEnd()
@@ -205,6 +220,7 @@ function onStart()
 		scene.startScene{scene=startAsKood}
 	else
 		player:transform(4)
+		fadeAmount = 1
 		scene.startScene{scene=startAsRao}
 	end
 end
