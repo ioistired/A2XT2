@@ -30,6 +30,8 @@ local previously = Graphics.loadImage("previously.png");
 local meanwhile = Graphics.loadImage("meanwhile.png");
 local unrelated = Graphics.loadImage("unrelated.png");
 
+local logos = { Graphics.loadImage("logo_talkhaus.png"), Graphics.loadImage("logo_codehaus.png") }
+
 local flashback1 = {frames = 15, img = Graphics.loadImage("introflashback1.png"), delay = 4, [1] = 256, rows = 5, cols = 3, sfx = {[1] = "message.ogg", [8] = "boxbreak.ogg", [15] = "message.ogg"}};
 local flashback2 = {frames = 28, img = Graphics.loadImage("introflashback2.png"), delay = 4, [19] = 256, rows = 7, cols = 4, offset = -100, sfx = {[2] = "dash.ogg", [19] = "message.ogg", [20] = "jump.ogg"}};
 local flashback3 = {frames = 5, img = Graphics.loadImage("introflashback3.png"), delay = 256, rows = 3, cols = 2, sfx = {}};
@@ -469,13 +471,36 @@ local function skip_picnic()
 	
 end
 
-
-
 local hubLevel = "hub.lvl"
-function onStart()
-	mem(0xB2572A,FIELD_BOOL,false)
 
+local function cor_logos()
 
+	for _,v in ipairs(logos) do
+		local t = 0;
+		while(t < 64) do
+			t = t +1;
+			local a = t/64;
+			Graphics.drawScreen{texture = v, priority = 10, color={a,a,a,1}};
+			eventu.waitFrames(0);
+		end
+		
+		for i = 0,64 do
+			Graphics.drawScreen{texture = v, priority = 10};
+			eventu.waitFrames(0);
+		end
+		
+		while(t > 0) do
+			t = t - 1;
+			local a = t/64;
+			Graphics.drawScreen{texture = v, priority = 10, color={a,a,a,1}};
+			eventu.waitFrames(0);
+		end
+		
+		Graphics.drawScreen{priority = 10, color=Color.black};
+	end
+
+	scene.endScene();
+	
 	-- If the hub is unlocked, start there
 	if  leveldata.Visited(hubLevel)  then
 		leveldata.LoadLevel(hubLevel)
@@ -502,4 +527,11 @@ function onStart()
 	else
 		scene.startScene{scene=cor_titles, skip=skip_titles, noletterbox=true}
 	end
+end
+
+
+function onStart()
+	mem(0xB2572A,FIELD_BOOL,false)
+
+	scene.startScene{scene=cor_logos, noletterbox=true}
 end
