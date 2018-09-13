@@ -474,30 +474,32 @@ end
 local hubLevel = "hub.lvl"
 
 local function cor_logos()
-
+	Misc.pause();
+	Graphics.activateHud(false);
 	for _,v in ipairs(logos) do
 		local t = 0;
 		while(t < 64) do
 			t = t +1;
 			local a = t/64;
 			Graphics.drawScreen{texture = v, priority = 10, color={a,a,a,1}};
-			eventu.waitFrames(0);
+			eventu.waitFrames(0,true);
 		end
 		
 		for i = 0,64 do
 			Graphics.drawScreen{texture = v, priority = 10};
-			eventu.waitFrames(0);
+			eventu.waitFrames(0,true);
 		end
 		
 		while(t > 0) do
 			t = t - 1;
 			local a = t/64;
 			Graphics.drawScreen{texture = v, priority = 10, color={a,a,a,1}};
-			eventu.waitFrames(0);
+			eventu.waitFrames(0,true);
 		end
 		
 		Graphics.drawScreen{priority = 10, color=Color.black};
 	end
+	Misc.unpause();
 
 	scene.endScene();
 	
