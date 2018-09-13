@@ -4,6 +4,7 @@ local pm = API.load("playerManager")
 local leveldata = API.load("a2xt_leveldata")
 local minigame = API.load("a2xt_minigame")
 local audiomaster = API.load("audiomaster")
+local eventu = API.load("eventu")
 
 local pause = {}
 
@@ -73,8 +74,15 @@ local function gameexit()
 end
 
 local function backtohub()
-	--quitting = true;
+	quitting = true;
+	world.playerX = 0;
+	world.playerY = 0;
 	unpause();
+	eventu.run(function() 
+						player.jumpKeyPressing = false;
+						eventu.waitFrames(0); 
+						player.jumpKeyPressing = true;
+				end);
 end
 
 local function option_exitlevel()
