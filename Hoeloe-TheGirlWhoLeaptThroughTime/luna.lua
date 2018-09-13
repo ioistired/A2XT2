@@ -1,5 +1,6 @@
 local scene = API.load("a2xt_scene");
 local actors = API.load("a2xt_actor");
+local leveldata = API.load("a2xt_leveldata")
 local eventu = API.load("eventu");
 local message = API.load("a2xt_message");
 local cman = API.load("cameraman");
@@ -190,7 +191,6 @@ end
 
 
 function onStart()
-	SaveData.currentTutorial = "Hoeloe-TheGirlWhoLeaptThroughTime.lvl"
 	dissolveShader:compileFromFile(nil, "dissolve.frag")
 	portalbgShader:compileFromFile(nil, "portalbg.frag")
 	portalfgShader:compileFromFile(nil, "portalfg.frag")
@@ -221,6 +221,20 @@ local exitBox = colliders.Circle(exitpos.x, exitpos.y, 50);
 local exitsound = SFX.create{x=exitpos.x,y=exitpos.y,falloffRadius=800,sound=Misc.resolveFile("Portal.ogg")}
 local exitParticles = particles.Emitter(exitpos.x, exitpos.y, Misc.resolveFile("p_portal.ini"), 1);
 local endLevel = -1;
+
+local exitState = nil;
+
+function onExitLevel()
+	if(SaveData.currentTutorial ~= nil)  then
+		if(exitState == false) then
+			leveldata.LoadLevel(Level.filename());
+		elseif(exitState == true) then
+			SaveData.currentTutorial = "rockythechao-Retroactive Reunion.lvl";
+			Misc.saveGame();
+			leveldata.LoadLevel(SaveData.currentTutorial);
+		end
+	end
+end
 
 function onTick()
 	if(earthquakeset > 0) then
@@ -266,6 +280,14 @@ function onTick()
 			v.obj.y = v.obj.y + v.spd.y;
 			v.obj:rotate(v.rotspd);
 		end
+	end
+	
+	if(player:mem(0x13E, FIELD_WORD) > 0) then
+		exitState = false;
+	elseif(Level.winState() > 0) then
+		exitState = true;
+	else
+		exitState = nil;
 	end
 end
 

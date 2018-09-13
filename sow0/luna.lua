@@ -533,5 +533,6 @@ end
 function onStart()
 	mem(0xB2572A,FIELD_BOOL,false)
 
+	Graphics.drawScreen{priority = 10, color=Color.black};
 	scene.startScene{scene=cor_logos, noletterbox=true}
 end

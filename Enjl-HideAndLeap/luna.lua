@@ -3,6 +3,7 @@ local timer = API.load("timer")
 local checkpoints = API.load("checkpoints")
 local scene = API.load("a2xt_scene")
 local message = API.load("a2xt_message")
+local leveldata = API.load("a2xt_leveldata")
 local cman = API.load("cameraman")
 
 local cp_rao = checkpoints.create{x=-139936, y=-140256, section = 3}	
@@ -208,6 +209,9 @@ function onStart()
 	end
 end
 
+
+local exitState = nil;
+
 function onTick()
 	if holdLeft then
 		player.leftKeyPressing = true
@@ -222,6 +226,14 @@ function onTick()
 		player.runKeyPressing = false
 		player.speedX = 14
 		player.speedY = math.min(0, player.speedY)
+	end
+	
+	if(player:mem(0x13E, FIELD_WORD) > 0) then
+		exitState = false;
+	elseif(Level.winState() > 0) then
+		exitState = true;
+	else
+		exitState = nil;
 	end
 end
 
@@ -256,4 +268,16 @@ end
 
 function onLoadSection2()
 	scene.startScene{scene=raoTransition}
+end
+
+function onExitLevel()	
+	if(SaveData.currentTutorial ~= nil)  then
+		if(exitState == false) then
+			leveldata.LoadLevel(Level.filename());
+		elseif(exitState == true) then
+			SaveData.currentTutorial = "Hoeloe-TheGirlWhoLeaptThroughTime.lvl";	
+			Misc.saveGame();
+			leveldata.LoadLevel(SaveData.currentTutorial);
+		end
+	end
 end

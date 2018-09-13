@@ -476,7 +476,7 @@ function onStart()
 	mem(0xB2572A,FIELD_BOOL,false)
 
 
-	-- If the hub is unlocked, start there
+	--[[-- If the hub is unlocked, start there
 	if  leveldata.Visited(hubLevel)  then
 		leveldata.LoadLevel(hubLevel)
 
@@ -501,5 +501,10 @@ function onStart()
 	-- else start the intro cutscene
 	else
 		scene.startScene{scene=cor_titles, skip=skip_titles, noletterbox=true}
-	end
+	end]]
+	
+	SaveData.currentTutorial = nil;
+	SaveData.world1.unlocked = true;
+	Misc.saveGame();
+	Level.exit()
 end
