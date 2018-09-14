@@ -38,6 +38,7 @@ leeks.ICONS_CHAR[CHARACTER_IRIS] = Graphics.loadImage(Misc.resolveFile("graphics
 leeks.ICONS_CHAR[CHARACTER_KOOD] = Graphics.loadImage(Misc.resolveFile("graphics/HUD/filters/head_kood.png"))
 leeks.ICONS_CHAR[CHARACTER_RAOCOW] = Graphics.loadImage(Misc.resolveFile("graphics/HUD/filters/head_raocow.png"))
 leeks.ICONS_CHAR[CHARACTER_SHEATH] = Graphics.loadImage(Misc.resolveFile("graphics/HUD/filters/head_sheath.png"))
+leeks.ICONS_CHAR[CHARACTER_UNCLEBROADSWORD] = Graphics.loadImage(Misc.resolveFile("graphics/HUD/filters/head_broadsword.png"))
 
 leeks.ICONS_FILTER = {}
 
@@ -197,31 +198,33 @@ local function playSound()
 end
 
 function leeks.onInputUpdate()
-	if(leeks.current ~= nil and leeks.current.isValid) then
+	if(leeks.current ~= nil and leeks.current.isValid and not isGamePaused()) then
 	
 		if(progressAnimTimer == 0) then
 			local info = dataList;
 			
-			if(player.leftKeyPressing) then
-				if(not hitLeft) then
-					leeks.nextIndex = (leeks.currentIndex-1)%#info;
-					playSound();
-					hitLeft = true;
-					progressAnimTimer = maxAnimTimer;
+			if(#info > 1) then
+				if(player.leftKeyPressing) then
+					if(not hitLeft) then
+						leeks.nextIndex = (leeks.currentIndex-1)%#info;
+						playSound();
+						hitLeft = true;
+						progressAnimTimer = maxAnimTimer;
+					end
+				else
+					hitLeft = false;
 				end
-			else
-				hitLeft = false;
-			end
-			
-			if(player.rightKeyPressing) then
-				if(not hitRight) then
-					leeks.nextIndex = (leeks.currentIndex+1)%#info;
-					playSound();
-					hitRight = true;
-					progressAnimTimer = -maxAnimTimer;
+				
+				if(player.rightKeyPressing) then
+					if(not hitRight) then
+						leeks.nextIndex = (leeks.currentIndex+1)%#info;
+						playSound();
+						hitRight = true;
+						progressAnimTimer = -maxAnimTimer;
+					end
+				else
+					hitRight = false;
 				end
-			else
-				hitRight = false;
 			end
 		
 		end
@@ -556,6 +559,14 @@ function loadSanctuaryInfo()
 	for k,v in ipairs(dataList) do
 		local leekMax,leekCount = parseFile(v.Path..".lvl");
 		leekList[k] = {leekCount, leekMax};
+	end
+	
+	if(leeks.world == 10) then
+		for i=#dataList,1,-1 do
+			if(leveldata.GetCompletion(dataList[i].Path..".lvl") == nil) then
+				table.remove(dataList, i)
+			end
+		end
 	end
 end
 
