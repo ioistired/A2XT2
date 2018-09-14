@@ -5,6 +5,7 @@ local colliders = API.load("colliders")
 local rng = API.load("rng")
 local pblock = API.load("pblock")
 local textblox = API.load("textblox")
+local paralx = API.load("paralx2")
 local darkness = API.load("darkness")
 
 
@@ -33,7 +34,6 @@ local tempuraDarkness = darkness.Create{sections={8}}
 local tempuraSpotlight = darkness.Light(-40735,-40290,128,1,Color.white);
 tempuraDarkness:AddLight(tempuraSpotlight);
 tempuraDarkness.enabled = false
-
 
 
 local TEMPURAEVENT = {JUKEBOX=1, BIRTHDAY=2, DISCO=3, OPENMIC=4, KARAOKE=5}
@@ -668,7 +668,13 @@ local gearfadecols = {};
 
 
 function onStart()
-
+	local tempurabg = paralx.get(8);
+	tempurabg.bounds = {left=-40608, top=-40480, right=-37952, bottom=-40128}
+	
+	--Use this if we need more areas of tempura anomaly parallax
+	--[[local bg2 = tempurabg:clone();
+	bg2.bounds = {left = -36512, top = tempurabg.bounds.top, right = -35490, bottom = tempurabg.bounds.bottom }]]
+	
 	-- Tempura Anomaly random event stuff
 	if  SaveData.tempuraEvent == nil  then  
 		SaveData.tempuraEvent = {current=nil, eventSeen=false, remaining={TEMPURAEVENT.JUKEBOX,TEMPURAEVENT.DISCO,TEMPURAEVENT.OPENMIC,TEMPURAEVENT.KARAOKE}, timeSpent=0, lastTime=lunatime.time(), lastBirthday={}}
@@ -1083,6 +1089,11 @@ local leekDoorColors = {0xBD0A00AA,0xBD0A00AA,0x009A35AA}
 
 
 function onDraw()
+	--Hide vanilla background in Tempura Anomaly
+	if(player.section == 8) then
+		Graphics.drawScreen{color=Color.black, priority=-101}
+	end
+
 	--Phonebox door
 	if(player:mem(0x122, FIELD_WORD) == 7) then
 		for _,v in ipairs(BGO.get(141)) do
